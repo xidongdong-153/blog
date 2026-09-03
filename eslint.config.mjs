@@ -1,0 +1,59 @@
+import antfu from '@antfu/eslint-config'
+import eslintConfigPrettier from 'eslint-config-prettier/flat'
+
+const baseConfig = antfu({
+  ignores: [
+    'node_modules',
+    'package-lock.json',
+    'pnpm-lock.yaml',
+    'yarn.lock',
+    'dist',
+    'build',
+    '.next',
+    'out',
+    '.output',
+    '*.generated.ts',
+    '*.generated.js',
+    '*.tsbuildinfo',
+    '.env',
+    '.env.*',
+    '!.env.example',
+    'logs',
+    '*.log',
+    '.DS_Store',
+    'Thumbs.db',
+    '.vscode',
+    '.idea',
+    '*.swp',
+    '*.swo',
+    '*~',
+    '**/*.md',
+    '**/*.mdx',
+    'coverage',
+    '.nyc_output',
+    '.cache',
+    'temp',
+    'tmp',
+  ],
+  nextjs: true,
+  typescript: true,
+  formatters: false,
+  markdown: false,
+  node: false,
+  rules: {
+    'antfu/if-newline': 'off',
+    'jsdoc/check-param-names': 'off',
+    'node/prefer-global/buffer': 'off',
+    'node/prefer-global/process': 'off',
+  },
+})
+
+export default baseConfig.append(eslintConfigPrettier, {
+  files: ['**/*.{js,jsx,mjs,cjs,ts,tsx,mts,cts}'],
+  ignores: ['.next/**', 'out/**', 'build/**', 'next-env.d.ts'],
+  rules: {
+    '@typescript-eslint/no-explicit-any': 'error',
+    '@typescript-eslint/no-non-null-assertion': 'off',
+    'no-console': ['off', { allow: ['warn', 'error', 'info'] }],
+  },
+})

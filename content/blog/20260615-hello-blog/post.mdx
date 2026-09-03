@@ -1,0 +1,50 @@
+---
+title: 博客跑起来了
+description: 第一篇文章：内容约定、目录结构和这个项目接下来要做的事。
+date: 2026-06-15
+tags:
+  - 随笔
+---
+
+欢迎来到这个博客。项目参考了两个来源：架构来自 xdd/starter 的 Next.js web 应用（App Router、路由组、组件按功能内聚），内容组织来自 joye-blog 的约定（博客按文件夹、笔记按单文件）。
+
+## 内容放在哪里
+
+文章放在 `content/blog/`，每篇文章一个文件夹：
+
+```text
+content/blog/
+  20260615-hello-blog/
+    post.mdx
+```
+
+文件夹名就是 URL 里的 slug，这篇文章的地址是 `/blog/20260615-hello-blog`。
+
+笔记放在 `content/notes/`，一条笔记一个 `.md` 文件，文件名是 slug。
+
+## frontmatter 写什么
+
+文章必填 `title` 和 `date`，可选 `description`、`tags`、`draft`。`draft: true` 的文章不出现在列表和归档里。
+
+笔记多一个 `status` 字段，四个值：`in-progress`（进行中）、`incomplete`（待补充）、`ready`（已整理）、`archived`（已归档）。
+
+## 正文可以写什么
+
+MDX 语法，支持 GFM：表格、删除线、任务列表。
+
+| 语法 | 效果 |
+| ---- | ---- |
+| `~~删除~~` | ~~删除~~ |
+| `- [x]` | 任务列表 |
+
+- [x] 搭好项目骨架
+- [ ] 接入 RSS 和 sitemap
+- [ ] 接入 Giscus 评论
+
+### 三级标题也会进目录
+
+目录（TOC）从正文里的二级、三级标题生成，锚点由 rehype-slug 生成，中文标题也能跳转。
+
+## 还没实现的功能
+
+搜索、RSS、sitemap、评论、OG 图都是占位，清单在 README 的功能状态表里。
