@@ -63,7 +63,21 @@ MDX 渲染走异步 RSC（`mdx-content.tsx` 的 `compileMDX`），不需要 clie
 
 ## MDX 渲染
 
-正文渲染统一走 `MdxContent`（rehype-slug + remark-gfm），不在别处再调 `compileMDX`。目录（TOC）的锚点 id 依赖 rehype-slug 生成的 id，`src/lib/content.ts` 的 `extractHeadings` / `slugifyHeading` 与之保持一致，改任何一边都要同步另一边。
+正文渲染统一走 `MdxContent`（`src/app/(site)/_components/blog/mdx-content.tsx`），不在别处再调 `compileMDX`。
+
+- **插件链**：
+  - Remark：`remark-gfm`（表格/任务列表）、`remark-math`（数学公式）、`remark-cjk-friendly`（修复全角标点加粗）。
+  - Rehype：`rehype-slug`（标题语义 id）、`rehype-autolink-headings`（标题悬停直达锚点 `#`）、`rehype-katex`（LaTeX 渲染）、`rehype-external-links`（外链新标签打开与安全防护）、`rehype-pretty-code`（Shiki 双主题语法高亮）。
+- **目录（TOC）一致性**：
+  - 目录提取必须使用 `github-slugger` 实例生成 id（见 `src/lib/content.ts` 的 `extractHeadings`），与 `rehype-slug` 生成规则及重名序号处理严格一致。
+- **自定义组件映射**：
+  - `figure` / `figcaption` / `pre`：封装代码块标题、语言标识与复制按钮（`src/app/(site)/_components/blog/code-block.tsx`、`copy-button.tsx`）。
+  - `a`：站内链接走 Next.js `Link`，外部链接安全打开。
+  - `table`：包裹响应式水平横向滚动外层容器。
+  - `img`：点击可唤起全屏平滑放大灯箱预览（`image-zoom.tsx`）。
+  - 内置提示与折叠组件：`<Callout>`（`callout.tsx`）与 `<Collapse>`（`collapse.tsx`）。
+- **阅读时间**：
+  - 博客详情页统一通过 `calculateReadingTime` 推算正文用时并在 Hero 日期旁呈现。
 
 ## 占位页
 
