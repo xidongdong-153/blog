@@ -8,7 +8,7 @@
 
 <!-- @@@auto:current-status -->
 - **Active File**: `journal-1.md`
-- **Total Sessions**: 4
+- **Total Sessions**: 5
 - **Last Active**: 2026-09-03
 <!-- @@@/auto:current-status -->
 
@@ -19,7 +19,7 @@
 <!-- @@@auto:active-documents -->
 | File | Lines | Status |
 |------|-------|--------|
-| `journal-1.md` | ~125 | Active |
+| `journal-1.md` | ~147 | Active |
 <!-- @@@/auto:active-documents -->
 
 ---
@@ -29,6 +29,7 @@
 <!-- @@@auto:session-history -->
 | # | Date | Title | Commits | Branch |
 |---|------|-------|---------|--------|
+| 5 | 2026-09-03 | 接入 Giscus 评论系统并支持三态主题免刷新变色 | `ffaec20` | `main` |
 | 4 | 2026-09-03 | 复刻 joye 博客列表页面样式细节 | `d418b71`, `dc89e55`, `979af62` | `main` |
 | 3 | 2026-09-03 | 复刻 Joye 博客 TOC 阅读进度 | `0c2f79e`, `5867b70`, `68209de` | `main` |
 | 2 | 2026-09-03 | 完成首页和站点观感对齐 joye 博客 | `645be9f`, `4125269`, `d12c04a`, `7652684` | `main` |

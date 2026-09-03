@@ -123,3 +123,25 @@ trellis init -u xdd --pi 完成，填充 .trellis/spec/frontend 5 个规范文�
 ### Status
 
 [OK] **Completed**
+
+
+## Session 5: 接入 Giscus 评论系统并支持三态主题免刷新变色
+<!-- trellis-session: v=2 fp=a45e9fe88bcebae3 -->
+
+**Date**: 2026-09-03
+**Task**: 接入 Giscus 评论系统并支持三态主题免刷新变色
+**Branch**: `main`
+
+### Summary
+
+在文章详情页接入 Giscus 评论组件，提供 .env.example 配置模板，支持三态主题 postMessage 无缝联动切换，未配置时显示优雅指引卡片，并通过质量门全部检查。
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `ffaec20` | chore(task): 记录 09-03-integrate-giscus-comments 任务规划与执行成果 |
+
+### Status
+
+[OK] **Completed**
