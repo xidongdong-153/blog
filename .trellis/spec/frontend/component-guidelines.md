@@ -4,7 +4,13 @@
 
 默认全部写 Server Components，不用加任何指令。只有用到浏览器 API（localStorage、事件监听）的组件才加 `'use client'`。
 
-现状：项目中有两个 client 组件：`src/app/(site)/_components/site/theme-toggle.tsx`（主题存储与媒体监听）和 `src/app/(site)/_components/site/site-header.tsx`（滚动感应与移动端菜单展开）。MDX 渲染走异步 RSC（`mdx-content.tsx` 的 `compileMDX`），不需要 client。
+现状：项目中的 client 组件包括：
+- `src/app/(site)/_components/site/theme-toggle.tsx`（主题存储与媒体监听）
+- `src/app/(site)/_components/site/site-header.tsx`（滚动感应与移动端菜单展开）
+- `src/app/(site)/_components/blog/toc.tsx`（TOC 目录展开折叠、点击互斥锁、侧栏自滚动与 RAF 进度更新）
+- `src/app/(site)/_components/blog/floating-action-group.tsx`（移动端抽屉唤出与返回顶部百分比计算）
+
+MDX 渲染走异步 RSC（`mdx-content.tsx` 的 `compileMDX`），不需要 client。高频滚动联动场景使用 `requestAnimationFrame` 调度，直接更新对应指示条节点的样式，避免高频触发 React 整体组件树重新渲染。
 
 判断标准：组件要 `useState` / `useEffect` / 浏览器 API 才转 client；只展示数据、拼接 className 的都留在 server。client 边界收得越小越好，不要为了方便把整棵子树标成 client。
 

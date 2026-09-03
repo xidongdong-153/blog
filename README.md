@@ -41,13 +41,15 @@ content/blog/
 
 frontmatter 字段：
 
-| 字段        | 必填 | 说明                              |
-| ----------- | ---- | --------------------------------- |
-| title       | 是   | 标题                              |
-| date        | 是   | ISO 日期，如 2026-06-15           |
-| description | 否   | 列表页摘要和 SEO description      |
-| tags        | 否   | 字符串数组                        |
-| draft       | 否   | true 时不出现在列表、归档和标签页 |
+| 字段        | 必填 | 说明                                                   |
+| ----------- | ---- | ------------------------------------------------------ |
+| title       | 是   | 标题                                                   |
+| date        | 是   | ISO 日期，如 2026-06-15                                |
+| description | 否   | 列表页摘要和 SEO description                           |
+| tags        | 否   | 字符串数组                                             |
+| draft       | 否   | true 时不出现在列表、归档和标签页                      |
+| updatedDate | 否   | ISO 日期，有值时详情页显示"更新于 ..."                 |
+| heroImage   | 否   | 封面图路径（相对于 public/），如 /images/blog/hero.jpg |
 
 笔记：`content/notes/first-note.md`，文件名是 slug。frontmatter 比文章多一个 `status` 字段，可选 `in-progress`、`incomplete`、`ready`、`archived`，列表页显示中文状态标记。
 
@@ -64,20 +66,23 @@ pnpm build
 
 ## 功能状态
 
-| 功能                               | 状态                           | 位置                                                              |
-| ---------------------------------- | ------------------------------ | ----------------------------------------------------------------- |
-| 文章列表 / 详情 / 标签 / 归档      | 已实现                         | `src/app/(site)/blog/`                                            |
-| 文章目录 TOC                       | 已实现（静态锚点，无滚动高亮） | `src/app/(site)/_components/blog/toc.tsx`                         |
-| 笔记列表 / 详情（状态标记）        | 已实现                         | `src/app/(site)/notes/`                                           |
-| 三态主题切换（系统 / 浅色 / 深色） | 已实现                         | `src/app/(site)/_components/site/theme-toggle.tsx`                |
-| sticky 胶囊页头                    | 已实现                         | `src/app/(site)/_components/site/site-header.tsx`                 |
-| 项目 / 友链 / 关于 / 联系          | 占位页                         | `src/app/(site)/` 对应目录                                        |
-| 站内搜索                           | 占位页，方案见页面注释         | `src/app/(site)/search/page.tsx`                                  |
-| Giscus 评论                        | 占位组件，接入步骤见注释       | `src/app/(site)/_components/comment/giscus-comments.tsx`          |
-| RSS                                | 未开始                         | 计划 `src/app/rss.xml/route.ts`                                   |
-| sitemap / robots                   | 未开始                         | 计划 `src/app/sitemap.ts`、`src/app/robots.ts`                    |
-| OG 图自动生成                      | 未开始                         | 计划 `src/app/(site)/blog/[slug]/opengraph-image.tsx`，用 next/og |
-| 代码块高亮                         | 未开始                         | 计划 rehype-pretty-code 或 shiki                                  |
+| 功能                               | 状态                     | 位置                                                              |
+| ---------------------------------- | ------------------------ | ----------------------------------------------------------------- |
+| 文章列表 / 详情 / 标签 / 归档      | 已实现                   | `src/app/(site)/blog/`                                            |
+| 文章目录 TOC（滚动跟随高亮）       | 已实现                   | `src/app/(site)/_components/blog/toc.tsx`                         |
+| 详情页右侧粘性 TOC 侧栏            | 已实现                   | `src/app/(site)/blog/[slug]/page.tsx`                             |
+| Hero 图 + 更新日期                 | 已实现                   | `src/lib/content.ts`、`src/app/(site)/blog/[slug]/page.tsx`       |
+| 版权卡片（CC BY-NC-SA 4.0）        | 已实现                   | `src/app/(site)/_components/blog/copyright-card.tsx`              |
+| 笔记列表 / 详情（状态标记）        | 已实现                   | `src/app/(site)/notes/`                                           |
+| 三态主题切换（系统 / 浅色 / 深色） | 已实现                   | `src/app/(site)/_components/site/theme-toggle.tsx`                |
+| sticky 胶囊页头                    | 已实现                   | `src/app/(site)/_components/site/site-header.tsx`                 |
+| 项目 / 友链 / 关于 / 联系          | 占位页                   | `src/app/(site)/` 对应目录                                        |
+| 站内搜索                           | 占位页，方案见页面注释   | `src/app/(site)/search/page.tsx`                                  |
+| Giscus 评论                        | 占位组件，接入步骤见注释 | `src/app/(site)/_components/comment/giscus-comments.tsx`          |
+| RSS                                | 未开始                   | 计划 `src/app/rss.xml/route.ts`                                   |
+| sitemap / robots                   | 未开始                   | 计划 `src/app/sitemap.ts`、`src/app/robots.ts`                    |
+| OG 图自动生成                      | 未开始                   | 计划 `src/app/(site)/blog/[slug]/opengraph-image.tsx`，用 next/og |
+| 代码块高亮                         | 未开始                   | 计划 rehype-pretty-code 或 shiki                                  |
 
 ## 部署
 
