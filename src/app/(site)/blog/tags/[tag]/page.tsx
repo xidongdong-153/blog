@@ -42,11 +42,11 @@ export default async function TagPage({ params }: TagPageProps) {
         </Link>
       </div>
 
-      <div className="flex flex-col gap-8">
+      <ul className="flex flex-col gap-y-4">
         {posts.map((post) => (
           <PostCard key={post.slug} post={post} />
         ))}
-      </div>
+      </ul>
     </div>
   )
 }

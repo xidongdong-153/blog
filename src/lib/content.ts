@@ -237,3 +237,19 @@ export function formatDate(iso: string): string {
     timeZone: 'UTC',
   }).format(new Date(iso))
 }
+
+/**
+ * 估算文章或笔记阅读时间（分钟），按中文 350 字/分钟、英文 160 词/分钟估算。
+ * 格式如 "1 min read"，与参照项目样式一致。
+ */
+export function calculateReadingTime(content: string): string {
+  const clean = content.replace(/```[\s\S]*?```/g, '').replace(/<[^>]+>/g, '')
+  const cjkChars = (clean.match(/[\p{Script=Han}\p{Script=Hiragana}\p{Script=Katakana}\p{Script=Hangul}]/gu) ?? [])
+    .length
+  const words = (
+    clean.replace(/[\p{Script=Han}\p{Script=Hiragana}\p{Script=Katakana}\p{Script=Hangul}]/gu, ' ').match(/[-\w]+/g) ??
+    []
+  ).length
+  const minutes = Math.max(1, Math.ceil(cjkChars / 350 + words / 160))
+  return `${minutes} min read`
+}
