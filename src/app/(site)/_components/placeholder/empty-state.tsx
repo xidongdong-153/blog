@@ -4,10 +4,10 @@
  */
 export function EmptyState({ title, description }: { title: string; description: string }) {
   return (
-    <div className="flex flex-col gap-2 rounded-lg border border-dashed border-stone-300 p-10 dark:border-stone-700">
+    <div className="flex flex-col gap-2 rounded-lg border border-dashed border-border p-10">
       <p className="text-lg font-semibold">{title}</p>
-      <p className="text-sm leading-relaxed text-stone-500 dark:text-stone-400">{description}</p>
-      <p className="mt-2 text-xs tracking-widest text-stone-400 uppercase dark:text-stone-500">TODO</p>
+      <p className="text-sm leading-relaxed text-muted-foreground">{description}</p>
+      <p className="mt-2 text-xs tracking-widest text-muted-foreground uppercase">TODO</p>
     </div>
   )
 }

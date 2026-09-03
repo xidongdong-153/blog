@@ -9,12 +9,12 @@ export function TableOfContents({ headings }: { headings: Heading[] }) {
   }
 
   return (
-    <nav aria-label="目录" className="border border-stone-200 p-4 dark:border-stone-800">
+    <nav aria-label="目录" className="border border-border p-4">
       <p className="mb-2 text-sm font-semibold">目录</p>
       <ul className="flex flex-col gap-1 text-sm">
         {headings.map((heading) => (
           <li key={heading.id} className={heading.depth === 3 ? 'pl-4' : ''}>
-            <a href={`#${heading.id}`} className="text-stone-500 hover:underline dark:text-stone-400">
+            <a href={`#${heading.id}`} className="text-muted-foreground hover:underline">
               {heading.text}
             </a>
           </li>

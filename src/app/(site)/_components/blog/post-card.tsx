@@ -8,7 +8,7 @@ export function PostCard({ post }: { post: BlogPost }) {
       <Link href={`/blog/${post.slug}`} className="text-lg font-semibold hover:underline">
         {post.title}
       </Link>
-      <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-stone-500 dark:text-stone-400">
+      <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-muted-foreground">
         <time dateTime={post.date}>{formatDate(post.date)}</time>
         {post.tags.length > 0 && (
           <span className="flex gap-2">
@@ -20,9 +20,7 @@ export function PostCard({ post }: { post: BlogPost }) {
           </span>
         )}
       </div>
-      {post.description && (
-        <p className="text-sm leading-relaxed text-stone-600 dark:text-stone-400">{post.description}</p>
-      )}
+      {post.description && <p className="text-sm leading-relaxed text-muted-foreground">{post.description}</p>}
     </article>
   )
 }

@@ -10,8 +10,8 @@
  */
 export function GiscusComments() {
   return (
-    <section className="border-t border-stone-200 pt-6 dark:border-stone-800">
-      <p className="text-sm text-stone-400 dark:text-stone-500">评论区待接入（Giscus，TODO）。</p>
+    <section className="border-t border-border pt-6">
+      <p className="text-sm text-muted-foreground">评论区待接入（Giscus，TODO）。</p>
     </section>
   )
 }

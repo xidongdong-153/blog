@@ -3,10 +3,10 @@ import Link from 'next/link'
 import { formatDate, NOTE_STATUS_LABELS } from '@/lib/content'
 
 const STATUS_STYLES: Record<Note['status'], string> = {
-  'in-progress': 'bg-blue-100 text-blue-800 dark:bg-blue-950 dark:text-blue-300',
-  incomplete: 'bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300',
-  ready: 'bg-green-100 text-green-800 dark:bg-green-950 dark:text-green-300',
-  archived: 'bg-stone-200 text-stone-700 dark:bg-stone-800 dark:text-stone-300',
+  'in-progress': 'bg-accent text-primary',
+  incomplete: 'bg-destructive/15 text-destructive',
+  ready: 'bg-primary/15 text-primary',
+  archived: 'bg-muted text-muted-foreground',
 }
 
 export function NoteCard({ note }: { note: Note }) {
@@ -20,7 +20,7 @@ export function NoteCard({ note }: { note: Note }) {
           {NOTE_STATUS_LABELS[note.status]}
         </span>
       </div>
-      <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-stone-500 dark:text-stone-400">
+      <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-muted-foreground">
         <time dateTime={note.date}>{formatDate(note.date)}</time>
         {note.tags.length > 0 && (
           <span className="flex gap-2">
@@ -30,9 +30,7 @@ export function NoteCard({ note }: { note: Note }) {
           </span>
         )}
       </div>
-      {note.description && (
-        <p className="text-sm leading-relaxed text-stone-600 dark:text-stone-400">{note.description}</p>
-      )}
+      {note.description && <p className="text-sm leading-relaxed text-muted-foreground">{note.description}</p>}
     </article>
   )
 }

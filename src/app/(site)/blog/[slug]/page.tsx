@@ -36,13 +36,13 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
   const headings = extractHeadings(post.content)
 
   return (
-    <article className="flex flex-col gap-8">
+    <article className="mx-auto w-full max-w-3xl flex flex-col gap-8">
       <header className="flex flex-col gap-2">
         <h1 className="text-3xl font-bold tracking-tight">{post.title}</h1>
-        <div className="text-sm text-stone-500 dark:text-stone-400">
+        <div className="text-sm text-muted-foreground">
           <time dateTime={post.date}>{formatDate(post.date)}</time>
         </div>
-        {post.description && <p className="leading-relaxed text-stone-600 dark:text-stone-400">{post.description}</p>}
+        {post.description && <p className="leading-relaxed text-muted-foreground">{post.description}</p>}
       </header>
 
       <TableOfContents headings={headings} />

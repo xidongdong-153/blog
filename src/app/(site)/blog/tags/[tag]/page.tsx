@@ -34,10 +34,10 @@ export default async function TagPage({ params }: TagPageProps) {
   }
 
   return (
-    <div className="flex flex-col gap-10">
+    <div className="mx-auto w-full max-w-3xl flex flex-col gap-10">
       <div className="flex items-baseline justify-between">
         <h1 className="text-2xl font-bold tracking-tight">#{decodedTag}</h1>
-        <Link href="/blog" className="text-sm text-stone-500 hover:underline dark:text-stone-400">
+        <Link href="/blog" className="text-sm text-muted-foreground hover:underline">
           全部文章
         </Link>
       </div>

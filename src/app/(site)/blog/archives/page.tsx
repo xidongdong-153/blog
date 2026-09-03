@@ -19,10 +19,10 @@ export default function ArchivesPage() {
   }
 
   return (
-    <div className="flex flex-col gap-10">
+    <div className="mx-auto w-full max-w-3xl flex flex-col gap-10">
       <h1 className="text-2xl font-bold tracking-tight">归档</h1>
 
-      {byYear.size === 0 && <p className="text-sm text-stone-500 dark:text-stone-400">还没有文章。</p>}
+      {byYear.size === 0 && <p className="text-sm text-muted-foreground">还没有文章。</p>}
 
       {[...byYear.entries()].map(([year, group]) => (
         <section key={year} className="flex flex-col gap-4">
@@ -30,7 +30,7 @@ export default function ArchivesPage() {
           <ul className="flex flex-col gap-2">
             {group.map((post) => (
               <li key={post.slug} className="flex items-baseline gap-4 text-sm">
-                <time dateTime={post.date} className="shrink-0 text-stone-400 dark:text-stone-500">
+                <time dateTime={post.date} className="shrink-0 text-muted-foreground">
                   {formatDate(post.date)}
                 </time>
                 <Link href={`/blog/${post.slug}`} className="hover:underline">
