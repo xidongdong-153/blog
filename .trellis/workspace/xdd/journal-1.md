@@ -68,3 +68,34 @@ trellis init -u xdd --pi 完成，填充 .trellis/spec/frontend 5 个规范文�
 ### Status
 
 [OK] **Completed**
+
+
+## Session 3: 复刻 Joye 博客 TOC 阅读进度
+<!-- trellis-session: v=2 fp=c4763901d8c50a8c -->
+
+**Date**: 2026-09-03
+**Task**: 复刻 Joye 博客 TOC 阅读进度
+**Branch**: `main`
+
+### Summary
+
+完成 TOC 阅读进度指示条、RAF 滚动监听、互斥保护机制以及移动端抽屉与返回顶部百分比按钮
+
+### Main Changes
+
+- 实现 TOC 动态指示条高度 (0%-90%)
+- 实现点击互斥锁及到达/手势打断释放
+- 实现移动端目录抽屉与返回顶部浮动按钮组
+- 更新前端规范与 README 功能状态
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `0c2f79e` | feat(blog): 复刻详情页 Hero 图、版权卡片与正文排版 |
+| `5867b70` | feat(blog): 复刻 Joye 博客 TOC 阅读进度条与移动端抽屉 |
+| `68209de` | docs(spec): 更新前端组件规范与 README 功能状态 |
+
+### Status
+
+[OK] **Completed**

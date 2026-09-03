@@ -8,7 +8,7 @@
 
 <!-- @@@auto:current-status -->
 - **Active File**: `journal-1.md`
-- **Total Sessions**: 2
+- **Total Sessions**: 3
 - **Last Active**: 2026-09-03
 <!-- @@@/auto:current-status -->
 
@@ -19,7 +19,7 @@
 <!-- @@@auto:active-documents -->
 | File | Lines | Status |
 |------|-------|--------|
-| `journal-1.md` | ~70 | Active |
+| `journal-1.md` | ~101 | Active |
 <!-- @@@/auto:active-documents -->
 
 ---
@@ -29,6 +29,7 @@
 <!-- @@@auto:session-history -->
 | # | Date | Title | Commits | Branch |
 |---|------|-------|---------|--------|
+| 3 | 2026-09-03 | 复刻 Joye 博客 TOC 阅读进度 | `0c2f79e`, `5867b70`, `68209de` | `main` |
 | 2 | 2026-09-03 | 完成首页和站点观感对齐 joye 博客 | `645be9f`, `4125269`, `d12c04a`, `7652684` | `main` |
 | 1 | 2026-09-03 | 初始化 Trellis 并完成前端规范引导 | `d5ad1ce` | `main` |
 <!-- @@@/auto:session-history -->
