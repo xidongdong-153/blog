@@ -99,3 +99,27 @@ trellis init -u xdd --pi 完成，填充 .trellis/spec/frontend 5 个规范文�
 ### Status
 
 [OK] **Completed**
+
+
+## Session 4: 复刻 joye 博客列表页面样式细节
+<!-- trellis-session: v=2 fp=871b29166227009f -->
+
+**Date**: 2026-09-03
+**Task**: 复刻 joye 博客列表页面样式细节
+**Branch**: `main`
+
+### Summary
+
+对比 ~/Code/blog 复刻博客列表页面，实现 3fr:1fr 双列响应式网格、带动画的返回与胶囊按钮、圆角边框文章卡片与动态重定向箭头、阅读时间估算及侧边栏
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `d418b71` | feat(blog): 复刻 joye 博客列表页面样式与交互细节 |
+| `dc89e55` | docs(spec): 更新前端组件规范中列表页布局与通用按钮约定 |
+| `979af62` | chore(task): archive 09-03-joye-blog-list-style |
+
+### Status
+
+[OK] **Completed**
