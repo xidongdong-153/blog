@@ -66,24 +66,24 @@ pnpm build
 
 ## 功能状态
 
-| 功能                               | 状态                     | 位置                                                              |
-| ---------------------------------- | ------------------------ | ----------------------------------------------------------------- |
-| 文章列表 / 详情 / 标签 / 归档      | 已实现                   | `src/app/(site)/blog/`                                            |
-| 文章目录 TOC（滚动跟随高亮）       | 已实现                   | `src/app/(site)/_components/blog/toc.tsx`                         |
-| 详情页右侧粘性 TOC 侧栏            | 已实现                   | `src/app/(site)/blog/[slug]/page.tsx`                             |
-| Hero 图 + 更新日期                 | 已实现                   | `src/lib/content.ts`、`src/app/(site)/blog/[slug]/page.tsx`       |
-| 版权卡片（CC BY-NC-SA 4.0）        | 已实现                   | `src/app/(site)/_components/blog/copyright-card.tsx`              |
-| 笔记列表 / 详情（状态标记）        | 已实现                   | `src/app/(site)/notes/`                                           |
-| 三态主题切换（系统 / 浅色 / 深色） | 已实现                   | `src/app/(site)/_components/site/theme-toggle.tsx`                |
-| sticky 胶囊页头                    | 已实现                   | `src/app/(site)/_components/site/site-header.tsx`                 |
-| 项目 / 友链 / 关于 / 联系          | 占位页                   | `src/app/(site)/` 对应目录                                        |
-| 站内搜索                           | 占位页，方案见页面注释   | `src/app/(site)/search/page.tsx`                                  |
-| Giscus 评论                        | 占位组件，接入步骤见注释 | `src/app/(site)/_components/comment/giscus-comments.tsx`          |
-| RSS                                | 未开始                   | 计划 `src/app/rss.xml/route.ts`                                   |
-| sitemap / robots                   | 未开始                   | 计划 `src/app/sitemap.ts`、`src/app/robots.ts`                    |
-| OG 图自动生成                      | 未开始                   | 计划 `src/app/(site)/blog/[slug]/opengraph-image.tsx`，用 next/og |
-| 代码块高亮与复制                   | 已实现                   | `src/app/(site)/_components/blog/mdx-content.tsx`                 |
+| 功能                               | 状态                   | 位置                                                              |
+| ---------------------------------- | ---------------------- | ----------------------------------------------------------------- |
+| 文章列表 / 详情 / 标签 / 归档      | 已实现                 | `src/app/(site)/blog/`                                            |
+| 文章目录 TOC（滚动跟随高亮）       | 已实现                 | `src/app/(site)/_components/blog/toc.tsx`                         |
+| 详情页右侧粘性 TOC 侧栏            | 已实现                 | `src/app/(site)/blog/[slug]/page.tsx`                             |
+| Hero 图 + 更新日期                 | 已实现                 | `src/lib/content.ts`、`src/app/(site)/blog/[slug]/page.tsx`       |
+| 版权卡片（CC BY-NC-SA 4.0）        | 已实现                 | `src/app/(site)/_components/blog/copyright-card.tsx`              |
+| 笔记列表 / 详情（状态标记）        | 已实现                 | `src/app/(site)/notes/`                                           |
+| 三态主题切换（系统 / 浅色 / 深色） | 已实现                 | `src/app/(site)/_components/site/theme-toggle.tsx`                |
+| sticky 胶囊页头                    | 已实现                 | `src/app/(site)/_components/site/site-header.tsx`                 |
+| 项目 / 友链 / 关于 / 联系          | 占位页                 | `src/app/(site)/` 对应目录                                        |
+| 站内搜索                           | 占位页，方案见页面注释 | `src/app/(site)/search/page.tsx`                                  |
+| Giscus 评论                        | 已实现                 | `src/app/(site)/_components/comment/giscus-comments.tsx`          |
+| RSS                                | 未开始                 | 计划 `src/app/rss.xml/route.ts`                                   |
+| sitemap / robots                   | 未开始                 | 计划 `src/app/sitemap.ts`、`src/app/robots.ts`                    |
+| OG 图自动生成                      | 未开始                 | 计划 `src/app/(site)/blog/[slug]/opengraph-image.tsx`，用 next/og |
+| 代码块高亮与复制                   | 已实现                 | `src/app/(site)/_components/blog/mdx-content.tsx`                 |
 
 ## 部署
 
-Vercel 直接导入仓库即可，构建命令 `pnpm build`，无环境变量。部署前把 `src/site.config.ts` 里的 `url` 换成正式域名，RSS 和 OG 图生成链接时要用它。
+Vercel 直接导入仓库即可，构建命令 `pnpm build`。若启用 Giscus 评论，需在环境变量中配置 `NEXT_PUBLIC_GISCUS_*`（参见 `.env.example`）。部署前把 `src/site.config.ts` 里的 `url` 换成正式域名，RSS 和 OG 图生成链接时要用它。
