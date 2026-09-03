@@ -1,0 +1,42 @@
+---
+title: Next.js 16 App Router 实战心得
+description: 关于 Server Components、客户端边界与静态页面生成的结构拆分思考。
+date: 2026-07-01
+tags:
+  - Next.js
+  - 前端
+---
+
+Next.js App Router 倡导默认服务端渲染与极简的客户端交互边界。在单应用博客或内容型站点中，这种模式表现出极高的首屏速度和低维护成本。
+
+## 客户端组件的边界控制
+
+尽量将 `'use client'` 收敛在叶子节点。例如点赞按钮、滚动监听条、主题切换器等需要访问浏览器原生 API 的组件：
+
+- 页面的大部分结构（文字排版、元数据生成、静态数据加载）留在服务端完成。
+- 只有依赖 `useState` 或 `window` 的微型组件才下沉到 client 端。
+
+```tsx
+// 推荐做法：通过 children 将 Server Component 传入 Client 容器
+export function ClientWrapper({ children }: { children: React.ReactNode }) {
+  return <div className="client-container">{children}</div>
+}
+```
+
+## 静态生成与构建优化
+
+使用 `generateStaticParams` 预计算全部静态路径：
+
+| 路由参数 | 生成方式 | 缓存行为 |
+| -------- | -------- | -------- |
+| `/blog/[slug]` | 静态遍历本地文件 | 部署时纯静态 HTML |
+| `/blog/tags/[tag]` | 统计标签去重生成 | 构建时全量预烘焙 |
+
+```text
+// 强制未匹配的路由直接返回 404，不进入按需计算
+export const dynamicParams = false
+```
+
+### 为什么避免在构建期查询外部接口
+
+内容型站点应以 Git 提交作为发布动作的唯一触发源。这样既可以脱离数据库依赖，又能彻底避免构建过程中第三方接口超时导致的打包失败。

@@ -1,0 +1,61 @@
+---
+title: TypeScript 技巧与模式实践
+description: 记录一些在日常开发中实用的 TypeScript 高级类型与类型收窄技巧。
+date: 2026-06-20
+tags:
+  - TypeScript
+  - 前端
+---
+
+在复杂的业务系统中，合理的类型设计可以有效减少运行时的非预期错误。本文记录几个高频实用的类型技巧。
+
+## 类型守卫与类型收窄
+
+使用自定义类型守卫可以将联合类型准确收窄至目标分支：
+
+```ts
+interface ApiResponse<T> {
+  success: boolean
+  data?: T
+  error?: string
+}
+
+function isSuccessResponse<T>(res: ApiResponse<T>): res is ApiResponse<T> & { data: T } {
+  return res.success && res.data !== undefined
+}
+```
+
+在调用时配合 `if (isSuccessResponse(res))`，编译器会自动将后续作用域中的 `res.data` 识别为已定义。
+
+## 区分联合类型的最佳实践
+
+定义带标签的判别联合（Discriminated Unions）是处理多状态 UI 的推荐模式：
+
+```ts
+type AsyncState<T> =
+  | { status: 'idle' }
+  | { status: 'loading' }
+  | { status: 'success'; data: T }
+  | { status: 'error'; message: string }
+```
+
+### 模式匹配的安全性
+
+配合 `switch (state.status)` 进行分支分发，利用 `never` 类型做穷举检查，确保新增状态时编译器主动提醒遗漏。
+
+```ts
+function assertNever(x: never): never {
+  throw new Error(`Unexpected object: ${x}`)
+}
+```
+
+## 模板字面量类型
+
+利用模板字面量可以构造严格的事件名称或路径格式：
+
+```ts
+type EventType = 'click' | 'change'
+type EventHandlerName = `on${Capitalize<EventType>}`
+```
+
+这种写法可以在接口定义时防止手写拼写错误。

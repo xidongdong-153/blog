@@ -1,0 +1,36 @@
+---
+title: Web 前端性能指标与实测优化
+description: 从 LCP、CLS 到交互响应，前端性能优化的常规手段与衡量指标。
+date: 2026-08-15
+tags:
+  - 性能优化
+  - 前端
+  - 随笔
+---
+
+在衡量页面渲染与加载体验时，Google Core Web Vitals 是目前最通用的行业标准。
+
+## 关键核心指标
+
+1. **LCP (Largest Contentful Paint)**：视口内最大可见元素渲染完成的时间点，通常受字体加载与大尺寸 Hero 图片影响。
+2. **CLS (Cumulative Layout Shift)**：累积布局偏移，通常因为没有为异步加载的图片或组件指定宽高导致。
+3. **INP (Interaction to Next Paint)**：用户交互到下一次屏幕绘制的延迟时间。
+
+## 字体与排版性能优化
+
+自托管字体文件并使用现代压缩格式：
+
+```css
+@font-face {
+  font-family: 'Satoshi';
+  src: url('/fonts/Satoshi-Variable.woff2') format('woff2');
+  font-display: swap;
+}
+```
+
+配合 `font-display: swap`，可以在字体文件网络下载期间使用系统备用字体快速呈现文本，防止页面白屏（FOIT）。
+
+### 图片与静态资源治理
+
+- 针对 Hero 大图添加预加载（`priority` 或 `fetchpriority="high"`）。
+- 在容器外层显式声明 `aspect-ratio`，为浏览器提前预留渲染空间以规避布局抖动。
