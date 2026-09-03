@@ -36,15 +36,17 @@ MDX 渲染走异步 RSC（`mdx-content.tsx` 的 `compileMDX`），不需要 clie
 - 色系统一使用 HSL 语义 token（`background`、`foreground`、`muted`、`muted-foreground`、`primary`、`border` 等），组件禁止硬编码 `stone-*` 或其他原色阶。
 - 正文排版用 `prose prose-stone dark:prose-invert`（@tailwindcss/typography），见 `mdx-content.tsx`。
 - 圆角约定：控件用 `rounded-md`，卡片和列表项用 `rounded-lg` 或 `rounded-2xl`，头像与 pill 用 `rounded-full`。
-- 内容宽度：首页使用宽布局 `md:w-4/5 lg:w-5/6`，文章与笔记等其余页面内部使用 `mx-auto w-full max-w-3xl`。
+- 内容宽度：首页使用宽布局 `md:w-4/5 lg:w-5/6`；博客列表页使用双列宽布局 `max-w-5xl`（左侧 3fr 文章、右侧 1fr 标签栏）；详情页与笔记内页内部使用 `mx-auto w-full max-w-3xl`。
 - 不写自定义组件 CSS 类，样式全部走 Tailwind 工具类与 data 变体（如 `data-[scrolled=true]:`、`theme-system:` 等）；`src/app/globals.css` 仅用于存放设计 token、keyframes 和变体定义。
 
-## 通用模式
+## 通用模式与组件
 
+- 通用按钮组件 `Button`（`src/app/(site)/_components/blog/button.tsx`）：统一支持 `back`（向左动态展开箭头）、`pill`（圆角胶囊标签）、`ahead`（向右动态展开箭头）及普通样式。
+- 文章卡片 `PostCard`（`src/app/(site)/_components/blog/post-card.tsx`）：采用 `rounded-2xl border border-border bg-background hover:bg-muted` 卡片形态，标题配备 SVG 动态重定向箭头，正文阅读时间由 `src/lib/content.ts` 的 `calculateReadingTime` 统一推算，卡片底部标签采用独立 Pill 组。
 - 列表渲染 key 用稳定业务键（`post.slug`、`tag`），不用数组下标。
 - 日期显示统一 `<time dateTime={post.date}>{formatDate(post.date)}</time>`，见 `post-card.tsx` 和详情页。
 - 链接用 `next/link` 的 `Link`，站内跳转不写 `<a>`。
-- 空列表要给文案兜底（`还没有文章。`，见 `src/app/(site)/blog/page.tsx`）。
+- 空列表要给文案兜底（`No posts yet.` 或 `还没有文章。`）。
 
 ## 动态路由页
 
