@@ -9,6 +9,7 @@
 - `src/app/(site)/_components/site/site-header.tsx`（滚动感应与移动端菜单展开）
 - `src/app/(site)/_components/blog/toc.tsx`（TOC 目录展开折叠、点击互斥锁、侧栏自滚动与 RAF 进度更新）
 - `src/app/(site)/_components/blog/floating-action-group.tsx`（移动端抽屉唤出与返回顶部百分比计算）
+- `src/app/(site)/_components/comment/giscus-comments.tsx`（Giscus 客户端脚本挂载、主题 DOM 监听与 postMessage 免重载变色）
 
 MDX 渲染走异步 RSC（`mdx-content.tsx` 的 `compileMDX`），不需要 client。高频滚动联动场景使用 `requestAnimationFrame` 调度，直接更新对应指示条节点的样式，避免高频触发 React 整体组件树重新渲染。
 
@@ -79,12 +80,27 @@ MDX 渲染走异步 RSC（`mdx-content.tsx` 的 `compileMDX`），不需要 clie
 - **阅读时间**：
   - 博客详情页统一通过 `calculateReadingTime` 推算正文用时并在 Hero 日期旁呈现。
 
+## 评论组件
+
+文章详情页挂载基于 GitHub Discussions 的 Giscus 评论组件（`src/app/(site)/_components/comment/giscus-comments.tsx`）：
+
+- **配置契约**：
+  - 核心环境变量：`NEXT_PUBLIC_GISCUS_REPO`、`NEXT_PUBLIC_GISCUS_REPO_ID`、`NEXT_PUBLIC_GISCUS_CATEGORY_ID`。
+  - 可选环境变量：`NEXT_PUBLIC_GISCUS_CATEGORY`（默认 `General`）、`NEXT_PUBLIC_GISCUS_MAPPING`（默认 `pathname`）、`NEXT_PUBLIC_GISCUS_REACTIONS_ENABLED`（默认 `1`）、`NEXT_PUBLIC_GISCUS_INPUT_POSITION`（默认 `top`）、`NEXT_PUBLIC_GISCUS_LANG`（默认 `zh-CN`）。
+  - 变量模板放置在根目录 `.env.example`，在 `.gitignore` 中配置 `!.env.example` 允许提交。
+- **容错降级**：
+  - 未配置核心环境变量时，渲染带有配置说明的虚线卡片，不执行外部脚本注入，不抛出异常或白屏。
+- **主题联动**：
+  - 初始化时依据 `document.documentElement.classList.contains('dark')` 传入明暗主题。
+  - 运行时通过 `MutationObserver` 监听 `html` 的 `class` 与 `data-theme` 属性，发生变化时通过 `postMessage({ giscus: { setConfig: { theme } } }, 'https://giscus.app')` 通知 iframe 更新样式，无需重新渲染组件或重新加载页面。
+
 ## 占位页
 
-未实现的功能统一用 `src/app/(site)/_components/placeholder/empty-state.tsx`，页面注释里写实现方案（参考 `src/app/(site)/search/page.tsx`、`giscus-comments.tsx`）。实现后删掉占位组件和注释，并把 README「功能状态」表的状态改成「已实现」。
+未实现的功能统一用 `src/app/(site)/_components/placeholder/empty-state.tsx`，页面注释里写实现方案（参考 `src/app/(site)/search/page.tsx`）。实现后删掉占位组件和注释，并把 README「功能状态」表的状态改成「已实现」。
 
 ## Metadata
 
 - 静态标题用 `export const metadata: Metadata = { title: '文章' }`，根布局的模板会拼成「文章 - 站点标题」。
 - 详情页用 `generateMetadata`，数据缺失返回 `{}`。
 - 不在页面里手写完整 title 字符串。
+
