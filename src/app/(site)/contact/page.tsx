@@ -7,7 +7,7 @@ export const metadata: Metadata = {
 
 export default function ContactPage() {
   return (
-    <div className="flex flex-col gap-6">
+    <div className="mx-auto w-full max-w-3xl flex flex-col gap-6">
       <h1 className="text-2xl font-bold tracking-tight">联系</h1>
       <EmptyState
         title="联系页待实现"

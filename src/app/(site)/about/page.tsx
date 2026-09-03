@@ -7,7 +7,7 @@ export const metadata: Metadata = {
 
 export default function AboutPage() {
   return (
-    <div className="flex flex-col gap-6">
+    <div className="mx-auto w-full max-w-3xl flex flex-col gap-6">
       <h1 className="text-2xl font-bold tracking-tight">关于</h1>
       <EmptyState title="关于页待实现" description="计划放个人介绍、技能栈、常用工具和外部平台数据。" />
     </div>

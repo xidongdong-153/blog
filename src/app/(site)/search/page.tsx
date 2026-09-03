@@ -16,7 +16,7 @@ export const metadata: Metadata = {
  */
 export default function SearchPage() {
   return (
-    <div className="flex flex-col gap-6">
+    <div className="mx-auto w-full max-w-3xl flex flex-col gap-6">
       <h1 className="text-2xl font-bold tracking-tight">搜索</h1>
       <EmptyState title="站内搜索待实现" description="计划构建时生成静态索引，客户端过滤，无后端。" />
     </div>

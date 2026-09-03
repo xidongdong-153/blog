@@ -7,7 +7,7 @@ export const metadata: Metadata = {
 
 export default function LinksPage() {
   return (
-    <div className="flex flex-col gap-6">
+    <div className="mx-auto w-full max-w-3xl flex flex-col gap-6">
       <h1 className="text-2xl font-bold tracking-tight">友链</h1>
       <EmptyState
         title="友链列表待实现"
