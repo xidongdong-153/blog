@@ -16,12 +16,12 @@ Next.js 16（App Router）+ React 19 + TypeScript strict + Tailwind CSS 4 + MDX�
 | [类型安全](./type-safety.md) | 类型定义位置、日期存 ISO 字符串、禁 any |
 | [质量规范](./quality-guidelines.md) | 检查命令、lint / format 关键规则、功能状态表维护 |
 
-本项目没有自定义 hook，无 hook 规范文件；唯一的 client 组件是 `app/(site)/_components/site/theme-toggle.tsx`。
+本项目没有自定义 hook，无 hook 规范文件；唯一的 client 组件是 `src/app/(site)/_components/site/theme-toggle.tsx`。
 
 ## 开发前检查清单
 
-- [ ] 改的是公开页面 → 只在 `app/(site)/` 下动，页面私有组件放同级 `_components/` 对应分组
-- [ ] 涉及内容读取 → 全部走 `lib/content.ts`，不在组件里直接读文件
+- [ ] 改的是公开页面 → 只在 `src/app/(site)/` 下动，页面私有组件放同级 `_components/` 对应分组
+- [ ] 涉及内容读取 → 全部走 `src/lib/content.ts`，不在组件里直接读文件
 - [ ] 实现未开始的功能 → 先查 README「功能状态」表，实现后把状态改成「已实现」并删占位代码
 - [ ] 涉及流程或数据流的改动（设计文档、spec）→ 用 Mermaid 暗色主题出图，先读 mermaid-skill 技能
 

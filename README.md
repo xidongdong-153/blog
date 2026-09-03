@@ -6,11 +6,13 @@ Next.js 单应用个人博客。文章和笔记用 MDX 文件管理，git 提交
 
 ## 目录
 
-- `app/`：页面和布局。公开页面在 `app/(site)/`，页面私有组件在同级的 `_components/` 里按 `site`、`blog`、`notes`、`comment`、`placeholder` 分组。
-- `lib/content.ts`：MDX 内容读取层，frontmatter 校验、排序、标签统计、目录提取都在这里。
+代码在 `src/`，内容和配置文件在仓库根。
+
+- `src/app/`：页面和布局。公开页面在 `src/app/(site)/`，页面私有组件在同级的 `_components/` 里按 `site`、`blog`、`notes`、`comment`、`placeholder` 分组。
+- `src/lib/content.ts`：MDX 内容读取层，frontmatter 校验、排序、标签统计、目录提取都在这里。
+- `src/site.config.ts`：站点标题、导航、社交链接、正式域名。
 - `content/blog/`：文章，每篇一个文件夹。
 - `content/notes/`：笔记，一条一个 `.md` 文件。
-- `site.config.ts`：站点标题、导航、社交链接、正式域名。
 
 ## 环境要求
 
@@ -61,20 +63,20 @@ pnpm build
 
 ## 功能状态
 
-| 功能                          | 状态                           | 位置                                                          |
-| ----------------------------- | ------------------------------ | ------------------------------------------------------------- |
-| 文章列表 / 详情 / 标签 / 归档 | 已实现                         | `app/(site)/blog/`                                            |
-| 文章目录 TOC                  | 已实现（静态锚点，无滚动高亮） | `app/(site)/_components/blog/toc.tsx`                         |
-| 笔记列表 / 详情（状态标记）   | 已实现                         | `app/(site)/notes/`                                           |
-| 暗色主题切换                  | 已实现                         | `app/(site)/_components/site/theme-toggle.tsx`                |
-| 项目 / 友链 / 关于 / 联系     | 占位页                         | `app/(site)/` 对应目录                                        |
-| 站内搜索                      | 占位页，方案见页面注释         | `app/(site)/search/page.tsx`                                  |
-| Giscus 评论                   | 占位组件，接入步骤见注释       | `app/(site)/_components/comment/giscus-comments.tsx`          |
-| RSS                           | 未开始                         | 计划 `app/rss.xml/route.ts`                                   |
-| sitemap / robots              | 未开始                         | 计划 `app/sitemap.ts`、`app/robots.ts`                        |
-| OG 图自动生成                 | 未开始                         | 计划 `app/(site)/blog/[slug]/opengraph-image.tsx`，用 next/og |
-| 代码块高亮                    | 未开始                         | 计划 rehype-pretty-code 或 shiki                              |
+| 功能                          | 状态                           | 位置                                                              |
+| ----------------------------- | ------------------------------ | ----------------------------------------------------------------- |
+| 文章列表 / 详情 / 标签 / 归档 | 已实现                         | `src/app/(site)/blog/`                                            |
+| 文章目录 TOC                  | 已实现（静态锚点，无滚动高亮） | `src/app/(site)/_components/blog/toc.tsx`                         |
+| 笔记列表 / 详情（状态标记）   | 已实现                         | `src/app/(site)/notes/`                                           |
+| 暗色主题切换                  | 已实现                         | `src/app/(site)/_components/site/theme-toggle.tsx`                |
+| 项目 / 友链 / 关于 / 联系     | 占位页                         | `src/app/(site)/` 对应目录                                        |
+| 站内搜索                      | 占位页，方案见页面注释         | `src/app/(site)/search/page.tsx`                                  |
+| Giscus 评论                   | 占位组件，接入步骤见注释       | `src/app/(site)/_components/comment/giscus-comments.tsx`          |
+| RSS                           | 未开始                         | 计划 `src/app/rss.xml/route.ts`                                   |
+| sitemap / robots              | 未开始                         | 计划 `src/app/sitemap.ts`、`src/app/robots.ts`                    |
+| OG 图自动生成                 | 未开始                         | 计划 `src/app/(site)/blog/[slug]/opengraph-image.tsx`，用 next/og |
+| 代码块高亮                    | 未开始                         | 计划 rehype-pretty-code 或 shiki                                  |
 
 ## 部署
 
-Vercel 直接导入仓库即可，构建命令 `pnpm build`，无环境变量。部署前把 `site.config.ts` 里的 `url` 换成正式域名，RSS 和 OG 图生成链接时要用它。
+Vercel 直接导入仓库即可，构建命令 `pnpm build`，无环境变量。部署前把 `src/site.config.ts` 里的 `url` 换成正式域名，RSS 和 OG 图生成链接时要用它。
