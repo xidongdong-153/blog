@@ -101,3 +101,79 @@ html {
   font-family: var(--font-satoshi), sans-serif;
   scroll-behavior: smooth;
 }
+
+/* Typography prose 适配系统语义 token，彻底解决暗色模式下标题、行内代码、引用等看不清的问题 */
+.prose {
+  --tw-prose-body: hsl(var(--foreground));
+  --tw-prose-headings: hsl(var(--foreground));
+  --tw-prose-lead: hsl(var(--muted-foreground));
+  --tw-prose-links: hsl(var(--primary));
+  --tw-prose-bold: hsl(var(--foreground));
+  --tw-prose-counters: hsl(var(--muted-foreground));
+  --tw-prose-bullets: hsl(var(--muted-foreground));
+  --tw-prose-hr: hsl(var(--border));
+  --tw-prose-quotes: hsl(var(--foreground));
+  --tw-prose-quote-borders: hsl(var(--border));
+  --tw-prose-captions: hsl(var(--muted-foreground));
+  --tw-prose-code: hsl(var(--code-fg));
+  --tw-prose-pre-code: hsl(var(--code-fg));
+  --tw-prose-pre-bg: hsl(var(--code-bg));
+  --tw-prose-th-borders: hsl(var(--border));
+  --tw-prose-td-borders: hsl(var(--border));
+}
+
+.prose :where(h1, h2, h3, h4, h5, h6) {
+  font-weight: 500;
+  color: hsl(var(--foreground));
+}
+
+.prose :where(code):not(:where(pre *)) {
+  background-color: hsl(var(--code-bg));
+  color: hsl(var(--code-fg));
+  padding: 0.15rem 0.375rem;
+  border-radius: 0.25rem;
+  font-weight: 400;
+  font-size: 0.875em;
+}
+
+.prose :where(code):not(:where(pre *))::before,
+.prose :where(code):not(:where(pre *))::after {
+  content: none !important;
+}
+
+.prose :where(pre) {
+  background-color: hsl(var(--code-bg));
+  color: hsl(var(--code-fg));
+  border: 1px solid hsl(var(--border));
+  border-radius: var(--radius);
+}
+
+.prose :where(table) {
+  border-collapse: collapse;
+}
+
+.prose :where(thead th) {
+  font-weight: 500;
+  color: hsl(var(--foreground));
+}
+
+.prose :where(blockquote) {
+  color: hsl(var(--foreground));
+  border-inline-start-color: hsl(var(--border));
+}
+
+.prose :where(strong) {
+  font-weight: 600;
+  color: hsl(var(--foreground));
+}
+
+.prose :where(a) {
+  font-weight: 500;
+  color: hsl(var(--foreground));
+  text-decoration-color: hsl(var(--muted-foreground) / 0.4);
+  transition: color 0.15s ease;
+}
+
+.prose :where(a):hover {
+  color: hsl(var(--primary));
+}
