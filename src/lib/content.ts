@@ -1,5 +1,6 @@
 import fs from 'node:fs'
 import path from 'node:path'
+import GithubSlugger from 'github-slugger'
 import matter from 'gray-matter'
 
 /**
@@ -183,7 +184,7 @@ export function getAllBlogTags(): Array<{ tag: string; count: number }> {
 export interface Heading {
   depth: 2 | 3
   text: string
-  /** 锚点 id，生成规则和 rehype-slug（github-slugger）保持一致 */
+  /** 锚点 id，使用 github-slugger 生成，与 rehype-slug 保持严格一致 */
   id: string
 }
 
@@ -193,6 +194,7 @@ export interface Heading {
  */
 export function extractHeadings(content: string): Heading[] {
   const headings: Heading[] = []
+  const slugger = new GithubSlugger()
   let inCodeBlock = false
 
   for (const line of content.split('\n')) {
@@ -209,23 +211,11 @@ export function extractHeadings(content: string): Heading[] {
     headings.push({
       depth: match[1].length as 2 | 3,
       text,
-      id: slugifyHeading(text),
+      id: slugger.slug(text),
     })
   }
 
   return headings
-}
-
-/**
- * 和 github-slugger 一致的标题转 id：小写、空白折叠成连字符、
- * 去掉标点。中文字符保留。
- */
-function slugifyHeading(text: string): string {
-  return text
-    .toLowerCase()
-    .trim()
-    .replace(/\s+/g, '-')
-    .replace(/[\p{P}\p{S}]+/gu, '')
 }
 
 /** 日期显示，全站统一格式。 */

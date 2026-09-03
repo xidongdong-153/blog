@@ -33,6 +33,8 @@ export function TableOfContents({ headings, onItemClick }: TableOfContentsProps)
     const container = containerRef.current
     if (!container) return
 
+    const contentElement = document.querySelector('article') as HTMLElement | null
+
     const articleHeadings = headings
       .map((h) => document.getElementById(h.id))
       .filter((el): el is HTMLElement => el !== null)
@@ -70,7 +72,6 @@ export function TableOfContents({ headings, onItemClick }: TableOfContentsProps)
 
     const updatePositionAndStyle = () => {
       const windowHeight = window.innerHeight
-      const contentElement = document.querySelector('article') as HTMLElement | null
       const pageOffset = window.scrollY - (contentElement?.offsetTop || 0)
       const postOffset = (contentElement?.offsetHeight || 0) + 127
 
@@ -150,6 +151,14 @@ export function TableOfContents({ headings, onItemClick }: TableOfContentsProps)
     // 初始执行一次
     updatePositionAndStyle()
 
+    let resizeObserver: ResizeObserver | null = null
+    if (contentElement && typeof ResizeObserver !== 'undefined') {
+      resizeObserver = new ResizeObserver(() => {
+        scheduleUpdate()
+      })
+      resizeObserver.observe(contentElement)
+    }
+
     window.addEventListener('scroll', scheduleUpdate, { passive: true })
     window.addEventListener('resize', scheduleUpdate)
     window.addEventListener('wheel', releaseFollow, { passive: true })
@@ -162,6 +171,7 @@ export function TableOfContents({ headings, onItemClick }: TableOfContentsProps)
       window.removeEventListener('wheel', releaseFollow)
       window.removeEventListener('touchstart', releaseFollow)
       window.removeEventListener('keydown', releaseFollow)
+      resizeObserver?.disconnect()
       if (rafIdRef.current) {
         window.cancelAnimationFrame(rafIdRef.current)
       }

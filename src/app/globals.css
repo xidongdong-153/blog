@@ -1,5 +1,6 @@
 @import 'tailwindcss';
 @plugin '@tailwindcss/typography';
+@import 'katex/dist/katex.min.css';
 
 @custom-variant dark (&:where(.dark, .dark *));
 @custom-variant theme-system (&:where(html[data-theme='system'] *));
@@ -130,6 +131,27 @@ html {
   color: hsl(var(--foreground));
 }
 
+/* 标题直达锚点链接（悬停显示） */
+.prose :where(h2, h3, h4) .subheading-anchor {
+  margin-inline-start: 0.375rem;
+  font-weight: 400;
+  color: hsl(var(--muted-foreground) / 0.35);
+  text-decoration: none;
+  opacity: 0;
+  transition:
+    opacity 0.15s ease,
+    color 0.15s ease;
+  user-select: none;
+}
+
+.prose :where(h2, h3, h4):hover .subheading-anchor {
+  opacity: 1;
+}
+
+.prose :where(h2, h3, h4) .subheading-anchor:hover {
+  color: hsl(var(--primary));
+}
+
 .prose :where(code):not(:where(pre *)) {
   background-color: hsl(var(--code-inline-bg));
   color: hsl(var(--code-fg));
@@ -149,6 +171,66 @@ html {
   color: hsl(var(--code-fg));
   border: 1px solid hsl(var(--border));
   border-radius: var(--radius);
+}
+
+.prose :where(img, video, iframe) {
+  max-width: 100%;
+  height: auto;
+}
+
+#sidebar {
+  scrollbar-width: thin;
+  scrollbar-color: hsl(var(--border)) transparent;
+}
+
+#sidebar::-webkit-scrollbar {
+  width: 4px;
+}
+
+#sidebar::-webkit-scrollbar-thumb {
+  background-color: hsl(var(--border));
+  border-radius: 9999px;
+}
+
+/* rehype-pretty-code 语法高亮双主题变量映射 */
+[data-rehype-pretty-code-figure] code[data-theme*=' '] span {
+  color: var(--shiki-light);
+}
+
+.dark [data-rehype-pretty-code-figure] code[data-theme*=' '] span,
+html[data-theme='dark'] [data-rehype-pretty-code-figure] code[data-theme*=' '] span {
+  color: var(--shiki-dark);
+}
+
+/* 清除 typography 对 code figure 内部 pre 的默认外边距与边框 */
+.prose :where([data-rehype-pretty-code-figure] pre) {
+  margin: 0;
+  border: none;
+  background-color: transparent;
+  border-radius: 0;
+}
+
+/* 代码块语言提示（右下角微标） */
+[data-rehype-pretty-code-figure] pre[data-language]::after {
+  content: attr(data-language);
+  position: absolute;
+  right: 0.75rem;
+  bottom: 0.35rem;
+  font-size: 0.7rem;
+  line-height: 1;
+  font-family: monospace;
+  font-weight: 500;
+  color: hsl(var(--muted-foreground) / 0.4);
+  pointer-events: none;
+  text-transform: uppercase;
+  user-select: none;
+}
+
+/* 代码行高亮与 Diff 样式 */
+[data-rehype-pretty-code-figure] [data-highlighted-line] {
+  background-color: hsl(var(--primary) / 0.1);
+  border-left: 2px solid hsl(var(--primary));
+  padding-left: calc(1rem - 2px);
 }
 
 .prose :where(table) {

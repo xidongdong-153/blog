@@ -1,16 +1,21 @@
 ---
-title: 博客跑起来了
-description: 第一篇文章：内容约定、目录结构和这个项目接下来要做的事。
+title: 博客跑起来了：MDX 排版与交互特性测试
+description: 第一篇文章：内容约定、目录结构以及 MDX 完整渲染能力的综合功能测试。
 date: 2026-06-15
+heroImage: /images/demo/image-wallpaper.png
 tags:
   - 随笔
+  - 前端
+  - MDX
 ---
 
-欢迎来到这个博客。项目参考了两个来源：架构来自 xdd/starter 的 Next.js web 应用（App Router、路由组、组件按功能内聚），内容组织来自 joye-blog 的约定（博客按文件夹、笔记按单文件）。
+欢迎来到这个博客。项目参考了两个来源：架构来自 `xdd/starter` 的 Next.js web 应用（App Router、路由组、组件按功能内聚），内容组织来自 `joye-blog` 的约定（博客按文件夹、笔记按单文件）。
 
-## 内容放在哪里
+本文档同时作为全站 MDX 渲染能力的综合测试页面，覆盖文本排版、代码高亮、数学公式、多媒体（图片灯箱、视频播放）与交互组件。
 
-文章放在 `content/blog/`，每篇文章一个文件夹：
+## 内容与文件约定
+
+文章放在 `content/blog/`，每篇文章一个独立文件夹：
 
 ```text
 content/blog/
@@ -18,33 +23,142 @@ content/blog/
     post.mdx
 ```
 
-文件夹名就是 URL 里的 slug，这篇文章的地址是 `/blog/20260615-hello-blog`。
+文件夹名即 URL 中的 slug，本文地址为 `/blog/20260615-hello-blog`。笔记放在 `content/notes/`，每条笔记为一个独立的 `.md` 文件。
 
-笔记放在 `content/notes/`，一条笔记一个 `.md` 文件，文件名是 slug。
+## 中文与文本排版增强
 
-## frontmatter 写什么
+针对中文技术排版，解析器已集成 `remark-cjk-friendly`，解决 CommonMark 规范中加粗紧贴全角标点不解析的边界问题：
 
-文章必填 `title` 和 `date`，可选 `description`、`tags`、`draft`。`draft: true` 的文章不出现在列表和归档里。
+- 中文紧贴逗号：**加粗文本**，在标准 CommonMark 容易失效，现在正常解析。
+- 中文紧贴句号：**重点语句**。同样保持正常粗体样式。
+- 组合修饰：*斜体文本*、~~中划线删除~~，以及代码字面量 `const answer = 42`。
+- 链接增强：[站内关于页面](/about) 会自动被转为 Next.js 客户端路由，而 [GitHub 外部链接](https://github.com) 会在新窗口安全打开。
 
-笔记多一个 `status` 字段，四个值：`in-progress`（进行中）、`incomplete`（待补充）、`ready`（已整理）、`archived`（已归档）。
+## LaTeX 数学公式
 
-## 正文可以写什么
+集成 `remark-math` 与 `rehype-katex`，支持行内公式与跨行块级公式排版。
 
-MDX 语法，支持 GFM：表格、删除线、任务列表。
+行内公式示例：质能方程 $E = mc^2$，欧拉恒等式 $e^{i\pi} + 1 = 0$。
 
-| 语法 | 效果 |
-| ---- | ---- |
-| `~~删除~~` | ~~删除~~ |
-| `- [x]` | 任务列表 |
+块级复杂积分与极限公式：
 
-- [x] 搭好项目骨架
-- [ ] 接入 RSS 和 sitemap
-- [ ] 接入 Giscus 评论
+$$
+\int_{-\infty}^{\infty} e^{-x^2} dx = \sqrt{\pi}
+$$
 
-### 三级标题也会进目录
+矩阵与变换公式排版：
 
-目录（TOC）从正文里的二级、三级标题生成，锚点由 rehype-slug 生成，中文标题也能跳转。
+$$
+\begin{bmatrix}
+\cos\theta & -\sin\theta \\
+\sin\theta & \cos\theta
+\end{bmatrix}
+\begin{bmatrix}
+x \\
+y
+\end{bmatrix}
+=
+\begin{bmatrix}
+x\cos\theta - y\sin\theta \\
+x\sin\theta + y\cos\theta
+\end{bmatrix}
+$$
 
-## 还没实现的功能
+## 代码块语法高亮与一键复制
 
-搜索、RSS、sitemap、评论、OG 图都是占位，清单在 README 的功能状态表里。
+基于 `rehype-pretty-code`（Shiki 引擎），自动适配 Catppuccin 双主题（浅色 Latte、深色 Mocha）。右上角提供一键复制代码按钮，支持文件名标题与右下角语言徽标。
+
+```ts title="src/server.ts"
+import { createServer } from 'node:http'
+
+const server = createServer((req, res) => {
+  res.writeHead(200, { 'Content-Type': 'application/json' })
+  res.end(JSON.stringify({ status: 'ok', time: Date.now() }))
+})
+
+server.listen(4400, () => {
+  console.log('Server is running on http://localhost:4400')
+})
+```
+
+Python 语言与行高亮示例：
+
+```python title="scripts/evaluate.py"
+def compute_metrics(predictions, targets):
+    correct = sum(p == t for p, t in zip(predictions, targets))
+    accuracy = correct / len(targets)
+    return {
+        "accuracy": accuracy,
+        "total_samples": len(targets)
+    }
+```
+
+## 多媒体展示：图片灯箱与视频播放
+
+### 1. 正文图片灯箱（点击平滑全屏放大）
+
+正文中的图片已配置灯箱组件，鼠标移动到图片上方时光标呈放大镜形态，点击即可全屏平滑放大预览；点击黑色遮罩区域或按键盘 `ESC` 键即可退出放大。
+
+![壁纸全图演示](/images/demo/image-wallpaper.png)
+
+### 2. 视频流媒体播放
+
+正文已内置 `<Video>` 组件，支持原生控制条、移动端全屏播放以及居中标题说明。
+
+<Video
+  src="/videos/demo/thumbnail.mp4"
+  caption="动态壁纸视频展示（轻量测试视频，支持进度拖拽、全屏播放与倍速控制）"
+/>
+
+## 语义交互组件
+
+### 1. Callout 提示卡片
+
+支持四种语义级别，自动匹配对应图标与边框色彩：
+
+<Callout type="note" title="注意说明">
+这里是一条常规注意事项说明，用于补充正文边界条件。
+</Callout>
+
+<Callout type="tip" title="技巧提示">
+代码块点击右上角按钮可直接复制全文，双主题会自动跟随系统或页头切换。
+</Callout>
+
+<Callout type="warning" title="重要警告">
+修改核心编译管道前，请务必执行代码质量门测试，确保类型检查与静态构建通过。
+</Callout>
+
+<Callout type="important" title="关键结论">
+静态博客所有资源文件在构建期打包，媒体大文件建议通过 CDN 托管或适当压缩。
+</Callout>
+
+### 2. Collapse 折叠面板
+
+用于在正文中收纳长代码、配置文件或调试日志，默认折叠，点击展开：
+
+<Collapse title="点击展开查看环境配置详情">
+
+```bash
+# 环境变量与系统运行信息
+NODE_VERSION=v22.19.0
+NEXT_PUBLIC_SITE_URL=https://joyehuang.me
+THEME_DEFAULT=system
+TURBOPACK=true
+```
+
+折叠面板内部可以放置 Markdown 文本、列表与代码块。
+
+</Collapse>
+
+## 响应式表格排版
+
+宽表格自动包裹横向滚动容器，移动端浏览时横向滑动查看，不会撑破页面外层宽度：
+
+| 功能模块 | 对应技术栈 | 渲染阶段 | 状态说明 |
+| -------- | ---------- | -------- | -------- |
+| 语法高亮 | Shiki + rehype-pretty-code | 服务端 RSC | 支持双主题与复制 |
+| 数学公式 | remark-math + KaTeX | 服务端 RSC | 矢量公式排版 |
+| 中文排版 | remark-cjk-friendly | 服务端编译 | 修复标点加粗 |
+| 标题锚点 | rehype-autolink-headings | 静态生成 | 悬停直达链接 |
+| 图片灯箱 | ImageZoom | 客户端叶子节点 | 点击放大遮罩 |
+| 视频播放 | Video 组件 | 服务端/原生控制 | 响应式自适应 |

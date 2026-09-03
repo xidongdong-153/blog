@@ -82,7 +82,7 @@ pnpm build
 | RSS                                | 未开始                   | 计划 `src/app/rss.xml/route.ts`                                   |
 | sitemap / robots                   | 未开始                   | 计划 `src/app/sitemap.ts`、`src/app/robots.ts`                    |
 | OG 图自动生成                      | 未开始                   | 计划 `src/app/(site)/blog/[slug]/opengraph-image.tsx`，用 next/og |
-| 代码块高亮                         | 未开始                   | 计划 rehype-pretty-code 或 shiki                                  |
+| 代码块高亮与复制                   | 已实现                   | `src/app/(site)/_components/blog/mdx-content.tsx`                 |
 
 ## 部署
 

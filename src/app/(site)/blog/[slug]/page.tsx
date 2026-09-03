@@ -1,7 +1,7 @@
 import type { Metadata } from 'next'
 import Image from 'next/image'
 import { notFound } from 'next/navigation'
-import { extractHeadings, formatDate, getAllBlogPosts, getBlogPost } from '@/lib/content'
+import { calculateReadingTime, extractHeadings, formatDate, getAllBlogPosts, getBlogPost } from '@/lib/content'
 import { CopyrightCard } from '../../_components/blog/copyright-card'
 import { FloatingActionGroup } from '../../_components/blog/floating-action-group'
 import { MdxContent } from '../../_components/blog/mdx-content'
@@ -37,6 +37,7 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
   }
 
   const headings = extractHeadings(post.content)
+  const readingTime = calculateReadingTime(post.content)
 
   return (
     <div className="mx-auto w-full max-w-5xl gap-x-10 lg:flex lg:items-start">
@@ -44,7 +45,7 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
       {headings.length > 0 && (
         <aside
           id="sidebar"
-          className="sticky top-20 order-2 hidden max-h-[calc(100vh-6rem)] basis-64 overflow-y-auto lg:block"
+          className="sticky top-20 order-2 hidden max-h-[calc(100vh-6rem)] w-64 shrink-0 overflow-y-auto lg:block"
         >
           <TableOfContents headings={headings} />
         </aside>
@@ -59,13 +60,25 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
             </div>
           )}
 
-          <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
-            <time dateTime={post.date} className="text-xs text-muted-foreground">
-              {formatDate(post.date)}
-            </time>
-            {post.updatedDate && (
-              <span className="text-xs text-muted-foreground">（更新于 {formatDate(post.updatedDate)}）</span>
-            )}
+          <div className="flex flex-wrap items-center gap-x-3 gap-y-2 text-xs text-muted-foreground">
+            <time dateTime={post.date}>{formatDate(post.date)}</time>
+            {post.updatedDate && <span>（更新于 {formatDate(post.updatedDate)}）</span>}
+            <span className="flex items-center gap-1">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                className="size-3.5 shrink-0"
+              >
+                <circle cx="12" cy="12" r="10" />
+                <polyline points="12 6 12 12 16 14" />
+              </svg>
+              {readingTime}
+            </span>
           </div>
 
           <h1 className="text-3xl font-bold tracking-tight">{post.title}</h1>
