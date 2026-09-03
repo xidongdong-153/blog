@@ -7,13 +7,15 @@
 ```text
 src/app/(site)/              公开页面，唯一页面区
 src/app/(site)/_components/  页面私有组件，按功能分组
+src/app/fonts/               本地自托管字体文件（Satoshi woff2）
 src/lib/content.ts           MDX 内容读取层（唯一数据层）
 src/site.config.ts           站点标题、导航、社交链接、正式域名
+src/profile.config.ts        个人信息、自我介绍、技术栈与履历配置
 content/blog/                文章，每篇一个文件夹
 content/notes/               笔记，一条一个 .md
 ```
 
-`src/app/` 下还有 `layout.tsx`（根布局）、`globals.css`、`not-found.tsx`，不在这个清单外建新的顶层源码目录。
+`src/app/` 下还有 `layout.tsx`（根布局）、`fonts.ts`（字体加载）、`globals.css`、`not-found.tsx`，不在这个清单外建新的顶层源码目录。
 
 路径别名 `@/*` 指向 `src/`（在 `tsconfig.json` 的 `paths` 里），`@/lib/content` 就是 `src/lib/content.ts`。`content/` 由 `src/lib/content.ts` 用 `process.cwd()` 拼绝对路径读取，锚在仓库根，不跟源码位置走。
 
@@ -31,6 +33,7 @@ content/notes/               笔记，一条一个 .md
 | 分组 | 放什么 | 现有文件 |
 | ---- | ---- | ---- |
 | `site/` | 页头、页脚、主题切换 | `site-header.tsx`、`site-footer.tsx`、`theme-toggle.tsx` |
+| `home/` | 首页简历与信息流展示 | `hero.tsx`、`section.tsx`、`entry-list-item.tsx`、`link-card.tsx`、`skill-list.tsx`、`site-stats.tsx` |
 | `blog/` | 文章相关 | `post-card.tsx`、`mdx-content.tsx`、`toc.tsx` |
 | `notes/` | 笔记相关 | `note-card.tsx` |
 | `comment/` | 评论 | `giscus-comments.tsx`（占位） |

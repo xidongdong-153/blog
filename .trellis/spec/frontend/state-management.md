@@ -28,13 +28,14 @@ const posts = getAllBlogPosts().filter((post) => !post.draft)
 
 ## 主题机制
 
-唯一的持久化客户端状态是主题，实现由三部分组成，约定了存储键 `theme`：
+唯一的持久化客户端状态是主题，支持 system / light / dark 三态循环，约定了存储键 `theme`。机制由四部分组成，必须保持同步：
 
-1. 根布局 `src/app/layout.tsx` 的内联脚本：进页面前先读 `localStorage.theme`，没有再跟系统偏好，给 `<html>` 挂 `.dark`。脚本必须在 body 之前执行，防白闪。
-2. `src/app/(site)/_components/site/theme-toggle.tsx`：点击切换 `.dark` 类并写回 `localStorage.theme`。
-3. Tailwind 的 `dark:` 变体：样式差异全部靠它，没有第二套主题机制。
+1. 根布局 `src/app/layout.tsx` 的内联脚本：进页面前先读 `localStorage.theme`，按 light / dark / system 分别 resolve，给 `<html>` 设置 `data-theme` 属性和根据计算结果加减 `.dark` 类。脚本必须在 body 之前执行，防止闪白。
+2. `src/app/(site)/_components/site/theme-toggle.tsx`：点击按 system → light → dark 循环，写回 `localStorage.theme` 与 `html.dataset.theme`，并监听系统色彩偏好变化。
+3. `src/app/globals.css` 中的自定义变体（`theme-system`、`theme-light`、`theme-dark`）：三个图标的可见性直接由 CSS 选择器驱动，不走 React state，避免 hydration mismatch 与首帧闪烁。
+4. Tailwind 的 `dark:` 变体：实际颜色样式的深浅差异全部由 `html.dark` 驱动。
 
-改存储键或挂载类名时三处要同步。`suppressHydrationWarning` 只能放在 `<html>` 上（内联脚本会改这个元素）。
+改存储键或挂载属性时四处要同步。`suppressHydrationWarning` 只能放在 `<html>` 上（内联脚本会改这个元素）。
 
 ## 环境差异
 

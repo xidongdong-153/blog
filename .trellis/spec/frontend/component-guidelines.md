@@ -4,7 +4,7 @@
 
 默认全部写 Server Components，不用加任何指令。只有用到浏览器 API（localStorage、事件监听）的组件才加 `'use client'`。
 
-现状：整个项目只有一个 client 组件 `src/app/(site)/_components/site/theme-toggle.tsx`。MDX 渲染走异步 RSC（`mdx-content.tsx` 的 `compileMDX`），不需要 client。
+现状：项目中有两个 client 组件：`src/app/(site)/_components/site/theme-toggle.tsx`（主题存储与媒体监听）和 `src/app/(site)/_components/site/site-header.tsx`（滚动感应与移动端菜单展开）。MDX 渲染走异步 RSC（`mdx-content.tsx` 的 `compileMDX`），不需要 client。
 
 判断标准：组件要 `useState` / `useEffect` / 浏览器 API 才转 client；只展示数据、拼接 className 的都留在 server。client 边界收得越小越好，不要为了方便把整棵子树标成 client。
 
@@ -19,7 +19,7 @@
 
 - 简单组件用内联类型：`export function PostCard({ post }: { post: BlogPost })`。
 - 页面组件的 params 等结构用 interface（如 `BlogPostPageProps`，见 `src/app/(site)/blog/[slug]/page.tsx`）。
-- props 类型从数据层 import（`BlogPost`、`Note` 来自 `src/lib/content.ts`），不在组件里重复定义数据形状。
+- props 类型从数据层 import（`BlogPost`、`Note` 来自 `src/lib/content.ts`，`Profile` 来自 `src/profile.config.ts`），不在组件里重复定义数据形状。
 
 ## 注释
 
@@ -27,10 +27,11 @@
 
 ## Tailwind
 
-- 色系统一用 stone，暗色用 `dark:` 变体和亮色成对出现，如 `text-stone-500 dark:text-stone-400`。
+- 色系统一使用 HSL 语义 token（`background`、`foreground`、`muted`、`muted-foreground`、`primary`、`border` 等），组件禁止硬编码 `stone-*` 或其他原色阶。
 - 正文排版用 `prose prose-stone dark:prose-invert`（@tailwindcss/typography），见 `mdx-content.tsx`。
-- 内容宽度统一 `max-w-3xl`，在 `src/app/(site)/layout.tsx` 的 `<main>` 上，页面内部不再限宽。
-- 不写自定义 CSS 类、不用 CSS Modules、不引 styled-components；主题差异全部走 `dark:` 变体。
+- 圆角约定：控件用 `rounded-md`，卡片和列表项用 `rounded-lg` 或 `rounded-2xl`，头像与 pill 用 `rounded-full`。
+- 内容宽度：首页使用宽布局 `md:w-4/5 lg:w-5/6`，文章与笔记等其余页面内部使用 `mx-auto w-full max-w-3xl`。
+- 不写自定义组件 CSS 类，样式全部走 Tailwind 工具类与 data 变体（如 `data-[scrolled=true]:`、`theme-system:` 等）；`src/app/globals.css` 仅用于存放设计 token、keyframes 和变体定义。
 
 ## 通用模式
 

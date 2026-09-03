@@ -1,0 +1,4 @@
+{"file": ".trellis/spec/frontend/quality-guidelines.md", "reason": "四条质量门的执行顺序和命令、ESLint 关键规则（no-explicit-any 是 error）、Prettier 配置、无测试框架时的验证手段、README 功能状态表的维护规则"}
+{"file": ".trellis/spec/frontend/component-guidelines.md", "reason": "检查新增的 6 个 home 组件是否符合导出方式、props 类型、JSDoc、列表 key、日期渲染、空列表兜底这些既有约定"}
+{"file": ".trellis/spec/guides/code-reuse-thinking-guide.md", "reason": "首页新增 6 个组件，需要检查有没有和 post-card / note-card / empty-state 重复实现同一件事，以及 entry-list-item 是否被 Blog 和 Notes 两处正确复用"}
+{"file": ".trellis/spec/guides/cross-layer-thinking-guide.md", "reason": "主题状态跨了内联脚本、globals.css 变体、theme-toggle 三层，profile 数据跨了配置文件和多个组件，需要按跨层检查清单确认没有一处改了另一处没跟上"}

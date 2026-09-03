@@ -8,9 +8,10 @@ Next.js 单应用个人博客。文章和笔记用 MDX 文件管理，git 提交
 
 代码在 `src/`，内容和配置文件在仓库根。
 
-- `src/app/`：页面和布局。公开页面在 `src/app/(site)/`，页面私有组件在同级的 `_components/` 里按 `site`、`blog`、`notes`、`comment`、`placeholder` 分组。
+- `src/app/`：页面和布局。公开页面在 `src/app/(site)/`，页面私有组件在同级的 `_components/` 里按 `site`、`home`、`blog`、`notes`、`comment`、`placeholder` 分组；本地自托管字体在 `src/app/fonts/`。
 - `src/lib/content.ts`：MDX 内容读取层，frontmatter 校验、排序、标签统计、目录提取都在这里。
 - `src/site.config.ts`：站点标题、导航、社交链接、正式域名。
+- `src/profile.config.ts`：个人简介、所在城市、技术栈、经历与教育等主页信息。
 - `content/blog/`：文章，每篇一个文件夹。
 - `content/notes/`：笔记，一条一个 `.md` 文件。
 
@@ -63,19 +64,20 @@ pnpm build
 
 ## 功能状态
 
-| 功能                          | 状态                           | 位置                                                              |
-| ----------------------------- | ------------------------------ | ----------------------------------------------------------------- |
-| 文章列表 / 详情 / 标签 / 归档 | 已实现                         | `src/app/(site)/blog/`                                            |
-| 文章目录 TOC                  | 已实现（静态锚点，无滚动高亮） | `src/app/(site)/_components/blog/toc.tsx`                         |
-| 笔记列表 / 详情（状态标记）   | 已实现                         | `src/app/(site)/notes/`                                           |
-| 暗色主题切换                  | 已实现                         | `src/app/(site)/_components/site/theme-toggle.tsx`                |
-| 项目 / 友链 / 关于 / 联系     | 占位页                         | `src/app/(site)/` 对应目录                                        |
-| 站内搜索                      | 占位页，方案见页面注释         | `src/app/(site)/search/page.tsx`                                  |
-| Giscus 评论                   | 占位组件，接入步骤见注释       | `src/app/(site)/_components/comment/giscus-comments.tsx`          |
-| RSS                           | 未开始                         | 计划 `src/app/rss.xml/route.ts`                                   |
-| sitemap / robots              | 未开始                         | 计划 `src/app/sitemap.ts`、`src/app/robots.ts`                    |
-| OG 图自动生成                 | 未开始                         | 计划 `src/app/(site)/blog/[slug]/opengraph-image.tsx`，用 next/og |
-| 代码块高亮                    | 未开始                         | 计划 rehype-pretty-code 或 shiki                                  |
+| 功能                               | 状态                           | 位置                                                              |
+| ---------------------------------- | ------------------------------ | ----------------------------------------------------------------- |
+| 文章列表 / 详情 / 标签 / 归档      | 已实现                         | `src/app/(site)/blog/`                                            |
+| 文章目录 TOC                       | 已实现（静态锚点，无滚动高亮） | `src/app/(site)/_components/blog/toc.tsx`                         |
+| 笔记列表 / 详情（状态标记）        | 已实现                         | `src/app/(site)/notes/`                                           |
+| 三态主题切换（系统 / 浅色 / 深色） | 已实现                         | `src/app/(site)/_components/site/theme-toggle.tsx`                |
+| sticky 胶囊页头                    | 已实现                         | `src/app/(site)/_components/site/site-header.tsx`                 |
+| 项目 / 友链 / 关于 / 联系          | 占位页                         | `src/app/(site)/` 对应目录                                        |
+| 站内搜索                           | 占位页，方案见页面注释         | `src/app/(site)/search/page.tsx`                                  |
+| Giscus 评论                        | 占位组件，接入步骤见注释       | `src/app/(site)/_components/comment/giscus-comments.tsx`          |
+| RSS                                | 未开始                         | 计划 `src/app/rss.xml/route.ts`                                   |
+| sitemap / robots                   | 未开始                         | 计划 `src/app/sitemap.ts`、`src/app/robots.ts`                    |
+| OG 图自动生成                      | 未开始                         | 计划 `src/app/(site)/blog/[slug]/opengraph-image.tsx`，用 next/og |
+| 代码块高亮                         | 未开始                         | 计划 rehype-pretty-code 或 shiki                                  |
 
 ## 部署
 

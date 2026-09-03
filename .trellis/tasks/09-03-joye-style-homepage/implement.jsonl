@@ -1,0 +1,4 @@
+{"file": ".trellis/spec/frontend/component-guidelines.md", "reason": "RSC / client 划分标准、具名导出约定、中文 JSDoc 要求、Tailwind 色系和内容宽度约定；本任务要把其中的 stone 色系条目改成语义 token，实现时先按现有其他条目执行"}
+{"file": ".trellis/spec/frontend/directory-structure.md", "reason": "新文件落位依据：_components 按功能分组（要新建 home/ 分组）、反模式一节禁止新建顶层源码目录（决定 profile 配置放 src/profile.config.ts 而不是 src/data/）"}
+{"file": ".trellis/spec/frontend/state-management.md", "reason": "主题机制现有三处同步约定（存储键 theme、内联脚本时序、dark 变体），本任务从两态改三态并加 html.dataset.theme，改之前要先读懂原约定"}
+{"file": ".trellis/spec/frontend/type-safety.md", "reason": "strict 模式下的类型定义位置、字面量联合当枚举、配置类型从值推导；profile.config.ts 的类型写法要在这套规则里做取舍（空数组导致必须显式标注）"}
