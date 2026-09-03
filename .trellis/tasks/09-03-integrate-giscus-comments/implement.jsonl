@@ -1,0 +1,2 @@
+{"file": ".trellis/spec/frontend/component-guidelines.md", "reason": "遵循客户端组件划分、Tailwind 语义 token 与中文 JSDoc 规范"}
+{"file": ".trellis/spec/frontend/state-management.md", "reason": "遵循主题状态切换机制与无额外状态库约定"}
