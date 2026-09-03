@@ -12,6 +12,10 @@ export interface BlogPost {
   description: string
   /** ISO 日期字符串，如 2026-06-15 */
   date: string
+  /** 更新日期，ISO 字符串。有值时详情页会显示"更新于 ..." */
+  updatedDate: string
+  /** Hero 图路径，相对于 public/。如 /images/blog/hero.jpg */
+  heroImage: string
   tags: string[]
   /** true 时列表页不显示 */
   draft: boolean
@@ -79,6 +83,18 @@ function readTags(data: Record<string, unknown>): string[] {
   return []
 }
 
+/** 读取可选的日期字段，没写或格式不对就返回空字符串。 */
+function readOptionalDate(data: Record<string, unknown>, field: string): string {
+  const value = data[field]
+  if (value instanceof Date) {
+    return value.toISOString().slice(0, 10)
+  }
+  if (typeof value === 'string' && value.trim() !== '') {
+    return value.trim()
+  }
+  return ''
+}
+
 /** 读取全部博客文章，按日期倒序；draft 的文章不出现在列表，但仍可直接访问。 */
 export function getAllBlogPosts(): BlogPost[] {
   const blogDir = path.join(CONTENT_DIR, 'blog')
@@ -98,6 +114,8 @@ export function getAllBlogPosts(): BlogPost[] {
       title: requireString(data, 'title', filePath),
       description: typeof data.description === 'string' ? data.description : '',
       date: readDate(data, filePath),
+      updatedDate: readOptionalDate(data, 'updatedDate'),
+      heroImage: typeof data.heroImage === 'string' ? data.heroImage : '',
       tags: readTags(data),
       draft: data.draft === true,
       content,

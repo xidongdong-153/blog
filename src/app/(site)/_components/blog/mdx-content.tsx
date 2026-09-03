@@ -18,5 +18,5 @@ export async function MdxContent({ source }: { source: string }) {
     },
   })
 
-  return <div className="prose prose-stone dark:prose-invert max-w-none">{content}</div>
+  return <div className="prose text-base text-muted-foreground max-w-none">{content}</div>
 }
