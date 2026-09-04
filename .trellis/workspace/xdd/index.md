@@ -8,7 +8,7 @@
 
 <!-- @@@auto:current-status -->
 - **Active File**: `journal-1.md`
-- **Total Sessions**: 10
+- **Total Sessions**: 11
 - **Last Active**: 2026-09-04
 <!-- @@@/auto:current-status -->
 
@@ -19,7 +19,7 @@
 <!-- @@@auto:active-documents -->
 | File | Lines | Status |
 |------|-------|--------|
-| `journal-1.md` | ~276 | Active |
+| `journal-1.md` | ~298 | Active |
 <!-- @@@/auto:active-documents -->
 
 ---
@@ -29,6 +29,7 @@
 <!-- @@@auto:session-history -->
 | # | Date | Title | Commits | Branch |
 |---|------|-------|---------|--------|
+| 11 | 2026-09-04 | 顶栏显隐水滴凝聚与阻尼静止动效 | `dada006` | `main` |
 | 10 | 2026-09-04 | 顶栏滚动液体融合动效 | `95f4f4d` | `main` |
 | 9 | 2026-09-04 | 配置与接入 Impeccable 设计系统 | `141e5cd`, `842afb6`, `90558c2`, `035e7ac` | `main` |
 | 8 | 2026-09-04 | 全站文案中文化与本土化优化 | `40898e1` | `main` |

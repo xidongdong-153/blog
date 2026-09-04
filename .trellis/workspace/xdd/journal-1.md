@@ -274,3 +274,25 @@ trellis init -u xdd --pi 完成，填充 .trellis/spec/frontend 5 个规范文�
 ### Status
 
 [OK] **Completed**
+
+
+## Session 11: 顶栏显隐水滴凝聚与阻尼静止动效
+<!-- trellis-session: v=2 fp=4ac08b3e5575cd04 -->
+
+**Date**: 2026-09-04
+**Task**: 顶栏显隐水滴凝聚与阻尼静止动效
+**Branch**: `main`
+
+### Summary
+
+改造 SiteHeader 显隐动画为水汽微缩消散与表面张力阻尼平息静止，引入累积位移死区过滤慢速拖动抖动
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `dada006` | fix(ui): 增加滚动死区位移缓冲并优化显隐通道，消除慢拖抖动 |
+
+### Status
+
+[OK] **Completed**
