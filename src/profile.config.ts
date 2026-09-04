@@ -43,7 +43,7 @@ export interface Profile {
 
 export const profileConfig: Profile = {
   avatar: null,
-  location: '杭州',
+  location: '上海',
   about: ['专注 TypeScript 技术栈与现代化前端开发。', '追求干净的架构设计与丝滑的用户交互体验。'],
   skills: [
     {
