@@ -355,3 +355,39 @@ trellis init -u xdd --pi 完成，填充 .trellis/spec/frontend 5 个规范文�
 ### Status
 
 [OK] **Completed**
+
+
+## Session 14: 全站设计语言统一与出版物排版重塑
+<!-- trellis-session: v=2 fp=e6080ecdcc67a3bd -->
+
+**Date**: 2026-09-04
+**Task**: 全站设计语言统一与出版物排版重塑
+**Branch**: `main`
+
+### Summary
+
+全面收敛全站设计语言，重构列表与卡片为工业克制圆角与等宽技术微标，贯通全站页面一级标题与 Section 模块的 Newsreader 衬线字体排版，落地项目展示、关于与友链页面的结构化排版，消灭通用 EmptyState 占位
+
+### Main Changes
+
+- 列表卡片重构：NoteCard、EntryListItem、LinkCard、SkillList 废除大圆角与彩色药丸，收敛至 rounded-lg 与 // STATUS 等宽微标
+- 全站排版贯通：blog、notes、projects、about、links、contact、search 等全站一级标题与 Section H2 统一接入 font-serif 衬线大字
+- 结构化页面落地：重构 projects、about、links、contact 页面，新增 blog/tags 索引页，消除所有公共页面的 EmptyState 占位
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `dff5d20` | feat(ui): 贯通全站衬线大标题并落地项目关于友链结构化排版 |
+| `97b3e00` | refactor(ui): 列表与卡片收敛至出版物技术微标与工业克制圆角 |
+| `11d1c89` | docs(task): 记录 09-04-unify-site-design-language 设计与执行规划 |
+| `2b915d4` | chore(task): archive 09-04-unify-site-design-language |
+
+### Testing
+
+- [OK] 运行 pnpm typecheck、pnpm lint、pnpm format:check 全部通过
+- [OK] 运行 pnpm build 完成全站 23 个静态路由生成
+
+### Status
+
+[OK] **Completed**
