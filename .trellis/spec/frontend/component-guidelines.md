@@ -131,4 +131,7 @@ MDX 渲染走异步 RSC（`mdx-content.tsx` 的 `compileMDX`），不需要 clie
   - 页面顶部标题统一由技术等宽眉标、衬线大标题与描述段落三层结构组成。
 - **结构化页面规范**：
   - 项目页（`/projects`）、关于页（`/about`）、友链页（`/links`）、联系页（`/contact`）必须具备结构化内容与响应式网格排版，不得退回粗糙的泛用型 EmptyState。
+- **Hero 无界融入全站顶光规范**：
+  - 首页 Hero 采用完全无边框的自然沉浸结构，不设容器外围边框、实色背景与卡片阴影，保持正文出版物排版纯净无界。
+  - 背景动效 Canvas（`SpatialField`）突破父容器限制横向全宽铺展（`w-screen left-1/2 -translate-x-1/2`），通过大椭圆径向 CSS `mask-image` / `-webkit-mask-image` 衰减 Alpha 通道向四周柔和羽化；严禁在 Canvas 上方叠加使用 `--background` 实色的纯色或半透渐变层，让全站底层 `AmbientBackdrop` 的漫射顶光无界贯通。
 

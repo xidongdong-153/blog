@@ -24,22 +24,17 @@ export function Hero({ profile }: HeroProps) {
   const firstLetter = siteConfig.author.trim().slice(0, 1)
 
   return (
-    <section className="relative -mx-6 -mt-10 mb-8 flex min-h-[70vh] w-[calc(100%+3rem)] flex-col justify-center overflow-hidden px-6 py-16 sm:-mx-8 sm:w-[calc(100%+4rem)] sm:min-h-[75vh] sm:px-8 sm:py-20 md:-mx-12 md:w-[calc(100%+6rem)] md:px-12 lg:-mx-16 lg:w-[calc(100%+8rem)] lg:min-h-[82vh] lg:px-16">
-      {/* 动态空间场背景：自由蔓延，无任何线框束缚 */}
-      <SpatialField className="absolute inset-0" />
-
-      {/* 渐隐遮罩：底部大面积自然过渡，与正文无缝融合 */}
+    <section className="relative mb-8 flex min-h-[64vh] flex-col justify-center py-8 sm:min-h-[68vh] sm:py-12 md:py-16 lg:min-h-[74vh]">
+      {/* 动态空间场背景：全宽无界延展，通过大椭圆径向 mask 边缘柔和羽化至纯透明，彻底无框融入全站氛围顶光 */}
       <div
         aria-hidden="true"
-        className="pointer-events-none absolute inset-x-0 bottom-0 h-48 bg-gradient-to-t from-background via-background/70 to-transparent"
-      />
-      <div
-        aria-hidden="true"
-        className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_50%_40%,transparent_35%,hsl(var(--background)/0.55)_100%)]"
-      />
+        className="pointer-events-none absolute inset-y-0 left-1/2 w-screen -translate-x-1/2 overflow-hidden [mask-image:radial-gradient(ellipse_65%_55%_at_50%_45%,black_15%,transparent_85%)] [-webkit-mask-image:radial-gradient(ellipse_65%_55%_at_50%_45%,black_15%,transparent_85%)]"
+      >
+        <SpatialField className="absolute inset-0" />
+      </div>
 
       {/* Hero 核心内容 */}
-      <div className="relative z-10 mx-auto flex w-full max-w-5xl flex-col-reverse items-start justify-between gap-10 lg:flex-row lg:items-center">
+      <div className="relative z-10 flex w-full flex-col-reverse items-start justify-between gap-8 lg:flex-row lg:items-center">
         <div className="flex max-w-2xl flex-col items-start gap-6">
           {/* 状态徽章与位置（去除硬线框，保持呼吸感） */}
           <div className="flex flex-wrap items-center gap-2.5">
