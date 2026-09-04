@@ -1,0 +1,4 @@
+{"file":".trellis/spec/frontend/index.md","reason":"检查首页改动是否符合前端整体规范。"}
+{"file":".trellis/spec/frontend/component-guidelines.md","reason":"检查组件边界、语义、Tailwind 与首页设计约定。"}
+{"file":".trellis/spec/frontend/quality-guidelines.md","reason":"执行 typecheck、lint、format、build 和 UI 反模式检查。"}
+{"file":".trellis/tasks/09-05-home-copy-layout-refinement/research/copy-and-hero-study.md","reason":"核对文案与 Hero 设计是否解决调研中记录的问题。"}

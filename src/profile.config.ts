@@ -33,10 +33,8 @@ export interface Profile {
   avatar: string | null
   /** 所在城市 */
   location: string
-  /** 全大写英文站点定位，渲染在首页 Hero 巨标题下方 */
+  /** 首页 Hero 的英文短句 */
   tagline: string
-  /** 中文金句，渲染在首页 Hero 副标题下方，组件会自动加「」引号 */
-  quote: string
   /** 一段自我介绍，渲染在 About 段 */
   about: string[]
   skills: SkillGroup[]
@@ -48,11 +46,10 @@ export interface Profile {
 export const profileConfig: Profile = {
   avatar: '/avatar.jpg',
   location: '上海',
-  tagline: '写代码，也写句子。把想法变成可以运行的东西。',
-  quote: '好的工具不解释自己，用过的人会再回来。',
+  tagline: 'Daylight’s burning.',
   about: [
-    '白天写 TypeScript，晚上和 AI 智能体对话，试着让它们替我干更多的活。',
-    '喜欢把模糊的需求拆成清晰的接口，再用尽量少的代码把事情做完。偶尔写点东西记录弯路和发现。',
+    '这里记着做 Web 产品时留下的问题、弯路和答案。',
+    '有些来自代码，有些来自和 AI 一起工作的日常。想明白一点，就写下一点。',
   ],
   skills: [
     {

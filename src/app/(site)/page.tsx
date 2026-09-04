@@ -25,8 +25,8 @@ export default function HomePage() {
       {/* 卷首 Hero */}
       <Hero profile={profileConfig} />
 
-      {/* 最近写作：文章 + 笔记合并时间线 */}
-      <Section title="最近写作">
+      {/* 最近写的：文章 + 笔记合并时间线 */}
+      <Section index="01" title="最近写的">
         {entries.length > 0 ? (
           <>
             <WritingTimeline entries={entries} />
@@ -48,8 +48,8 @@ export default function HomePage() {
 
       {/* 关于 */}
       {profileConfig.about.length > 0 && (
-        <Section title="关于">
-          <div className="flex flex-col gap-2 text-sm leading-relaxed text-muted-foreground">
+        <Section index="02" title="关于我">
+          <div className="flex max-w-2xl flex-col gap-2 text-sm leading-relaxed text-muted-foreground">
             {profileConfig.about.map((p) => (
               <p key={p}>{p}</p>
             ))}
@@ -57,9 +57,9 @@ export default function HomePage() {
         </Section>
       )}
 
-      {/* 技能栈 */}
+      {/* 常用工具 */}
       {profileConfig.skills.length > 0 && (
-        <Section title="技能">
+        <Section index="03" title="常用工具">
           <SkillList skills={profileConfig.skills} />
         </Section>
       )}

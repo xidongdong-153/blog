@@ -11,9 +11,9 @@ interface HeroProps {
 /**
  * 首页 Hero 组件。
  *
- * 居中卷首布局（参考 innei.in / pear.no 的出版物封面手法）：
+ * 居中卷首布局：
  * - Background: 动态 SpatialField 全幅延展，径向 mask 边缘柔和羽化
- * - Content: 徽章排、圆形头像、衬线巨标题（斜体词高亮）、全大写副标题、斜体金句、CTA 排、滚动提示
+ * - Content: 署名式元数据、头像、衬线主标题、魔兽短句、CTA 与滚动提示
  */
 export function Hero({ profile }: HeroProps) {
   const githubItem = siteConfig.social.find(
@@ -31,42 +31,30 @@ export function Hero({ profile }: HeroProps) {
       </div>
 
       <div className="relative z-10 flex flex-col items-center gap-6">
-        {/* 状态徽章与位置 */}
-        <div className="flex flex-wrap items-center justify-center gap-2.5">
-          <span className="inline-flex items-center gap-1.5 rounded-full bg-muted/60 px-3 py-1 text-xs font-mono text-muted-foreground backdrop-blur-sm">
-            <span className="size-1.5 animate-pulse rounded-full bg-emerald-500 motion-reduce:animate-none" />
-            <span>独立开发 · 全栈 · 智能体</span>
-          </span>
-
-          {profile.location && (
-            <span className="inline-flex items-center gap-1 text-xs text-muted-foreground/85">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                className="size-3.5"
-              >
-                <path d="M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0" />
-                <circle cx="12" cy="10" r="3" />
-              </svg>
-              <span>{profile.location}</span>
+        {/* 署名式元数据：无状态点、底色与胶囊轮廓 */}
+        <div className="flex w-full max-w-md items-center justify-center gap-3 font-mono text-xs tracking-wider text-muted-foreground sm:gap-4">
+          <span aria-hidden="true" className="h-px w-6 shrink-0 bg-border/70 sm:w-10" />
+          <div className="flex items-center justify-center whitespace-nowrap">
+            {profile.location && (
+              <>
+                <span>{profile.location}</span>
+                <span aria-hidden="true" className="mx-2 text-border sm:mx-3">
+                  /
+                </span>
+              </>
+            )}
+            <span>独立开发者</span>
+            <span aria-hidden="true" className="mx-2 text-border sm:mx-3">
+              /
             </span>
-          )}
-
-          <Link
-            href="/contact"
-            className="inline-flex items-center gap-1.5 rounded-full bg-muted/60 px-3 py-1 text-xs font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
-          >
-            <span className="relative flex size-2">
-              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75 motion-reduce:animate-none" />
-              <span className="relative inline-flex size-2 rounded-full bg-emerald-500" />
-            </span>
-            <span>联系我</span>
-          </Link>
+            <Link
+              href="/contact"
+              className="text-foreground/75 underline decoration-border underline-offset-4 transition-colors hover:text-foreground hover:decoration-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+            >
+              联系我 <span aria-hidden="true">↗</span>
+            </Link>
+          </div>
+          <span aria-hidden="true" className="h-px w-6 shrink-0 bg-border/70 sm:w-10" />
         </div>
 
         {/* 圆形头像：居中卷首的视觉锚点 */}
@@ -85,36 +73,29 @@ export function Hero({ profile }: HeroProps) {
           </div>
         )}
 
-        {/* 巨标题：第一行常规体，第二行斜体高亮 */}
-        <h1 className="tracking-tight text-foreground">
-          <span className="block font-serif text-5xl font-normal leading-[1.1] sm:text-6xl lg:text-7xl">
-            造东西的人，
-          </span>
-          <span className="block font-serif text-5xl font-normal italic leading-[1.1] text-primary sm:text-6xl lg:text-7xl">
-            也让机器造东西。
-          </span>
-        </h1>
-
-        {/* 全大写副标题（站点定位） */}
-        <p className="max-w-2xl font-mono text-xs uppercase tracking-[0.2em] text-muted-foreground sm:text-sm">
-          {profile.tagline}
-        </p>
-
-        {/* 斜体金句 */}
-        <p className="font-serif text-base italic text-muted-foreground sm:text-lg">「{profile.quote}」</p>
+        {/* 主标题与来自侏儒 NPC 的英文短句 */}
+        <div className="flex flex-col items-center gap-4">
+          <h1 className="text-balance font-serif text-4xl font-normal leading-[1.08] tracking-normal text-foreground sm:text-6xl lg:text-7xl">
+            <span className="block">有些东西，</span>
+            <span className="block">
+              <span className="italic text-primary">写出来</span>才算做完。
+            </span>
+          </h1>
+          <p className="font-serif text-base italic text-muted-foreground sm:text-lg">{profile.tagline}</p>
+        </div>
 
         {/* CTA 排：黑胶囊 + 描边胶囊 + GitHub 图标 */}
         <div className="flex flex-wrap items-center justify-center gap-3 pt-2">
           <Link
             href="/blog"
-            className="inline-flex items-center justify-center rounded-full bg-foreground px-6 py-2.5 text-xs font-medium text-background transition-opacity hover:opacity-90 sm:text-sm"
+            className="inline-flex items-center justify-center rounded-full bg-foreground px-6 py-2.5 text-xs font-medium text-background transition-opacity hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background sm:text-sm"
           >
-            阅读文章
+            最近写了什么
           </Link>
 
           <Link
             href="/about"
-            className="inline-flex items-center justify-center rounded-full border border-border px-6 py-2.5 text-xs font-medium text-foreground transition-colors hover:border-foreground/30 hover:bg-muted/40 sm:text-sm"
+            className="inline-flex items-center justify-center rounded-full border border-border px-6 py-2.5 text-xs font-medium text-foreground transition-colors hover:border-foreground/30 hover:bg-muted/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background sm:text-sm"
           >
             关于我
           </Link>
@@ -125,7 +106,7 @@ export function Hero({ profile }: HeroProps) {
               target="_blank"
               rel="noreferrer"
               aria-label="GitHub"
-              className="inline-flex items-center justify-center rounded-full p-2.5 text-muted-foreground transition-colors hover:bg-muted/60 hover:text-foreground"
+              className="inline-flex items-center justify-center rounded-full p-2.5 text-muted-foreground transition-colors hover:bg-muted/60 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
             >
               <svg
                 xmlns="http://www.w3.org/2000/svg"

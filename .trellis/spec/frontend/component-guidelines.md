@@ -127,13 +127,19 @@ MDX 渲染走异步 RSC（`mdx-content.tsx` 的 `compileMDX`），不需要 clie
   - 结构前缀统一采用双斜杠，如 `// ARTICLE / DATE / READ_TIME`、`// NOTE / STATUS: READY`、`// TAGS`。
   - 标签一律统一为 `#TAG` 无实心背景微标格式。
 - **全域贯通西文衬线排版（Serif Headline System）**：
-  - 全站所有一级路由 H1 标题、文章详情 H1 以及首页各 Section H2 标题统一挂载 `font-serif` 衬线字体（Newsreader），字重采用 `font-medium tracking-tight text-foreground`。
+  - 全站所有一级路由 H1 标题与文章详情 H1 统一挂载 `font-serif` 衬线字体（Newsreader），字重采用 `font-medium tracking-tight text-foreground`。
   - 页面顶部标题统一由技术等宽眉标、衬线大标题与描述段落三层结构组成。
 - **结构化页面规范**：
   - 项目页（`/projects`）、关于页（`/about`）、友链页（`/links`）、联系页（`/contact`）必须具备结构化内容与响应式网格排版，不得退回粗糙的泛用型 EmptyState。
 - **Hero 无界融入全站顶光规范**：
   - 首页 Hero 采用完全无边框的自然沉浸结构，不设容器外围边框、实色背景与卡片阴影，保持正文出版物排版纯净无界。
   - 背景动效 Canvas（`SpatialField`）突破父容器限制横向全宽铺展（`w-screen left-1/2 -translate-x-1/2`），通过大椭圆径向 CSS `mask-image` / `-webkit-mask-image` 衰减 Alpha 通道向四周柔和羽化；严禁在 Canvas 上方叠加使用 `--background` 实色的纯色或半透渐变层，让全站底层 `AmbientBackdrop` 的漫射顶光无界贯通。
+- **首页 Hero 署名式元数据**：
+  - Hero 顶部身份信息为单行元数据（如 `上海 / 独立开发者 / 联系我 ↗`）：两侧细横线锚点、`/` 分隔、`font-mono text-xs tracking-wider text-muted-foreground`。
+  - 不使用状态圆点、胶囊底色和 `pulse` / `ping` 循环动画伪装在线状态；「联系我」为指向 `/contact` 的文字链接，靠颜色与下划线表达可点击。
+- **首页纵向 Section 编排**：
+  - `Section` 组件接收必填 `index` 序号，Label 为等宽小字 `h2`（序号 + `/` + 标题，如 `01 / 最近写的`），行尾细线 `flex-1` 延展，Label 恒在内容上方。
+  - 桌面端不切换左右分栏，内容占满可用宽度；三个 Section 共用同一套间距节奏，不加卡片背景或外围边框。
 - **首页最近写作时间线**：
   - `page.tsx` 将已过滤 draft 的文章与笔记映射为 `{ kind, slug, title, date }`，按 ISO `date` 倒序后取前 8 条，再传给 `WritingTimeline`。
   - `WritingTimeline` 用 `${kind}-${slug}` 作为 key，根据 `kind` 生成 `/blog/<slug>` 或 `/notes/<slug>` 链接；日期显示使用 `formatTimelineDate`，不在组件中直接格式化日期。
