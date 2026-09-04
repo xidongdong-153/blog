@@ -47,15 +47,15 @@ export const profileConfig: Profile = {
   about: ['专注 TypeScript 技术栈与现代化前端开发。', '追求干净的架构设计与丝滑的用户交互体验。'],
   skills: [
     {
-      title: 'Languages',
+      title: '编程语言',
       items: ['TypeScript', 'JavaScript', 'HTML5', 'CSS3'],
     },
     {
-      title: 'Frameworks',
+      title: '框架与库',
       items: ['React 19', 'Next.js 16', 'Tailwind CSS 4'],
     },
     {
-      title: 'Tools & Ecosystem',
+      title: '工具与生态',
       items: ['Node.js', 'pnpm', 'Vercel', 'Git', 'ESLint', 'Prettier'],
     },
   ],

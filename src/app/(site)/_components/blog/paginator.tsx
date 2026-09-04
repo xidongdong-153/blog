@@ -27,7 +27,7 @@ export function Paginator({ prevUrl, nextUrl, className = '' }: PaginatorProps) 
           className="me-auto py-2 text-muted-foreground transition-colors hover:text-primary hover:underline"
         >
           {prevUrl.srLabel && <span className="sr-only">{prevUrl.srLabel}</span>}
-          {prevUrl.text ?? '← Previous Posts'}
+          {prevUrl.text ?? '← 上一页'}
         </Link>
       )}
       {nextUrl && (
@@ -36,7 +36,7 @@ export function Paginator({ prevUrl, nextUrl, className = '' }: PaginatorProps) 
           className="ms-auto py-2 text-muted-foreground transition-colors hover:text-primary hover:underline"
         >
           {nextUrl.srLabel && <span className="sr-only">{nextUrl.srLabel}</span>}
-          {nextUrl.text ?? 'Next Posts →'}
+          {nextUrl.text ?? '下一页 →'}
         </Link>
       )}
     </nav>

@@ -45,7 +45,7 @@ export function Hero({ profile }: HeroProps) {
           <div className="flex flex-wrap items-center gap-2.5">
             <span className="inline-flex items-center gap-1.5 rounded-full bg-muted/60 px-3 py-1 text-xs font-mono text-muted-foreground backdrop-blur-sm">
               <span className="size-1.5 rounded-full bg-emerald-500 animate-pulse" />
-              <span>Engineering &amp; Systems</span>
+              <span>软件工程与系统</span>
             </span>
 
             {profile.location && (
@@ -75,7 +75,7 @@ export function Hero({ profile }: HeroProps) {
                 <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75 motion-reduce:animate-none" />
                 <span className="relative inline-flex size-2 rounded-full bg-emerald-500" />
               </span>
-              <span>Connect Me</span>
+              <span>联系我</span>
             </Link>
           </div>
 
@@ -107,7 +107,7 @@ export function Hero({ profile }: HeroProps) {
               href="/about"
               className="inline-flex items-center justify-center rounded-xl bg-muted/65 px-5 py-2.5 text-xs font-medium text-foreground backdrop-blur-sm transition-colors hover:bg-muted sm:text-sm"
             >
-              About Me
+              关于我
             </Link>
 
             {githubItem && (

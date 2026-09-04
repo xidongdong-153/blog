@@ -7,7 +7,7 @@ import { Paginator } from '../_components/blog/paginator'
 import { PostCard } from '../_components/blog/post-card'
 
 export const metadata: Metadata = {
-  title: 'Blog',
+  title: '文章',
 }
 
 const PAGE_SIZE = 8
@@ -33,7 +33,7 @@ export default async function BlogPage({ searchParams }: BlogPageProps) {
     currentPage > 1
       ? {
           url: currentPage === 2 ? '/blog' : `/blog?page=${currentPage - 1}`,
-          text: '← Previous Posts',
+          text: '← 上一页',
         }
       : undefined
 
@@ -41,35 +41,35 @@ export default async function BlogPage({ searchParams }: BlogPageProps) {
     currentPage < totalPages
       ? {
           url: `/blog?page=${currentPage + 1}`,
-          text: 'Next Posts →',
+          text: '下一页 →',
         }
       : undefined
 
   return (
     <div className="mx-auto w-full max-w-5xl">
-      <Button title="Back" href="/" style="back" />
+      <Button title="返回" href="/" style="back" />
 
       <main className="mt-6 lg:mt-10">
         <div id="content-header">
-          <h1 className="mb-6 mt-6 text-3xl font-medium sm:mt-10">Blog</h1>
+          <h1 className="mb-6 mt-6 text-3xl font-medium sm:mt-10">文章</h1>
         </div>
 
         {allPosts.length === 0 ? (
-          <p className="text-sm text-muted-foreground">No posts yet.</p>
+          <p className="text-sm text-muted-foreground">暂无文章。</p>
         ) : (
           <div className="grid gap-y-16 sm:grid-cols-[3fr_1fr] sm:gap-x-8">
-            <section aria-label="Blog posts list" id="content">
+            <section aria-label="文章列表" id="content">
               {/* 列表头部信息条 */}
               <div className="mb-3 flex flex-col justify-between text-sm sm:mb-5 sm:flex-row">
                 <span className="text-muted-foreground">
-                  Page {currentPage} - Showing {posts.length} of {totalPosts} posts
+                  第 {currentPage} 页 · 共 {totalPosts} 篇
                 </span>
                 <Link
-                  aria-label="View all blog by years"
+                  aria-label="按年份查看全部文章"
                   href="/blog/archives"
                   className="text-muted-foreground transition-colors hover:text-primary hover:underline"
                 >
-                  View all posts by years →
+                  按年份查看全部文章 →
                 </Link>
               </div>
 
