@@ -17,6 +17,8 @@ export interface BlogPost {
   updatedDate: string
   /** Hero 图路径，相对于 public/。如 /images/blog/hero.jpg */
   heroImage: string
+  /** 文章专属氛围高光色，如 "#659EB9" 或 "hsl(195 85% 65%)" */
+  heroColor?: string
   tags: string[]
   /** true 时列表页不显示 */
   draft: boolean
@@ -117,6 +119,7 @@ export function getAllBlogPosts(): BlogPost[] {
       date: readDate(data, filePath),
       updatedDate: readOptionalDate(data, 'updatedDate'),
       heroImage: typeof data.heroImage === 'string' ? data.heroImage : '',
+      heroColor: typeof data.heroColor === 'string' && data.heroColor.trim() !== '' ? data.heroColor.trim() : undefined,
       tags: readTags(data),
       draft: data.draft === true,
       content,
