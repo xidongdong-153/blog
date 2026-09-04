@@ -296,3 +296,27 @@ trellis init -u xdd --pi 完成，填充 .trellis/spec/frontend 5 个规范文�
 ### Status
 
 [OK] **Completed**
+
+
+## Session 12: 实现页面切换纯交叉溶解动效
+<!-- trellis-session: v=2 fp=9a337bf69627d678 -->
+
+**Date**: 2026-09-04
+**Task**: 实现页面切换纯交叉溶解动效
+**Branch**: `main`
+
+### Summary
+
+引入路由模板 template.tsx 与全局动画样式，实现零位移、160ms 快速平滑淡入淡出的 Pure Cross-Dissolve 切页动效，消除硬切白闪并保持全局常驻组件稳定
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `b3fc708` | feat(ui): 采用纯交叉溶解 (Pure Cross-Dissolve) 抹平页面切换硬切感 |
+| `3852866` | docs(task): 记录 09-04-page-view-transitions 纯交叉溶解设计与执行规划 |
+| `135a083` | chore(task): archive 09-04-page-view-transitions |
+
+### Status
+
+[OK] **Completed**
