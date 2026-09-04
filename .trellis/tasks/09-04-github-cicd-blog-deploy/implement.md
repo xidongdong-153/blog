@@ -55,6 +55,7 @@
    - [ ] 确认 `quality` 通过后 `deploy` 自动运行，且部署日志不显示 secrets。
    - [x] 已完成服务器和公网只读基线验证：systemd active，本机和公网 HTTP 返回 `200`。
    - [x] 首次 Actions 运行 `33857059084` 已确认在 `Install dependencies` 因 pnpm 11 未看到 `allowBuilds` 而失败，`deploy` 正确跳过；workflow 已改为在整个 `quality` job 临时提供该配置，干净目录复现通过。
+   - [x] 手工发布发现重启后单次本机 curl 存在启动竞态；workflow 已改为最多等待 15 秒重试 HTTP 200，并已确认服务最终 active 且连续 curl 返回 200。
    - [ ] 推送修复后的 workflow 后重新观察 Actions；若 GitHub Actions 登录或部署失败，保留错误日志，修复工作流或服务器前置条件后重新运行；不绕过主分支检查。
 
 ## 回滚点

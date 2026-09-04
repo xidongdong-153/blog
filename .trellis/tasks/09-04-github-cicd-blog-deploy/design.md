@@ -71,7 +71,7 @@ Node 和 pnpm 版本与当前服务器记录保持一致。构建检查不读取
 6. `source /home/deploy/.nvm/nvm.sh`，执行 `pnpm install --frozen-lockfile`。
 7. 执行 `pnpm build`。
 8. 构建成功后执行 `sudo -n systemctl restart xdd-blog.service`。
-9. 检查 `systemctl is-active --quiet xdd-blog.service`，再请求 `http://127.0.0.1:4400/`。
+9. 检查 `systemctl is-active --quiet xdd-blog.service`，再请求 `http://127.0.0.1:4400/`；服务启动有短暂延迟时最多重试 15 秒。
 
 重启放在构建之后，因此拉取、安装或构建失败时不会主动停止或重启当前服务。构建过程仍然使用现有的 `.next` 目录，不能把它当成原子发布；这是沿用当前服务器结构的明确取舍。
 

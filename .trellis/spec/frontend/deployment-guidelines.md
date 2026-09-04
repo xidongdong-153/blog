@@ -15,7 +15,7 @@
 - 部署条件：`github.event_name == 'push' && github.ref == 'refs/heads/main'`，并且 `needs: quality` 成功。
 - 远程脚本入口：通过 SSH 执行 `bash -s -- <target-sha>`。
 - 服务重启命令：`sudo -n systemctl restart xdd-blog.service`。
-- 本机健康检查：请求 `http://127.0.0.1:4400/`，状态码必须是 `200`。
+- 本机健康检查：重启后最多等待 15 秒，请求 `http://127.0.0.1:4400/`，状态码必须是 `200`。
 
 ### 3. Contracts
 
