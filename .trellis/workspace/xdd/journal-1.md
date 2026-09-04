@@ -145,3 +145,25 @@ trellis init -u xdd --pi 完成，填充 .trellis/spec/frontend 5 个规范文�
 ### Status
 
 [OK] **Completed**
+
+
+## Session 6: 实现首屏顶光渐变氛围底座并支持文章专属主题色
+<!-- trellis-session: v=2 fp=e01076da6110c42e -->
+
+**Date**: 2026-09-04
+**Task**: 实现首屏顶光渐变氛围底座并支持文章专属主题色
+**Branch**: `main`
+
+### Summary
+
+新增 AmbientBackdrop 组件，在 SiteLayout 挂载首屏氛围光晕，并在 content.ts 和博客详情页支持通过 frontmatter heroColor 配置专属高光色
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `3923d16089c35bc53871db5b3aca39ecd6c45950` | feat(ui): 添加首屏顶光渐变氛围底座并支持文章专属主题色 |
+
+### Status
+
+[OK] **Completed**
