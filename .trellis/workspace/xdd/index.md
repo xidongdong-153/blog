@@ -8,7 +8,7 @@
 
 <!-- @@@auto:current-status -->
 - **Active File**: `journal-1.md`
-- **Total Sessions**: 14
+- **Total Sessions**: 15
 - **Last Active**: 2026-09-04
 <!-- @@@/auto:current-status -->
 
@@ -19,7 +19,7 @@
 <!-- @@@auto:active-documents -->
 | File | Lines | Status |
 |------|-------|--------|
-| `journal-1.md` | ~393 | Active |
+| `journal-1.md` | ~415 | Active |
 <!-- @@@/auto:active-documents -->
 
 ---
@@ -29,6 +29,7 @@
 <!-- @@@auto:session-history -->
 | # | Date | Title | Commits | Branch |
 |---|------|-------|---------|--------|
+| 15 | 2026-09-04 | 适配 Giscus 自定义双主题与跨域支持 | `1abc862` | `main` |
 | 14 | 2026-09-04 | 全站设计语言统一与出版物排版重塑 | `dff5d20`, `97b3e00`, `11d1c89`, `2b915d4` | `main` |
 | 13 | 2026-09-04 | 博客排版、纸本暖色与轨道式目录质感重塑 | `bc31ada`, `70788b0`, `8b52d92` | `main` |
 | 12 | 2026-09-04 | 实现页面切换纯交叉溶解动效 | `b3fc708`, `3852866`, `135a083` | `main` |

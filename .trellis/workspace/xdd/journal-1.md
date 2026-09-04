@@ -391,3 +391,25 @@ trellis init -u xdd --pi 完成，填充 .trellis/spec/frontend 5 个规范文�
 ### Status
 
 [OK] **Completed**
+
+
+## Session 15: 适配 Giscus 自定义双主题与跨域支持
+<!-- trellis-session: v=2 fp=2e8c9e1be10f3d64 -->
+
+**Date**: 2026-09-04
+**Task**: 适配 Giscus 自定义双主题与跨域支持
+**Branch**: `main`
+
+### Summary
+
+为博客适配纸本暖色与深炭墨色 Giscus 评论主题，配置 Next.js 跨域头与本地环境安全回退
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `1abc862` | feat(comment): 适配纸本暖色与深炭墨色 Giscus 自定义双主题 |
+
+### Status
+
+[OK] **Completed**
