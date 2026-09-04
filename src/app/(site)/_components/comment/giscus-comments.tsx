@@ -3,12 +3,26 @@
 import { useEffect, useRef } from 'react'
 
 /**
- * 获取当前页面实际生效的明暗主题。
- * 读取 document.documentElement 上的 dark 类名。
+ * 获取适用于 Giscus 的主题参数。
+ *
+ * 规则：
+ * 1. 本地开发环境（localhost 或 HTTP）由于跨域加载本地 CSS 会被 HTTPS iframe 混合内容（Mixed Content）阻断，
+ *    安全回退到 Giscus 内置的 'light' 与 'dark' 主题。
+ * 2. 线上生产环境（HTTPS）提供绝对路径链接指向 /themes/giscus-light.css 或 /themes/giscus-dark.css。
  */
-function getEffectiveTheme(): 'light' | 'dark' {
-  if (typeof document === 'undefined') return 'light'
-  return document.documentElement.classList.contains('dark') ? 'dark' : 'light'
+function getGiscusTheme(): string {
+  if (typeof window === 'undefined') return 'light'
+  const isDark = document.documentElement.classList.contains('dark')
+
+  const hostname = window.location.hostname
+  const isLocal = hostname === 'localhost' || hostname === '127.0.0.1' || window.location.protocol === 'http:'
+
+  if (isLocal) {
+    return isDark ? 'dark' : 'light'
+  }
+
+  const origin = window.location.origin
+  return isDark ? `${origin}/themes/giscus-dark.css` : `${origin}/themes/giscus-light.css`
 }
 
 /**
@@ -49,7 +63,7 @@ export function GiscusComments() {
     script.setAttribute('data-reactions-enabled', reactionsEnabled)
     script.setAttribute('data-emit-metadata', '0')
     script.setAttribute('data-input-position', inputPosition)
-    script.setAttribute('data-theme', getEffectiveTheme())
+    script.setAttribute('data-theme', getGiscusTheme())
     script.setAttribute('data-lang', lang)
     script.setAttribute('data-loading', 'lazy')
     script.crossOrigin = 'anonymous'
@@ -58,7 +72,7 @@ export function GiscusComments() {
     container.appendChild(script)
 
     function syncTheme() {
-      const theme = getEffectiveTheme()
+      const theme = getGiscusTheme()
       const iframe = container.querySelector<HTMLIFrameElement>('iframe.giscus-frame')
       if (iframe?.contentWindow) {
         iframe.contentWindow.postMessage(

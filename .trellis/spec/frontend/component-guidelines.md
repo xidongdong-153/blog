@@ -93,9 +93,11 @@ MDX 渲染走异步 RSC（`mdx-content.tsx` 的 `compileMDX`），不需要 clie
   - 变量模板放置在根目录 `.env.example`，在 `.gitignore` 中配置 `!.env.example` 允许提交。
 - **容错降级**：
   - 未配置核心环境变量时，渲染带有配置说明的虚线卡片，不执行外部脚本注入，不抛出异常或白屏。
-- **主题联动**：
-  - 初始化时依据 `document.documentElement.classList.contains('dark')` 传入明暗主题。
-  - 运行时通过 `MutationObserver` 监听 `html` 的 `class` 与 `data-theme` 属性，发生变化时通过 `postMessage({ giscus: { setConfig: { theme } } }, 'https://giscus.app')` 通知 iframe 更新样式，无需重新渲染组件或重新加载页面。
+- **主题联动与自定义样式**：
+  - 初始化与运行时通过 `MutationObserver` 监听 `html` 的 `class` 与 `data-theme` 属性，发生变化时通过 `postMessage({ giscus: { setConfig: { theme } } }, 'https://giscus.app')` 动态通知 iframe 更新样式。
+  - 生产环境使用 `public/themes/giscus-light.css`（暖纸白体系）与 `public/themes/giscus-dark.css`（深石板炭黑体系），以绝对 URL 传递；圆角统一收敛为 `rounded-lg`（`8px`）。
+  - `next.config.ts` 必须为 `/themes/:path*` 配置 `Access-Control-Allow-Origin: *` 响应头，满足 Giscus `crossorigin="anonymous"` 跨域样式加载契约。
+  - 本地环境（`localhost` 或 HTTP）安全回退到 Giscus 内置 `light` / `dark` 主题，防止被浏览器的混合内容（Mixed Content）阻断。
 
 ## 占位页
 

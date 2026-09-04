@@ -1,0 +1,106 @@
+/*!
+ * Giscus Light Theme - Paper Tone & Charcoal Ink
+ * Custom theme matching blog publication styling
+ */
+
+main {
+  --color-prettylights-syntax-comment: #75716b;
+  --color-prettylights-syntax-constant: #0b45b2;
+  --color-prettylights-syntax-entity: #6938a8;
+  --color-prettylights-syntax-storage-modifier-import: #262423;
+  --color-prettylights-syntax-entity-tag: #1f6b3b;
+  --color-prettylights-syntax-keyword: #b82d25;
+  --color-prettylights-syntax-string: #1a56c2;
+  --color-prettylights-syntax-variable: #a35200;
+  --color-prettylights-syntax-brackethighlighter-unmatched: #b82d25;
+  --color-prettylights-syntax-invalid-illegal-text: #ffffff;
+  --color-prettylights-syntax-invalid-illegal-bg: #82071e;
+  --color-prettylights-syntax-markup-list: #a35200;
+  --color-prettylights-syntax-markup-heading: #0b45b2;
+  --color-prettylights-syntax-markup-bold: #262423;
+  --color-prettylights-syntax-markup-italic: #262423;
+
+  /* Button styling */
+  --color-btn-text: #262423;
+  --color-btn-bg: #efece6;
+  --color-btn-border: #e3dfd7;
+  --color-btn-shadow: 0 1px 0 rgb(38 36 35 / 4%);
+  --color-btn-inset-shadow: inset 0 1px 0 rgb(255 255 255 / 25%);
+  --color-btn-hover-bg: #e6e2da;
+  --color-btn-hover-border: #d4cfc5;
+  --color-btn-active-bg: #ded9d0;
+  --color-btn-active-border: #c8c2b7;
+  --color-btn-selected-bg: #ded9d0;
+
+  /* Primary Button */
+  --color-btn-primary-text: #ffffff;
+  --color-btn-primary-bg: #1152d4;
+  --color-btn-primary-border: #1152d4;
+  --color-btn-primary-shadow: 0 1px 0 rgb(38 36 35 / 10%);
+  --color-btn-primary-inset-shadow: inset 0 1px 0 rgb(255 255 255 / 15%);
+  --color-btn-primary-hover-bg: #0d44b4;
+  --color-btn-primary-hover-border: #0d44b4;
+  --color-btn-primary-selected-bg: #0b3996;
+  --color-btn-primary-disabled-text: rgb(255 255 255 / 75%);
+  --color-btn-primary-disabled-bg: rgb(17 82 212 / 60%);
+  --color-btn-primary-disabled-border: transparent;
+
+  /* Canvas and Backgrounds */
+  --color-canvas-default: #f7f6f2;
+  --color-canvas-overlay: #faf9f6;
+  --color-canvas-inset: #efece6;
+  --color-canvas-subtle: #efece6;
+
+  /* Text colors */
+  --color-fg-default: #262423;
+  --color-fg-muted: #75716b;
+  --color-fg-subtle: #8a857d;
+
+  /* Borders */
+  --color-border-default: #e3dfd7;
+  --color-border-muted: #ece8e1;
+  --color-neutral-muted: rgb(38 36 35 / 6%);
+
+  /* Accent and Links */
+  --color-accent-fg: #1152d4;
+  --color-accent-emphasis: #1152d4;
+  --color-accent-muted: rgb(17 82 212 / 20%);
+  --color-accent-subtle: rgb(17 82 212 / 8%);
+
+  /* Success, Attention, Danger */
+  --color-success-fg: #1f6b3b;
+  --color-attention-fg: #9a6700;
+  --color-attention-muted: rgb(154 103 0 / 20%);
+  --color-attention-subtle: rgb(154 103 0 / 10%);
+  --color-danger-fg: #b82d25;
+  --color-danger-muted: rgb(184 45 37 / 20%);
+  --color-danger-subtle: rgb(184 45 37 / 10%);
+
+  /* Social reactions */
+  --color-social-reaction-bg-hover: #efece6;
+  --color-social-reaction-bg-reacted-hover: rgb(17 82 212 / 12%);
+
+  font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+}
+
+/* Custom fine-tuning for publication layout */
+main .gsc-comment-box,
+main .gsc-comment {
+  border-radius: 8px !important;
+  border-color: #e3dfd7 !important;
+}
+
+main .gsc-comment-header {
+  border-top-left-radius: 8px !important;
+  border-top-right-radius: 8px !important;
+  background-color: #efece6 !important;
+}
+
+main .gsc-comment-content {
+  background-color: #faf9f6 !important;
+}
+
+main .gsc-comment-box-textarea {
+  border-radius: 6px !important;
+  background-color: #faf9f6 !important;
+}
