@@ -10,7 +10,7 @@ import { ThemeToggle } from './theme-toggle'
  * 液体融合胶囊页头。
  * 顶部静止时完全融入页面背景（无边框、无底色、无阴影）；
  * 页面向下滚动 0~80px 期间，通过连续无级插值如液体交融般凝聚出半透明水膜胶囊；
- * 向下快速滚动超过 350px 自动收起，向上滚动立刻平滑滑回；
+ * 向下快速滚动时呈水汽雾化微缩消散，向上滚动呼出时呈水滴凝聚与表面张力阻尼平息静止；
  * 移动端支持折叠与展开导航。
  */
 export function SiteHeader() {
@@ -24,6 +24,7 @@ export function SiteHeader() {
 
   const lastScrollY = useRef(0)
   const lastVisibleRef = useRef(true)
+  const scrollDeltaRef = useRef(0)
   const rafIdRef = useRef<number | null>(null)
 
   function isActive(href: string): boolean {
@@ -52,11 +53,34 @@ export function SiteHeader() {
         capsuleRef.current.style.transform = ''
       }
 
-      // 2. 判定显示/隐藏状态：350px 以内或向上滚动时可见
-      const isVisible = currentScrollY < 350 || currentScrollY < lastScrollY.current
-      if (isVisible !== lastVisibleRef.current) {
-        lastVisibleRef.current = isVisible
-        setVisible(isVisible)
+      // 2. 判定显示/隐藏状态：加入死区过滤与累积位移判定，消除慢速拖拽滚动条时的抖动
+      const delta = currentScrollY - lastScrollY.current
+
+      if (currentScrollY <= 200) {
+        // 顶部安全区：常驻显示
+        if (!lastVisibleRef.current) {
+          lastVisibleRef.current = true
+          setVisible(true)
+        }
+        scrollDeltaRef.current = 0
+      } else {
+        if (delta > 0) {
+          // 向下滚动：过滤偶发微颤
+          if (scrollDeltaRef.current < 0) scrollDeltaRef.current = 0
+          scrollDeltaRef.current += delta
+          if (scrollDeltaRef.current > 12 && currentScrollY > 350 && lastVisibleRef.current) {
+            lastVisibleRef.current = false
+            setVisible(false)
+          }
+        } else if (delta < 0) {
+          // 向上滚动：累积上滑达到 8px 确认为明确呼出意图
+          if (scrollDeltaRef.current > 0) scrollDeltaRef.current = 0
+          scrollDeltaRef.current += delta
+          if (scrollDeltaRef.current < -8 && !lastVisibleRef.current) {
+            lastVisibleRef.current = true
+            setVisible(true)
+          }
+        }
       }
 
       lastScrollY.current = currentScrollY
@@ -106,7 +130,7 @@ export function SiteHeader() {
     <header
       ref={headerRef}
       data-visible={visible}
-      className="sticky top-4 z-[70] w-full px-4 transition-transform duration-300 motion-reduce:transition-none sm:px-6 data-[visible=false]:-translate-y-24"
+      className="sticky top-4 z-[70] w-full px-4 transition-[transform,opacity] will-change-[transform,opacity] motion-reduce:transition-opacity motion-reduce:transform-none sm:px-6 data-[visible=false]:pointer-events-none data-[visible=false]:-translate-y-1.5 data-[visible=false]:scale-[0.98] data-[visible=false]:opacity-0 data-[visible=false]:duration-160 data-[visible=false]:ease-out data-[visible=true]:pointer-events-auto data-[visible=true]:translate-y-0 data-[visible=true]:scale-100 data-[visible=true]:opacity-100 data-[visible=true]:duration-[240ms] data-[visible=true]:ease-[cubic-bezier(0.34,1.25,0.64,1)]"
     >
       <div
         ref={capsuleRef}
