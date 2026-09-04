@@ -320,3 +320,38 @@ trellis init -u xdd --pi 完成，填充 .trellis/spec/frontend 5 个规范文�
 ### Status
 
 [OK] **Completed**
+
+
+## Session 13: 博客排版、纸本暖色与轨道式目录质感重塑
+<!-- trellis-session: v=2 fp=46bc51fc871578fb -->
+
+**Date**: 2026-09-04
+**Task**: 博客排版、纸本暖色与轨道式目录质感重塑
+**Branch**: `main`
+
+### Summary
+
+借鉴 pear.no 质感重塑博客设计，引入暖纸白与深炭墨色配色，启用 Newsreader 衬线体大标题与等宽技术微标，落地轨道式目录并修复多标题全景高亮与圆点截断
+
+### Main Changes
+
+- 配色系统：调优 globals.css，亮色采用暖纸白与深炭墨色，暗色采用深石板炭黑与暖白
+- 排版体系：引入 Newsreader 衬线字体并在文章标题落地 serif 强调，文章卡片升级为全大写等宽技术微标
+- 轨道目录：重构目录组件为贯穿细线与刻度锚点，内缩安全内边距防止圆点裁切，修复异步水合与滚动投影高亮
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `bc31ada` | feat(ui): 落地纸本暖色调、西文衬线排版与轨道式目录质感重塑 |
+| `70788b0` | docs(task): 记录 09-04-editorial-typography-paper-tone-rail-toc 设计与执行规划 |
+| `8b52d92` | chore(task): archive 09-04-editorial-typography-paper-tone-rail-toc |
+
+### Testing
+
+- [OK] 运行 pnpm typecheck、pnpm lint、pnpm format:check 全部零报错通过
+- [OK] 通过 ego-browser 真实浏览器验证多标题视口高亮与小圆点无截断显示
+
+### Status
+
+[OK] **Completed**
