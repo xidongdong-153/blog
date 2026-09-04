@@ -211,3 +211,44 @@ trellis init -u xdd --pi 完成，填充 .trellis/spec/frontend 5 个规范文�
 ### Status
 
 [OK] **Completed**
+
+
+## Session 9: 配置与接入 Impeccable 设计系统
+<!-- trellis-session: v=2 fp=eaf5ccddce0295e8 -->
+
+**Date**: 2026-09-04
+**Task**: 配置与接入 Impeccable 设计系统
+**Branch**: `main`
+
+### Summary
+
+在 blog 项目落地 Impeccable：建立 PRODUCT.md 与 DESIGN.md，消除 Callout 组件的 side-tab AI 反模式，配置忽略与规范同步，并通过全部质量门检查与归档
+
+### Main Changes
+
+- 生成 PRODUCT.md 和 DESIGN.md (Google Stitch 格式)，确立「静处手记」设计语言
+- 修复 Callout 组件 side-tab 单侧粗边框，改为统一卡片微边框
+- 配置 .gitignore 与 .prettierignore 排除 Impeccable 生成物
+- 同步前端开发规范与质量规范关于设计检查的规则
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `141e5cd` | feat(design): 引入 Impeccable 设计系统上下文与配置 |
+| `842afb6` | fix(ui): 消除 Callout 组件的 side-tab 单侧粗边框 AI slop 反模式 |
+| `90558c2` | docs(spec): 更新组件与质量规范，增加 Impeccable 设计检查约定 |
+| `035e7ac` | chore(task): archive 09-04-impeccable-setup |
+
+### Testing
+
+- [OK] 运行 detect.mjs 确认 0 warning、退出码为 0
+- [OK] 通过 pnpm typecheck / lint / format:check / build 全部质量门
+
+### Status
+
+[OK] **Completed**
+
+### Next Steps
+
+- 可根据需要对具体页面运行 /impeccable polish 或 critique
