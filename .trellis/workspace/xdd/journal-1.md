@@ -413,3 +413,25 @@ trellis init -u xdd --pi 完成，填充 .trellis/spec/frontend 5 个规范文�
 ### Status
 
 [OK] **Completed**
+
+
+## Session 16: 配置 GitHub CI/CD 自动部署博客
+<!-- trellis-session: v=2 fp=7dbabc8deef15832 -->
+
+**Date**: 2026-09-04
+**Task**: 配置 GitHub CI/CD 自动部署博客
+**Branch**: `main`
+
+### Summary
+
+建立 GitHub Actions PR 检查和 main 自动部署 workflow，补充 SSH、Environment、服务器前置条件、失败处理与回滚文档；通过 typecheck、lint、format、build、YAML/Bash/Prettier/Mermaid 检查。未推送，服务器 src/site.config.ts 仍有未提交改动，等待 GitHub Settings/Secrets 与首次真实运行。
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `3dcc1a7` | ci: 配置博客 GitHub Actions 自动部署 |
+
+### Status
+
+[OK] **Completed**
