@@ -19,7 +19,7 @@ const CALLOUT_CONFIG: Record<
   }
 > = {
   note: {
-    border: 'border-l-muted-foreground/60',
+    border: 'border-border',
     bg: 'bg-muted/40',
     titleColor: 'text-foreground',
     defaultTitle: '注意',
@@ -41,7 +41,7 @@ const CALLOUT_CONFIG: Record<
     ),
   },
   tip: {
-    border: 'border-l-primary',
+    border: 'border-primary/25',
     bg: 'bg-primary/10',
     titleColor: 'text-primary',
     defaultTitle: '提示',
@@ -65,8 +65,8 @@ const CALLOUT_CONFIG: Record<
     ),
   },
   warning: {
-    border: 'border-l-accent',
-    bg: 'bg-accent/30',
+    border: 'border-accent/40',
+    bg: 'bg-accent/25',
     titleColor: 'text-foreground',
     defaultTitle: '警告',
     icon: (
@@ -87,7 +87,7 @@ const CALLOUT_CONFIG: Record<
     ),
   },
   important: {
-    border: 'border-l-destructive',
+    border: 'border-destructive/30',
     bg: 'bg-destructive/10',
     titleColor: 'text-destructive',
     defaultTitle: '重要',
@@ -119,7 +119,7 @@ export function Callout({ type = 'note', title, children }: CalloutProps) {
   const displayTitle = title ?? config.defaultTitle
 
   return (
-    <aside className={`my-6 rounded-r-xl border-l-4 ${config.border} ${config.bg} p-4 text-sm text-foreground`}>
+    <aside className={`my-6 rounded-xl border ${config.border} ${config.bg} p-4 text-sm text-foreground`}>
       <div className={`mb-2 flex items-center gap-2 font-medium ${config.titleColor}`}>
         {config.icon}
         <span>{displayTitle}</span>
