@@ -1,5 +1,4 @@
 import Link from 'next/link'
-import { Button } from './button'
 
 export interface BlogSidebarProps {
   tags: Array<{ tag: string; count?: number }>
@@ -15,29 +14,22 @@ export function BlogSidebar({ tags, className = '' }: BlogSidebarProps) {
 
   return (
     <aside id="sidebar" className={`flex flex-col ${className}`}>
-      <h2 className="mb-4 flex items-center text-lg font-semibold text-foreground">
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          width="18"
-          height="18"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="2"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          className="me-2 text-muted-foreground"
-        >
-          <path d="M12.586 2.586A2 2 0 0 0 11.172 2H4a2 2 0 0 0-2 2v7.172a2 2 0 0 0 .586 1.414l8.704 8.704a2.426 2.426 0 0 0 3.42 0l6.58-6.58a2.426 2.426 0 0 0 0-3.42z" />
-          <circle cx="7.5" cy="7.5" r=".5" fill="currentColor" />
-        </svg>
-        标签
-      </h2>
+      <div className="mb-4 flex items-center justify-between border-b border-border/40 pb-2">
+        <span className="font-mono text-[0.7rem] font-semibold uppercase tracking-wider text-muted-foreground">
+          // TAGS
+        </span>
+      </div>
 
-      <ul className="flex flex-wrap gap-2">
-        {tags.map(({ tag }) => (
+      <ul className="flex flex-wrap gap-2 text-xs font-mono">
+        {tags.map(({ tag, count }) => (
           <li key={tag}>
-            <Button title={tag} href={`/blog/tags/${tag}`} style="pill" />
+            <Link
+              href={`/blog/tags/${tag}`}
+              className="inline-flex items-center gap-1 rounded-md border border-border/60 bg-card/40 px-2.5 py-1 text-muted-foreground transition-colors hover:border-foreground/30 hover:text-foreground"
+            >
+              <span>#{tag}</span>
+              {count !== undefined && <span className="text-[0.65rem] text-muted-foreground/70">({count})</span>}
+            </Link>
           </li>
         ))}
       </ul>
@@ -45,9 +37,9 @@ export function BlogSidebar({ tags, className = '' }: BlogSidebarProps) {
       <span className="mt-4 block sm:text-end">
         <Link
           href="/blog/tags"
-          className="text-sm text-muted-foreground transition-colors hover:text-primary hover:underline"
+          className="font-mono text-xs uppercase tracking-wider text-muted-foreground transition-colors hover:text-foreground hover:underline"
         >
-          查看全部 →
+          // VIEW ALL TAGS →
         </Link>
       </span>
     </aside>

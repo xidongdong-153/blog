@@ -15,13 +15,13 @@ export function EntryListItem({ href, title, date }: EntryListItemProps) {
   return (
     <Link
       href={href}
-      className="group/link flex items-center justify-between gap-4 rounded-2xl border border-border bg-background px-5 py-2.5 transition-colors hover:bg-muted/50"
+      className="group/link flex items-center justify-between gap-4 rounded-lg border border-border/60 bg-card/30 px-4 py-2.5 transition-all hover:border-foreground/30 hover:bg-muted/30"
     >
       <div className="flex flex-1 items-baseline gap-4 overflow-hidden">
-        <time dateTime={date} className="shrink-0 text-xs text-muted-foreground tabular-nums">
+        <time dateTime={date} className="shrink-0 font-mono text-xs text-muted-foreground tabular-nums">
           {formatDate(date)}
         </time>
-        <span className="truncate font-medium transition-colors group-hover/link:text-primary">{title}</span>
+        <span className="truncate text-sm font-medium transition-colors group-hover/link:text-primary">{title}</span>
       </div>
 
       <svg
@@ -29,7 +29,7 @@ export function EntryListItem({ href, title, date }: EntryListItemProps) {
         viewBox="0 0 24 24"
         fill="none"
         stroke="currentColor"
-        strokeWidth="2.5"
+        strokeWidth="2"
         strokeLinecap="round"
         strokeLinejoin="round"
         className="size-4 shrink-0 stroke-muted-foreground transition-colors group-hover/link:stroke-primary"

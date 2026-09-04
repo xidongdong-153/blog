@@ -18,9 +18,9 @@ export function SiteStats() {
   return (
     <div className="grid grid-cols-3 gap-3">
       {stats.map(({ label, value }) => (
-        <div key={label} className="rounded-xl border border-border bg-muted/30 px-4 py-3 text-center">
-          <div className="text-2xl font-medium tabular-nums text-foreground">{value}</div>
-          <div className="mt-1 text-xs text-muted-foreground">{label}</div>
+        <div key={label} className="rounded-lg border border-border/60 bg-card/30 px-4 py-3 text-center">
+          <div className="font-serif text-2xl font-medium tabular-nums text-foreground">{value}</div>
+          <div className="mt-1 font-mono text-[0.7rem] uppercase tracking-wider text-muted-foreground">{label}</div>
         </div>
       ))}
     </div>

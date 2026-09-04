@@ -2,35 +2,43 @@ import type { Note } from '@/lib/content'
 import Link from 'next/link'
 import { formatDate, NOTE_STATUS_LABELS } from '@/lib/content'
 
-const STATUS_STYLES: Record<Note['status'], string> = {
-  'in-progress': 'bg-accent text-primary',
-  incomplete: 'bg-destructive/15 text-destructive',
-  ready: 'bg-primary/15 text-primary',
-  archived: 'bg-muted text-muted-foreground',
+const STATUS_TEXT_COLORS: Record<Note['status'], string> = {
+  'in-progress': 'text-amber-600 dark:text-amber-400',
+  incomplete: 'text-rose-600 dark:text-rose-400',
+  ready: 'text-primary',
+  archived: 'text-muted-foreground',
 }
 
 export function NoteCard({ note }: { note: Note }) {
   return (
-    <article className="flex flex-col gap-1">
-      <div className="flex items-center gap-2">
-        <Link href={`/notes/${note.slug}`} className="text-lg font-semibold hover:underline">
+    <article className="group flex flex-col gap-2.5 border-b border-border/50 pb-8 pt-2 transition-colors">
+      <div className="flex flex-wrap items-center gap-2 font-mono text-xs uppercase tracking-wider text-muted-foreground">
+        <span>// NOTE</span>
+        <span>/</span>
+        <time dateTime={note.date}>{formatDate(note.date)}</time>
+        <span>/</span>
+        <span className={STATUS_TEXT_COLORS[note.status]}>STATUS: {NOTE_STATUS_LABELS[note.status]}</span>
+      </div>
+
+      <h2 className="font-serif text-xl font-medium tracking-tight text-foreground transition-colors group-hover:text-primary sm:text-2xl">
+        <Link href={`/notes/${note.slug}`} className="hover:underline">
           {note.title}
         </Link>
-        <span className={`rounded px-1.5 py-0.5 text-xs ${STATUS_STYLES[note.status]}`}>
-          {NOTE_STATUS_LABELS[note.status]}
-        </span>
-      </div>
-      <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-muted-foreground">
-        <time dateTime={note.date}>{formatDate(note.date)}</time>
-        {note.tags.length > 0 && (
-          <span className="flex gap-2">
-            {note.tags.map((tag) => (
-              <span key={tag}>#{tag}</span>
-            ))}
-          </span>
-        )}
-      </div>
-      {note.description && <p className="text-sm leading-relaxed text-muted-foreground">{note.description}</p>}
+      </h2>
+
+      {note.description && (
+        <p className="line-clamp-3 text-sm leading-relaxed text-muted-foreground">{note.description}</p>
+      )}
+
+      {note.tags.length > 0 && (
+        <div className="mt-1 flex flex-wrap gap-2 font-mono text-xs text-muted-foreground">
+          {note.tags.map((tag) => (
+            <span key={tag} className="select-none">
+              #{tag}
+            </span>
+          ))}
+        </div>
+      )}
     </article>
   )
 }

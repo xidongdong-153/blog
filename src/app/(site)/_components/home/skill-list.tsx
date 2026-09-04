@@ -25,7 +25,7 @@ export function SkillList({ skills }: SkillListProps) {
                   style={{ animationDelay: `${currentIndex * 28 + 60}ms` }}
                   className="animate-skill-fade-in motion-reduce:animate-none"
                 >
-                  <span className="inline-flex select-none items-center rounded-full border border-border bg-muted/60 px-3 py-1 text-xs font-medium text-foreground transition-all duration-200 hover:-translate-y-0.5 hover:scale-[1.04] hover:shadow-[0_4px_12px_hsl(var(--foreground)/0.1)] motion-reduce:hover:transform-none">
+                  <span className="inline-flex select-none items-center rounded-md border border-border/60 bg-card/40 px-2.5 py-1 font-mono text-xs text-muted-foreground transition-all hover:border-foreground/30 hover:bg-muted/40 hover:text-foreground">
                     {skill}
                   </span>
                 </div>

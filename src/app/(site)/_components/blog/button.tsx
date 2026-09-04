@@ -14,13 +14,11 @@ export interface ButtonProps {
  * back 与 ahead 带有动态伸缩展开的 SVG 箭头动效。
  */
 export function Button({ title, href, style = 'button', className = '', children }: ButtonProps) {
-  const isPill = style === 'pill'
   const isBack = style === 'back'
   const isAhead = style === 'ahead'
 
   const baseClasses = [
-    'group inline-flex items-center gap-x-1 border border-border bg-muted px-2 py-1 text-sm text-muted-foreground transition-all hover:bg-primary-foreground hover:text-primary no-underline select-none',
-    isPill ? 'rounded-xl' : 'rounded-lg',
+    'group inline-flex items-center gap-x-1.5 border border-border/60 bg-muted/30 px-2.5 py-1 font-mono text-xs text-muted-foreground transition-all hover:border-foreground/30 hover:bg-muted/60 hover:text-foreground no-underline select-none rounded-md',
     !href ? 'cursor-default' : '',
     className,
   ]
