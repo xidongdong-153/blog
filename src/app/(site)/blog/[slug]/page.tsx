@@ -7,7 +7,6 @@ import { FloatingActionGroup } from '../../_components/blog/floating-action-grou
 import { MdxContent } from '../../_components/blog/mdx-content'
 import { TableOfContents } from '../../_components/blog/toc'
 import { GiscusComments } from '../../_components/comment/giscus-comments'
-import { AmbientBackdrop } from '../../_components/site/ambient-backdrop'
 
 interface BlogPostPageProps {
   params: Promise<{ slug: string }>
@@ -42,7 +41,7 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
 
   return (
     <>
-      {post.heroColor && <AmbientBackdrop color={post.heroColor} data-page-backdrop="" />}
+      {post.heroColor && <style>{`:root { --page-highlight: ${post.heroColor} }`}</style>}
       <div className="mx-auto w-full max-w-5xl gap-x-10 lg:flex lg:items-start">
         {/* TOC 侧栏：桌面端右侧粘性定位 */}
         {headings.length > 0 && (
