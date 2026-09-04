@@ -40,7 +40,7 @@ export function CopyButton({ code, className = '' }: CopyButtonProps) {
       onClick={handleCopy}
       aria-label={copied ? '已复制' : '复制代码'}
       title={copied ? '已复制' : '复制代码'}
-      className={`inline-flex size-7 items-center justify-center rounded-md border border-border bg-background/80 text-muted-foreground backdrop-blur-sm transition-all hover:bg-muted hover:text-foreground focus:opacity-100 ${className}`}
+      className={`inline-flex size-8 shrink-0 items-center justify-center rounded-md border border-transparent bg-transparent text-muted-foreground/70 transition-colors hover:bg-muted/50 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1 focus-visible:ring-offset-code-bg ${className}`}
     >
       {copied ? (
         <svg

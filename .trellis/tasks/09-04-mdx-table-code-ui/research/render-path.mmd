@@ -1,0 +1,11 @@
+%%{init: {"theme": "dark"}}%%
+flowchart TD
+  A["MDX source"] --> B["remark-gfm"]
+  B --> C{"节点类型"}
+  C -->|table| D["CustomTable"]
+  D --> E["滚动容器 + 语义 table"]
+  C -->|code fence| F["rehype-pretty-code"]
+  F --> G["CodeFigure"]
+  G --> H["CodeTitle 可选"]
+  G --> I["CodePre"]
+  G --> J["CopyButton"]

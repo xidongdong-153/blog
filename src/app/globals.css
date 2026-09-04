@@ -215,13 +215,13 @@ html[data-theme='dark'] [data-rehype-pretty-code-figure] code[data-theme*=' '] s
 [data-rehype-pretty-code-figure] pre[data-language]::after {
   content: attr(data-language);
   position: absolute;
-  right: 0.75rem;
-  bottom: 0.35rem;
-  font-size: 0.7rem;
+  right: 1rem;
+  bottom: 0.6rem;
+  font-size: 0.75rem;
   line-height: 1;
   font-family: monospace;
   font-weight: 500;
-  color: hsl(var(--muted-foreground) / 0.4);
+  color: hsl(var(--muted-foreground) / 0.5);
   pointer-events: none;
   text-transform: uppercase;
   user-select: none;
@@ -235,6 +235,7 @@ html[data-theme='dark'] [data-rehype-pretty-code-figure] code[data-theme*=' '] s
 }
 
 .prose :where(table) {
+  margin-block: 0;
   border-collapse: collapse;
 }
 

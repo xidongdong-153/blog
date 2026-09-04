@@ -75,9 +75,9 @@ MDX 渲染走异步 RSC（`mdx-content.tsx` 的 `compileMDX`），不需要 clie
 - **目录（TOC）一致性**：
   - 目录提取必须使用 `github-slugger` 实例生成 id（见 `src/lib/content.ts` 的 `extractHeadings`），与 `rehype-slug` 生成规则及重名序号处理严格一致。
 - **自定义组件映射**：
-  - `figure` / `figcaption` / `pre`：封装代码块标题、语言标识与复制按钮（`src/app/(site)/_components/blog/code-block.tsx`、`copy-button.tsx`）。
+  - `figure` / `figcaption` / `pre`：封装代码块标题、语言标识与复制按钮（`src/app/(site)/_components/blog/code-block.tsx`、`copy-button.tsx`）。代码块外层统一使用 `bg-code-bg` 与 `rounded-lg`；文件名头部保持同一背景，以 `//` 等宽前缀和细分隔线建立层级；复制按钮始终可见。`pre` 必须为右上复制按钮和右下语言标识保留内边距。
   - `a`：站内链接走 Next.js `Link`，外部链接安全打开。
-  - `table`：包裹响应式水平横向滚动外层容器。
+  - `table`：使用带 `role="region"`、`aria-label` 和 `tabIndex={0}` 的局部横向滚动容器，原生 `<table>` 保持 `w-full` 和 `min-w-[40rem]`。表头不换行，数据单元格允许自然换行；窄屏滚动表格，不撑宽页面根节点。`@tailwindcss/typography` 会给 `table` 添加上下外边距，必须在 `globals.css` 的 `.prose :where(table)` 中设置 `margin-block: 0`，避免边框容器内出现空白。
   - `img`：点击可唤起全屏平滑放大灯箱预览（`image-zoom.tsx`）。
   - 内置提示与折叠组件：`<Callout>`（`callout.tsx`）与 `<Collapse>`（`collapse.tsx`）。
 - **阅读时间**：

@@ -1,0 +1,4 @@
+{"file":".trellis/spec/frontend/index.md","reason":"提供任务相关技术栈与完整质量门。"}
+{"file":".trellis/spec/frontend/component-guidelines.md","reason":"检查 MDX 渲染职责、样式位置、主题 token 和响应式规范。"}
+{"file":".trellis/spec/frontend/quality-guidelines.md","reason":"检查 typecheck、lint、format、build 与浏览器手查要求。"}
+{"file":".trellis/tasks/09-04-mdx-table-code-ui/research/mdx-reading-patterns.md","reason":"对照修复前实测问题与外部参考结论。"}
