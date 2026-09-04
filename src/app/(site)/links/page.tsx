@@ -13,13 +13,8 @@ interface FriendLink {
 
 const FRIEND_LINKS: FriendLink[] = [
   {
-    name: 'Joye Blog',
-    description: '追求极致纯粹的思考笔记与极简设计实践。',
-    url: 'https://github.com',
-  },
-  {
     name: 'Pear.no',
-    description: '挪威独立设计机构，高反差衬线与工程美学典范。',
+    description: '挪威独立设计机构，高反差衬线与设计美学典范。',
     url: 'https://pear.no',
   },
 ]
@@ -77,10 +72,10 @@ export default function LinksPage() {
         </div>
         <h2 className="font-serif text-2xl font-medium tracking-tight text-foreground">友链申请约定</h2>
         <div className="flex flex-col gap-3 text-sm leading-relaxed text-muted-foreground">
-          <p>欢迎原创技术博客、独立开发者或数字花园交换链接。为保证阅读体验，希望您的站点：</p>
+          <p>欢迎原创技术博客、独立开发者或数字花园交换链接。为保证阅读体验，希望你的站点：</p>
           <ul className="flex flex-col gap-1.5 font-mono text-xs text-muted-foreground ps-4">
             <li className="list-disc">具有独立域名并保持稳定访问</li>
-            <li className="list-disc">以原创技术、思考、设计或工程实践为主</li>
+            <li className="list-disc">以原创技术、设计或开发实践为主</li>
             <li className="list-disc">排版整洁，无低俗推广与广告干扰</li>
           </ul>
         </div>

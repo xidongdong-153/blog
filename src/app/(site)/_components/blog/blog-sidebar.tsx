@@ -6,7 +6,7 @@ export interface BlogSidebarProps {
 }
 
 /**
- * 博客列表页右侧边栏组件，复刻 Joye 标签侧边栏结构。
+ * 博客列表页右侧边栏组件，提供标签筛选导航。
  * 包含标签小图标、Tags 标题、Pill 标签云与查看全部标签入口。
  */
 export function BlogSidebar({ tags, className = '' }: BlogSidebarProps) {

@@ -10,7 +10,7 @@ tags:
   - MDX
 ---
 
-欢迎来到这个博客。项目参考了两个来源：架构来自 `xdd/starter` 的 Next.js web 应用（App Router、路由组、组件按功能内聚），内容组织来自 `joye-blog` 的约定（博客按文件夹、笔记按单文件）。
+欢迎来到这个博客。站点采用 Next.js App Router 与 `(site)` 路由组架构，组件按功能分组内聚；文章按文件夹组织，笔记按单文件管理。
 
 本文档同时作为全站 MDX 渲染能力的综合测试页面，覆盖文本排版、代码高亮、数学公式、多媒体（图片灯箱、视频播放）与交互组件。
 
@@ -142,7 +142,7 @@ def compute_metrics(predictions, targets):
 ```bash
 # 环境变量与系统运行信息
 NODE_VERSION=v22.19.0
-NEXT_PUBLIC_SITE_URL=https://joyehuang.me
+NEXT_PUBLIC_SITE_URL=https://blog.xdd.ink
 THEME_DEFAULT=system
 TURBOPACK=true
 ```

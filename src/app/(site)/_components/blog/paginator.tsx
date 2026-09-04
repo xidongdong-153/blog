@@ -13,7 +13,7 @@ export interface PaginatorProps {
 }
 
 /**
- * 分页导航器组件，复刻 Joye Paginator 双端导航结构。
+ * 分页导航器组件。
  * 分别在左侧和右侧展示上一页与下一页链接。
  */
 export function Paginator({ prevUrl, nextUrl, className = '' }: PaginatorProps) {

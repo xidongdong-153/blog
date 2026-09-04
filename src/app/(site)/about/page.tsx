@@ -13,7 +13,7 @@ export default function AboutPage() {
       <div className="flex flex-col gap-2 border-b border-border/40 pb-6">
         <div className="font-mono text-xs uppercase tracking-wider text-muted-foreground">// PROFILE &amp; BIO</div>
         <h1 className="font-serif text-3xl font-medium tracking-tight text-foreground sm:text-4xl">关于</h1>
-        <p className="text-sm leading-relaxed text-muted-foreground">关于作者、技术追求与工程哲学。</p>
+        <p className="text-sm leading-relaxed text-muted-foreground">关于作者、技术栈与实践记录。</p>
       </div>
 
       {/* 个人简介与理念 */}
@@ -25,8 +25,8 @@ export default function AboutPage() {
             <p key={paragraph}>{paragraph}</p>
           ))}
           <p>
-            偏好 TypeScript
-            系技术栈，坚持短路径与高内聚的系统设计。追求直观敏捷的代码组织，推崇出版物排版的克制感与流体动效的自然呼吸感。
+            偏好 TypeScript 技术栈，采用 Next.js 与 Hono 构建端到端类型安全的应用。关注 AI Agent
+            协作、界面交互细节与直观敏捷的代码组织。
           </p>
         </div>
       </section>
@@ -58,7 +58,7 @@ export default function AboutPage() {
       <section className="flex flex-col gap-4 border-t border-border/40 pt-8">
         <div className="font-mono text-xs uppercase tracking-wider text-muted-foreground">// 03. CHANNELS</div>
         <h2 className="font-serif text-2xl font-medium tracking-tight text-foreground">社交通道</h2>
-        <p className="text-sm text-muted-foreground">欢迎交流探讨软件工程、前端架构与人机交互设计。</p>
+        <p className="text-sm text-muted-foreground">欢迎交流探讨 AI Agent、Web 开发与 TypeScript 全栈技术。</p>
         <div className="flex flex-wrap gap-3">
           {siteConfig.social.map((item) => (
             <a

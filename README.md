@@ -2,7 +2,7 @@
 
 Next.js 单应用个人博客。文章和笔记用 MDX 文件管理，合并到 `main` 后由 GitHub Actions 完成检查并发布到现有服务器，不需要数据库和后端。
 
-架构参考 `xdd/starter` 的 web 应用（App Router、`(site)` 路由组、组件按功能分组内聚），内容组织参考 `joye-blog`（博客按文件夹、笔记按单文件）。
+架构采用 Next.js App Router 与 `(site)` 路由组，组件按功能分组内聚；文章按文件夹组织，笔记按单文件管理。
 
 ## 目录
 

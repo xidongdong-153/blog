@@ -1,8 +1,10 @@
 'use client'
 
+import Image from 'next/image'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { useEffect, useRef, useState } from 'react'
+import { profileConfig } from '@/profile.config'
 import { siteConfig } from '@/site.config'
 import { ThemeToggle } from './theme-toggle'
 
@@ -148,8 +150,34 @@ export function SiteHeader() {
           }}
         />
 
-        <Link href="/" className="text-sm font-semibold tracking-tight">
-          {siteConfig.title}
+        <Link
+          href="/"
+          aria-label={`${siteConfig.author}的个人博客首页`}
+          className="group relative flex items-center transition-transform duration-200 active:scale-95"
+        >
+          {/* 头像外层精工微边框底托 */}
+          <div className="relative flex items-center justify-center rounded-xl border border-border/80 bg-gradient-to-b from-background/95 via-card/80 to-muted/50 p-0.5 shadow-2xs backdrop-blur-sm transition-all duration-300 group-hover:border-foreground/30 group-hover:shadow-xs">
+            {profileConfig.avatar ? (
+              <Image
+                src={profileConfig.avatar}
+                alt={siteConfig.author}
+                width={32}
+                height={32}
+                priority
+                className="size-8 rounded-[10px] object-cover transition-transform duration-300 group-hover:scale-105"
+              />
+            ) : (
+              <div className="flex size-8 select-none items-center justify-center rounded-[10px] bg-muted/60 font-serif text-sm font-bold text-foreground">
+                {siteConfig.author.trim().slice(0, 1)}
+              </div>
+            )}
+
+            {/* 细微内阴影与边缘刻线 */}
+            <div
+              aria-hidden="true"
+              className="pointer-events-none absolute inset-0.5 rounded-[10px] ring-1 ring-inset ring-black/5 dark:ring-white/10"
+            />
+          </div>
         </Link>
 
         <div className="flex items-center gap-2">

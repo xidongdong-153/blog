@@ -9,7 +9,7 @@ export interface ButtonProps {
 }
 
 /**
- * 通用按钮与胶囊标签组件，复刻 Joye Button 样式体系。
+ * 通用按钮与胶囊标签组件。
  * 支持普通按钮、胶囊标签（pill）、返回按钮（back）与前进按钮（ahead）。
  * back 与 ahead 带有动态伸缩展开的 SVG 箭头动效。
  */

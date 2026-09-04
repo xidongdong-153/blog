@@ -42,21 +42,21 @@ export interface Profile {
 }
 
 export const profileConfig: Profile = {
-  avatar: null,
+  avatar: '/avatar.jpg',
   location: '上海',
-  about: ['专注 TypeScript 技术栈与现代化前端开发。', '追求干净的架构设计与丝滑的用户交互体验。'],
+  about: ['专注 TypeScript 全栈开发与 Web 应用构建。', '探索 AI Agent 协作与自动化工作流，打磨轻快可靠的产品体验。'],
   skills: [
     {
-      title: '编程语言',
-      items: ['TypeScript', 'JavaScript', 'HTML5', 'CSS3'],
+      title: 'Web / 前端',
+      items: ['TypeScript', 'React 19', 'Next.js 16', 'Tailwind CSS 4', 'Vite', 'Ant Design'],
     },
     {
-      title: '框架与库',
-      items: ['React 19', 'Next.js 16', 'Tailwind CSS 4'],
+      title: '后端 / 数据',
+      items: ['Hono', 'Node.js', 'Drizzle ORM', 'SQLite', 'Better Auth', 'Zod'],
     },
     {
-      title: '工具与生态',
-      items: ['Node.js', 'pnpm', 'Vercel', 'Git', 'ESLint', 'Prettier'],
+      title: 'Agent / 工程',
+      items: ['AI Agent', 'Turborepo', 'pnpm workspace', 'Vitest', 'Git', 'ESLint'],
     },
   ],
   experience: [],

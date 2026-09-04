@@ -48,7 +48,7 @@ export default function ContactPage() {
         </div>
         <h2 className="font-serif text-2xl font-medium tracking-tight text-foreground">沟通说明</h2>
         <div className="flex flex-col gap-3 text-sm leading-relaxed text-muted-foreground">
-          <p>如果您有任何关于文章、技术探讨、开源合作或设计改进的建议，欢迎通过上方渠道与我联系。</p>
+          <p>如果你有关于文章、技术探讨或开源合作的交流想法，可以通过上方渠道联系我。</p>
           <p>也可以在任一文章详情页下方的 Giscus 评论区留言交流。</p>
         </div>
       </section>

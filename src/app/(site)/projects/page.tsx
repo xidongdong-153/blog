@@ -31,15 +31,15 @@ const PROJECTS: Project[] = [
   },
   {
     title: 'Starter Web',
-    description: '现代全栈单应用开发脚手架，具备严格的代码质量门禁与内聚式架构设计规范。',
-    tags: ['TypeScript', 'Next.js', 'Tailwind CSS', 'ESLint'],
+    description: 'TypeScript 全栈模板，包含 Next.js Web、Vite 管理后台与 Hono API，集成 Drizzle ORM 与 Better Auth。',
+    tags: ['TypeScript', 'Next.js', 'Hono', 'Drizzle ORM', 'Turborepo'],
     github: 'https://github.com/xidongdong-153/starter',
     status: 'maintained',
   },
   {
     title: 'Trellis Workflow Engine',
-    description: 'AI 辅助软件工程规范与任务驱动协作工作流引擎，保障人机协同编码上下文稳定收敛。',
-    tags: ['Python', 'CLI', 'Workflow', 'Specification'],
+    description: '任务驱动的 AI Agent 协作工作流引擎，规范人机协同开发流程与上下文管理。',
+    tags: ['AI Agent', 'CLI', 'Workflow', 'Specification'],
     status: 'active',
   },
   {
@@ -58,7 +58,7 @@ export default function ProjectsPage() {
           // WORKS &amp; OPEN SOURCE
         </div>
         <h1 className="font-serif text-3xl font-medium tracking-tight text-foreground sm:text-4xl">项目</h1>
-        <p className="text-sm leading-relaxed text-muted-foreground">开源工具、实验性软件工程与代表作陈列。</p>
+        <p className="text-sm leading-relaxed text-muted-foreground">开源工具、Web 应用与 AI Agent 实践项目。</p>
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2">
