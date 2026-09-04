@@ -43,14 +43,14 @@
 
 ## Acceptance Criteria
 
-- [ ] 仓库新增可被 GitHub 识别的工作流文件；Pull Request 和 `main` push 的触发范围符合最终确认的发布规则。
-- [ ] 工作流在固定的 Node/pnpm 环境中使用 `pnpm-lock.yaml` 安装依赖，并按顺序执行 `pnpm typecheck`、`pnpm lint`、`pnpm format:check`、`pnpm build`。
-- [ ] 生产部署 job 只从受信任的 `main` 分支、通过 CI 的代码进入，并使用生产 Environment 或等效的最小权限 secrets 配置。
-- [ ] 生产 SSH 私钥、服务器敏感配置和 `.env.local` 不出现在 Git 跟踪文件或 Actions 日志中；SSH 主机身份校验方式有明确配置，服务器专用 `pnpm-workspace.yaml` 只在内容精确匹配时被保留且不会被工作流修改。
-- [ ] 远程部署在构建成功后才重启 `xdd-blog.service`，部署命令失败时能从 Actions 日志和服务器日志判断失败步骤。
-- [ ] 文档给出从 GitHub 设置页创建 secrets / Environment、服务器首次准备、手工试运行、触发第一次自动发布、验证公网访问和失败处理的逐步操作；命令、路径和参数与实际配置一致。
-- [ ] README 和 `/Users/wuwanzhu/Projects/code-server-frp-maintenance/docs/services/blog.md` 不再把当前正式部署描述为仅使用 Vercel，并记录 GitHub Actions 自动发布入口。
-- [ ] 代码和配置修改完成后依次通过 `pnpm typecheck`、`pnpm lint`、`pnpm format:check`；并完成 `pnpm build` 和工作流静态检查。
+- [x] 仓库新增可被 GitHub 识别的工作流文件；Pull Request 和 `main` push 的触发范围符合最终确认的发布规则。
+- [x] 工作流在固定的 Node/pnpm 环境中使用 `pnpm-lock.yaml` 安装依赖，并按顺序执行 `pnpm typecheck`、`pnpm lint`、`pnpm format:check`、`pnpm build`。
+- [x] 生产部署 job 只从受信任的 `main` 分支、通过 CI 的代码进入，并使用 `Deployment` Environment 的最小权限 secrets 配置。
+- [x] 生产 SSH 私钥、服务器敏感配置和 `.env.local` 不出现在 Git 跟踪文件或 Actions 日志中；SSH 主机身份校验方式有明确配置，服务器专用 `pnpm-workspace.yaml` 只在内容精确匹配时被保留且不会被工作流修改。
+- [x] 远程部署在构建成功后才重启 `xdd-blog.service`，部署命令失败时能从 Actions 日志和服务器日志判断失败步骤。
+- [x] 文档给出从 GitHub 设置页配置 Secrets / Environment、服务器首次准备、手工试运行、触发第一次自动发布、验证公网访问和失败处理的逐步操作；命令、路径和参数与实际配置一致。
+- [x] README 和 `/Users/wuwanzhu/Projects/code-server-frp-maintenance/docs/services/blog.md` 不再把当前正式部署描述为仅使用 Vercel，并记录 GitHub Actions 自动发布入口。
+- [x] 代码和配置修改完成后依次通过 `pnpm typecheck`、`pnpm lint`、`pnpm format:check`；并完成 `pnpm build` 和工作流静态检查。
 
 ## Out Of Scope
 
