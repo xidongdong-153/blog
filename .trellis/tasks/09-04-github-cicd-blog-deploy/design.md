@@ -17,7 +17,7 @@ flowchart TD
   Quality -->|通过| Merge["合并到 main"]
   Merge --> Push["main push"]
   Push --> Deploy["deploy job<br/>needs: quality"]
-  Deploy --> Env["production Environment<br/>vars + secrets"]
+  Deploy --> Env["Deployment Environment<br/>vars + secrets"]
   Env --> SSH["SSH 连接服务器"]
   SSH --> Preflight["检查工作区状态<br/>校验目标 SHA 与历史"]
   Preflight --> Install["pnpm install<br/>--frozen-lockfile"]
@@ -56,7 +56,7 @@ Node 和 pnpm 版本与当前服务器记录保持一致。构建检查不读取
 ### Deploy job
 
 - 使用 `needs: quality`，并通过 `if` 限制为 `main` 的 push 事件。
-- 引用 `production` Environment。该 Environment 不配置 Required reviewers，以匹配已确认的“CI 成功后直接自动发布”；仍限制允许部署的分支为 `main`。
+- 引用 `Deployment` Environment。该 Environment 不配置 Required reviewers，以匹配已确认的“CI 成功后直接自动发布”；仍限制允许部署的分支为 `main`。
 - 通过 Runner 自带的 OpenSSH 连接服务器，不引入第三方部署 Action。
 - 将 `DEPLOY_SSH_KEY` 写入 Runner 临时目录并设置 `600` 权限，将人工核验过的 `DEPLOY_KNOWN_HOSTS` 写入 `~/.ssh/known_hosts`，使用 `StrictHostKeyChecking=yes` 和 `IdentitiesOnly=yes`。
 - 远程命令使用 `bash -s`，只传入本次工作流的 `github.sha`。服务器部署目录固定为 `/home/deploy/code/xdd/blog`。
@@ -77,7 +77,7 @@ Node 和 pnpm 版本与当前服务器记录保持一致。构建检查不读取
 
 ## GitHub 配置契约
 
-在仓库的 `production` Environment 中配置：
+在仓库的 `Deployment` Environment 中配置：
 
 | 类型 | 名称 | 内容 |
 | --- | --- | --- |
@@ -91,7 +91,7 @@ Node 和 pnpm 版本与当前服务器记录保持一致。构建检查不读取
 
 仓库设置还需要：
 
-- `production` Environment 的部署分支限制为 `main`。
+- `Deployment` Environment 的部署分支限制为 `main`。
 - `main` 分支要求通过 Pull Request 和质量检查后才能合并，具体检查名以第一次工作流运行结果为准。
 - 服务器的 `.env.local` 继续留在 `/home/deploy/code/xdd/blog/.env.local`，不上传到 GitHub。
 

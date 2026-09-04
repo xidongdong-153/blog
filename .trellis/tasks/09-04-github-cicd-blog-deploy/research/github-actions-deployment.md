@@ -31,7 +31,7 @@
 ## 采用方案
 
 - CI：Pull Request 和 `main` push 都运行 typecheck、lint、format check、build。
-- CD：只有 `main` push 在 CI 成功后运行部署 job，并限制部署 job 使用 `production` Environment；根据用户确认，不配置 Required reviewers。
+- CD：只有 `main` push 在 CI 成功后运行部署 job，并限制部署 job 使用 `Deployment` Environment；根据用户确认，不配置 Required reviewers。
 - 部署连接：GitHub Actions 使用单独的 SSH 登录凭据连接服务器；服务器继续使用自己的 GitHub 拉取凭据拉取仓库，避免把服务器 GitHub 私钥放到 Actions。
 - 部署脚本：先检查工作区。服务器唯一允许保留的未跟踪文件是内容精确为 `allowBuilds: sharp: true` 的 `pnpm-workspace.yaml`；随后校验服务器 `main` 是 `origin/main` 的祖先、校验目标 SHA，最后安装依赖、构建、重启并检查本机 HTTP 响应。
 

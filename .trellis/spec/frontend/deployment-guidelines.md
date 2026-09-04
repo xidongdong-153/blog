@@ -4,7 +4,7 @@
 
 ### 1. Scope / Trigger
 
-- Trigger：修改 `.github/workflows/ci-cd.yml`、GitHub `production` Environment、服务器 `/home/deploy/code/xdd/blog` 部署流程，或排查 CI/CD、SSH、systemd 发布问题时遵守本规范。
+- Trigger：修改 `.github/workflows/ci-cd.yml`、GitHub `Deployment` Environment、服务器 `/home/deploy/code/xdd/blog` 部署流程，或排查 CI/CD、SSH、systemd 发布问题时遵守本规范。
 - 范围：GitHub Actions 检查 Pull Request 和 `main` push，并在 `main` push 的质量检查通过后通过 SSH 发布博客。
 - 运行服务：`xdd-blog.service` 监听 `127.0.0.1:4400`，Caddy 负责公网 HTTPS。
 
@@ -19,7 +19,7 @@
 
 ### 3. Contracts
 
-GitHub `production` Environment 的配置契约：
+GitHub `Deployment` Environment 的配置契约：
 
 | 类型     | 名称                   | 约束                                     |
 | -------- | ---------------------- | ---------------------------------------- |
@@ -69,7 +69,7 @@ GitHub `production` Environment 的配置契约：
 
 - 本地按顺序运行 `pnpm typecheck`、`pnpm lint`、`pnpm format:check`、`pnpm build`，断言全部退出码为 `0`。
 - 用 Prettier 检查 workflow 和相关文档，断言格式检查通过。
-- 用 YAML 解析器检查 `.github/workflows/ci-cd.yml`，断言包含 `quality`、`deploy`、`needs: quality` 和 `production` Environment。
+- 用 YAML 解析器检查 `.github/workflows/ci-cd.yml`，断言包含 `quality`、`deploy`、`needs: quality` 和 `Deployment` Environment。
 - 对 workflow 中的每个 `run` 块执行 Bash 语法检查，断言无语法错误。
 - 手工只读检查服务器的 Git 远端、工作区、Node/pnpm、`.env.local`、sudo 权限、systemd 状态和本机 HTTP。
 - 第一次真实发布后，断言 Pull Request 只执行 `quality`，`main` push 先执行 `quality` 再执行 `deploy`，Actions 日志中没有私钥或 `.env.local` 内容。

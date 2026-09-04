@@ -91,7 +91,7 @@ pnpm build
 - 目标分支为 `main` 的 Pull Request 运行 `quality` 检查，依次执行 `pnpm typecheck`、`pnpm lint`、`pnpm format:check` 和 `pnpm build`。
 - CI 在 `quality` job 中临时生成只包含 `allowBuilds: sharp: true` 的 `pnpm-workspace.yaml`，让 pnpm 11 允许 `sharp` 构建脚本；该文件贯穿检查步骤并在 job 结束时清理，不写入仓库。
 - 合并到 `main` 后，`push` 工作流先运行同一套 `quality` 检查；检查通过后才运行 `deploy` job。
-- `deploy` 使用 GitHub 的 `production` Environment，通过 SSH 连接服务器 `/home/deploy/code/xdd/blog`。
+- `deploy` 使用 GitHub 的 `Deployment` Environment，通过 SSH 连接服务器 `/home/deploy/code/xdd/blog`。
 - 只有 `deploy` job 的服务器构建和健康检查都通过才算发布成功；重启后本机 HTTP 检查最多等待 15 秒，避免服务启动竞态造成误报。
 - 服务器使用自己的 GitHub 拉取权限，保留 `/home/deploy/code/xdd/blog/.env.local`；Actions 不读取、上传或打印这个文件。
 - 服务器上的 `pnpm-workspace.yaml` 是 `pnpm approve-builds sharp` 生成的服务器专用配置；workflow 只接受内容精确为 `allowBuilds: sharp: true` 的这一项未跟踪文件，并不修改它。其他工作区改动都会停止部署。
@@ -99,12 +99,12 @@ pnpm build
 
 ### GitHub 配置
 
-在仓库 `Settings` -> `Environments` 中创建 `production`：
+在仓库 `Settings` -> `Environments` 中配置 `Deployment`：
 
 - Deployment branches and tags 只允许 `main`。
 - 不配置 Required reviewers，`main` 的 `quality` 成功后直接发布。
 
-在 `production` Environment 中填写以下值。实际服务器地址只放在 Environment Variable，不写入 workflow 文件：
+在 `Deployment` Environment 中填写以下值。实际服务器地址只放在 Environment Variable，不写入 workflow 文件：
 
 | 类型     | 名称                 | 内容                                     |
 | -------- | -------------------- | ---------------------------------------- |
@@ -123,7 +123,7 @@ pnpm build
 先在服务器确认：
 
 ```bash
-export DEPLOY_HOST='<production Environment 中的 DEPLOY_HOST>'
+export DEPLOY_HOST='<Deployment Environment 中的 DEPLOY_HOST>'
 ssh "deploy@$DEPLOY_HOST" 'cd /home/deploy/code/xdd/blog && git status --short --branch'
 ssh "deploy@$DEPLOY_HOST" 'cd /home/deploy/code/xdd/blog && git ls-remote --heads origin main'
 ssh "deploy@$DEPLOY_HOST" 'source /home/deploy/.nvm/nvm.sh && node --version && pnpm --version'

@@ -14,7 +14,7 @@
    - 配置 Pull Request 和 `main` push 触发。
    - 配置 Node.js `24.16.0`、pnpm `11.5.0` 和 pnpm 缓存。
    - [x] 在 `quality` job 中临时生成 `pnpm-workspace.yaml` 允许 `sharp` 构建脚本，贯穿依赖安装和质量检查，job 结束时清理，再按顺序运行 `pnpm install --frozen-lockfile`、`pnpm typecheck`、`pnpm lint`、`pnpm format:check`、`pnpm build`。
-   - 在 `deploy` job 中使用 `needs: quality`、`main` push 条件和 `production` Environment。
+   - `deploy` job 中使用 `needs: quality`、`main` push 条件和 `Deployment` Environment。
    - 使用 Runner 原生 OpenSSH、`DEPLOY_SSH_KEY`、`DEPLOY_KNOWN_HOSTS` 和严格 host key 校验。
    - 远程执行工作区状态检查；只允许内容精确为 `allowBuilds:\n  sharp: true` 的单个未跟踪 `pnpm-workspace.yaml` 留在服务器并原样保留，其他改动直接失败。
    - 远程执行目标 SHA 检查、快进更新、安装、构建、服务重启和本机 HTTP 检查。
@@ -27,14 +27,14 @@
    - 保留与当前服务器一致的 Node/pnpm、端口、服务名和目录；删除仅使用 Vercel 的过时描述。
 
 3. 更新服务器维护记录。
-   - [x] 在 `/Users/wuwanzhu/Projects/code-server-frp-maintenance/docs/services/blog.md` 中补充 GitHub 端创建 `production` Environment 的操作。
+   - [x] 在 `/Users/wuwanzhu/Projects/code-server-frp-maintenance/docs/services/blog.md` 中补充 GitHub 端配置 `Deployment` Environment 的操作。
    - [x] 列出 Variables 和 Secrets 的准确名称、值来源和安全边界。
    - [x] 记录 SSH 公钥授权、known_hosts 核验、sudo 非交互权限、服务器工作区清理和第一次手工部署顺序。
    - [x] 记录第一次 Actions 发布、服务和公网验证、Actions/systemd/Caddy 排查命令及 GitHub revert 回滚方法。
 
-4. 完成 GitHub 仓库侧手工配置说明。
-   - [x] 创建 `production` Environment。
-   - [x] 设置允许部署分支为 `main`，不配置 Required reviewers。
+4. 确认并配置 GitHub 仓库侧的 `Deployment` Environment。
+   - [x] 确认 `Deployment` Environment 存在。
+   - [x] 允许部署分支为 `main`，不配置 Required reviewers。
    - [x] 填写部署 Variables 和 Secrets。
    - [x] 为 `main` 配置 Pull Request 和质量检查保护；检查名以工作流实际产生的名称为准。
 
