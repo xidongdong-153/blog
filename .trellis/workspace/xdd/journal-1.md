@@ -252,3 +252,25 @@ trellis init -u xdd --pi 完成，填充 .trellis/spec/frontend 5 个规范文�
 ### Next Steps
 
 - 可根据需要对具体页面运行 /impeccable polish 或 critique
+
+
+## Session 10: 顶栏滚动液体融合动效
+<!-- trellis-session: v=2 fp=996ee68db6ff70ba -->
+
+**Date**: 2026-09-04
+**Task**: 顶栏滚动液体融合动效
+**Branch**: `main`
+
+### Summary
+
+将 SiteHeader 顶栏改为 0~80px 连续插值水膜渐变融合与 RAF 调度，支持渐进式消融遮罩
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `95f4f4d` | feat(ui): 顶栏采用连续滚动插值与水膜渐变融合动效 |
+
+### Status
+
+[OK] **Completed**
