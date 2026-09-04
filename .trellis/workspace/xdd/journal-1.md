@@ -457,3 +457,25 @@ trellis init -u xdd --pi 完成，填充 .trellis/spec/frontend 5 个规范文�
 ### Status
 
 [OK] **Completed**
+
+
+## Session 18: 优化 MDX 表格与代码块展示
+<!-- trellis-session: v=2 fp=d5a4e72b89948e30 -->
+
+**Date**: 2026-09-04
+**Task**: 优化 MDX 表格与代码块展示
+**Branch**: `main`
+
+### Summary
+
+为 MDX 表格增加最小宽度、局部横向滚动、清晰表头与可聚焦区域；重做代码块同材质文件名头部和常驻复制按钮；完成明暗主题、桌面/移动端与质量门验证。
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `dae1e30` | feat(blog): 优化 MDX 表格与代码块展示 |
+
+### Status
+
+[OK] **Completed**

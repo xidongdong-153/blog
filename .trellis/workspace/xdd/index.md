@@ -8,7 +8,7 @@
 
 <!-- @@@auto:current-status -->
 - **Active File**: `journal-1.md`
-- **Total Sessions**: 17
+- **Total Sessions**: 18
 - **Last Active**: 2026-09-04
 <!-- @@@/auto:current-status -->
 
@@ -19,7 +19,7 @@
 <!-- @@@auto:active-documents -->
 | File | Lines | Status |
 |------|-------|--------|
-| `journal-1.md` | ~459 | Active |
+| `journal-1.md` | ~481 | Active |
 <!-- @@@/auto:active-documents -->
 
 ---
@@ -29,6 +29,7 @@
 <!-- @@@auto:session-history -->
 | # | Date | Title | Commits | Branch |
 |---|------|-------|---------|--------|
+| 18 | 2026-09-04 | 优化 MDX 表格与代码块展示 | `dae1e30` | `main` |
 | 17 | 2026-09-04 | Hero 无边框全宽融入全站氛围顶光 | `1699893` | `main` |
 | 16 | 2026-09-04 | 配置 GitHub CI/CD 自动部署博客 | `3dcc1a7` | `main` |
 | 15 | 2026-09-04 | 适配 Giscus 自定义双主题与跨域支持 | `1abc862` | `main` |
