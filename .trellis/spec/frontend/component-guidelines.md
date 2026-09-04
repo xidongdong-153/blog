@@ -37,6 +37,7 @@ MDX 渲染走异步 RSC（`mdx-content.tsx` 的 `compileMDX`），不需要 clie
 - 色系统一使用 HSL 语义 token（`background`、`foreground`、`muted`、`muted-foreground`、`primary`、`border` 等），组件禁止硬编码 `stone-*` 或其他原色阶。
 - 正文排版用 `prose prose-stone dark:prose-invert`（@tailwindcss/typography），见 `mdx-content.tsx`。
 - 圆角约定：控件用 `rounded-md`，卡片和列表项用 `rounded-lg` 或 `rounded-2xl`，头像与 pill 用 `rounded-full`。
+- 提示框与卡片避免使用 `border-l-4` 等单侧粗边框（side-tab 反模式），采用完整微边框 `rounded-xl border` 配合语义背景色。
 - 内容宽度：首页使用宽布局 `md:w-4/5 lg:w-5/6`；博客列表页使用双列宽布局 `max-w-5xl`（左侧 3fr 文章、右侧 1fr 标签栏）；详情页与笔记内页内部使用 `mx-auto w-full max-w-3xl`。
 - 不写自定义组件 CSS 类，样式全部走 Tailwind 工具类与 data 变体（如 `data-[scrolled=true]:`、`theme-system:` 等）；`src/app/globals.css` 仅用于存放设计 token、keyframes 和变体定义。
 

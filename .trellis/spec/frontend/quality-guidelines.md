@@ -33,10 +33,19 @@ pnpm build         # 生产构建，改动页面、数据层或内容结构后�
 | 排除项 | 原因 |
 | ------ | ---- |
 | `content/` | MDX 正文和 frontmatter 不重排，避免破坏中文排版和日期写法 |
-| `.trellis/` `.pi/` `.agents/` | Trellis 管理的模板文件，由 `trellis update` 块级替换，被 prettier 重写会破坏模板跟踪 |
+| `.trellis/` `.pi/` `.agents/` `.agent/` | AI / Trellis 工具链的模板与技能文件，由工具管理，避免被 prettier 重写破坏格式 |
+| `.impeccable/` `PRODUCT.md` `DESIGN.md` | 由 Impeccable 设计系统管理的文件与本地运行时配置 |
 | `.next/` `node_modules/` 等 | 构建产物 |
 
 新增生成物目录时同步更新这个文件。
+
+## UI 设计与反模式检查
+
+项目集成了 Impeccable 设计系统检查工具。运行：
+```bash
+node .agent/skills/impeccable/scripts/detect.mjs --json src/
+```
+可扫描代码中可能存在的 AI slop（如 side-tab 单侧粗边框等反模式）及设计系统偏离。退出码为 0 表示无阻断性缺陷。
 
 ## 功能状态表
 
