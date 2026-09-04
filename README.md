@@ -89,6 +89,7 @@ pnpm build
 正式发布由 `.github/workflows/ci-cd.yml` 完成，不使用 Vercel：
 
 - 目标分支为 `main` 的 Pull Request 运行 `quality` 检查，依次执行 `pnpm typecheck`、`pnpm lint`、`pnpm format:check` 和 `pnpm build`。
+- CI 在 `quality` job 中临时生成只包含 `allowBuilds: sharp: true` 的 `pnpm-workspace.yaml`，让 pnpm 11 允许 `sharp` 构建脚本；该文件贯穿检查步骤并在 job 结束时清理，不写入仓库。
 - 合并到 `main` 后，`push` 工作流先运行同一套 `quality` 检查；检查通过后才运行 `deploy` job。
 - `deploy` 使用 GitHub 的 `production` Environment，通过 SSH 连接服务器 `/home/deploy/code/xdd/blog`。
 - 服务器使用自己的 GitHub 拉取权限，保留 `/home/deploy/code/xdd/blog/.env.local`；Actions 不读取、上传或打印这个文件。

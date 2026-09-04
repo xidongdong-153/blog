@@ -11,7 +11,7 @@
 ### 2. Signatures
 
 - 质量检查触发：`pull_request` 目标分支 `main`、`push` 分支 `main`。
-- 质量命令顺序：`pnpm install --frozen-lockfile`、`pnpm typecheck`、`pnpm lint`、`pnpm format:check`、`pnpm build`。
+- 质量命令顺序：CI 在 `quality` job 中临时生成只包含 `allowBuilds: sharp: true` 的 `pnpm-workspace.yaml`，然后执行 `pnpm install --frozen-lockfile`、`pnpm typecheck`、`pnpm lint`、`pnpm format:check`、`pnpm build`，job 结束时清理该文件；服务器使用同内容的服务器专用配置。
 - 部署条件：`github.event_name == 'push' && github.ref == 'refs/heads/main'`，并且 `needs: quality` 成功。
 - 远程脚本入口：通过 SSH 执行 `bash -s -- <target-sha>`。
 - 服务重启命令：`sudo -n systemctl restart xdd-blog.service`。

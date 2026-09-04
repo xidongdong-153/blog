@@ -13,7 +13,7 @@
 1. 新增 `.github/workflows/ci-cd.yml`。
    - 配置 Pull Request 和 `main` push 触发。
    - 配置 Node.js `24.16.0`、pnpm `11.5.0` 和 pnpm 缓存。
-   - 在 `quality` job 中按顺序运行 `pnpm install --frozen-lockfile`、`pnpm typecheck`、`pnpm lint`、`pnpm format:check`、`pnpm build`。
+   - [x] 在 `quality` job 中临时生成 `pnpm-workspace.yaml` 允许 `sharp` 构建脚本，贯穿依赖安装和质量检查，job 结束时清理，再按顺序运行 `pnpm install --frozen-lockfile`、`pnpm typecheck`、`pnpm lint`、`pnpm format:check`、`pnpm build`。
    - 在 `deploy` job 中使用 `needs: quality`、`main` push 条件和 `production` Environment。
    - 使用 Runner 原生 OpenSSH、`DEPLOY_SSH_KEY`、`DEPLOY_KNOWN_HOSTS` 和严格 host key 校验。
    - 远程执行工作区状态检查；只允许内容精确为 `allowBuilds:\n  sharp: true` 的单个未跟踪 `pnpm-workspace.yaml` 留在服务器并原样保留，其他改动直接失败。
@@ -54,7 +54,8 @@
    - [ ] 在 GitHub 完成 Environment、Variables、Secrets、分支保护后，观察 Pull Request 或 `main` 工作流的每个 job。
    - [ ] 确认 `quality` 通过后 `deploy` 自动运行，且部署日志不显示 secrets。
    - [x] 已完成服务器和公网只读基线验证：systemd active，本机和公网 HTTP 返回 `200`。
-   - [ ] 如果 GitHub Actions 登录或部署失败，保留错误日志，修复工作流或服务器前置条件后重新运行；不绕过主分支检查。
+   - [x] 首次 Actions 运行 `33857059084` 已确认在 `Install dependencies` 因 pnpm 11 未看到 `allowBuilds` 而失败，`deploy` 正确跳过；workflow 已改为在整个 `quality` job 临时提供该配置，干净目录复现通过。
+   - [ ] 推送修复后的 workflow 后重新观察 Actions；若 GitHub Actions 登录或部署失败，保留错误日志，修复工作流或服务器前置条件后重新运行；不绕过主分支检查。
 
 ## 回滚点
 
@@ -70,4 +71,4 @@
 - [x] Workflow 静态检查通过，`actionlint` 未安装并已记录。
 - [x] 文档中的路径、命令、secret 名称与工作流一致。
 - [x] 按 Trellis 要求运行 `trellis-check`，再更新相关 spec。
-- [ ] 向用户展示改动摘要并获得明确提交确认；未确认前不执行 `git commit`、`git push` 或 `git merge`。
+- [x] 向用户展示改动摘要并获得明确提交确认；未确认前不执行 `git commit`、`git push` 或 `git merge`。

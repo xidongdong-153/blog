@@ -47,8 +47,9 @@ flowchart TD
 1. `actions/checkout` 检出触发本次工作流的提交。
 2. `pnpm/action-setup` 配置 pnpm `11.5.0`。
 3. `actions/setup-node` 配置 Node.js `24.16.0`，启用 pnpm 缓存。
-4. `pnpm install --frozen-lockfile`。
-5. 依次运行 `pnpm typecheck`、`pnpm lint`、`pnpm format:check`、`pnpm build`。
+4. 在 Runner 的 `quality` job 中临时写入只包含 `allowBuilds: sharp: true` 的 `pnpm-workspace.yaml`，贯穿依赖安装和质量检查，job 结束时清理；不提交到仓库。
+5. `pnpm install --frozen-lockfile`。
+6. 依次运行 `pnpm typecheck`、`pnpm lint`、`pnpm format:check`、`pnpm build`。
 
 Node 和 pnpm 版本与当前服务器记录保持一致。构建检查不读取服务器上的 `.env.local`，不把生产环境文件复制进 Runner。
 

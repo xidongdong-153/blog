@@ -6,6 +6,7 @@ const baseConfig = antfu({
     'node_modules',
     'package-lock.json',
     'pnpm-lock.yaml',
+    'pnpm-workspace.yaml',
     'yarn.lock',
     'dist',
     'build',
