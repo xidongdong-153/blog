@@ -6,7 +6,7 @@ export const siteConfig = {
   /** 站点作者 */
   author: '喜东东',
   /** 部署后的正式域名，RSS、sitemap、OG 图生成链接时要用；本地开发不读它 */
-  url: 'https://example.com',
+  url: 'https://blog.xdd.ink',
   /** 页头导航，name 是显示文本，href 是路由路径 */
   nav: [
     { name: '首页', href: '/' },
@@ -17,7 +17,7 @@ export const siteConfig = {
     { name: '关于', href: '/about' },
   ],
   /** 页脚社交链接，name 是显示文本 */
-  social: [{ name: 'GitHub', href: 'https://github.com/example' }],
+  social: [{ name: 'GitHub', href: 'https://github.com/xidongdong-153/blog' }],
 } as const
 
 export type SiteConfig = typeof siteConfig
