@@ -435,3 +435,25 @@ trellis init -u xdd --pi 完成，填充 .trellis/spec/frontend 5 个规范文�
 ### Status
 
 [OK] **Completed**
+
+
+## Session 17: Hero 无边框全宽融入全站氛围顶光
+<!-- trellis-session: v=2 fp=f387b004481862ec -->
+
+**Date**: 2026-09-04
+**Task**: Hero 无边框全宽融入全站氛围顶光
+**Branch**: `main`
+
+### Summary
+
+移除 Hero 容器的边框与实色遮盖层，改用全宽铺展与大椭圆径向 mask-image 羽化，使背景动态场与 AmbientBackdrop 顶光无界融合
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `1699893` | feat(home): Hero 无边框全宽融入全站氛围顶光 |
+
+### Status
+
+[OK] **Completed**
