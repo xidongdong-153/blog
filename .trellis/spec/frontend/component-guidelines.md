@@ -105,3 +105,10 @@ MDX 渲染走异步 RSC（`mdx-content.tsx` 的 `compileMDX`），不需要 clie
 - 详情页用 `generateMetadata`，数据缺失返回 `{}`。
 - 不在页面里手写完整 title 字符串。
 
+## 页面切换视图过渡 (View Transitions)
+
+- 采用 Next.js 路由模板 `src/app/(site)/template.tsx` 重新挂载机制驱动入场，并在 `next.config.ts` 开启 `experimental.viewTransition: true` 配合原生 CSS 视图过渡。禁止引入 Framer Motion 等额外客户端动画库。
+- 动效采用纯交叉溶解（Pure Cross-Dissolve）：零空间位移、零虚化滤镜，`.page-transition-enter` 与 `::view-transition-new(root)` 统一执行 160ms 快速平滑透明度淡入，退场执行 120ms 加速淡出，专注抹平浏览器硬切白闪。
+- 常驻组件（`header`、`footer`、`#global-ambient-backdrop`）留在 `src/app/(site)/layout.tsx`，通过 `view-transition-name: persistent-site-chrome` 配合 `animation: none;` 隔离，避免页面切换时导航栏与背景发生晃动。
+- 必须包含 `@media (prefers-reduced-motion: reduce)` 无障碍媒体查询，在用户开启减少动态效果时回退至即时切换。
+
