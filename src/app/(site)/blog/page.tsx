@@ -50,8 +50,11 @@ export default async function BlogPage({ searchParams }: BlogPageProps) {
       <Button title="返回" href="/" style="back" />
 
       <main className="mt-6 lg:mt-10">
-        <div id="content-header">
-          <h1 className="mb-6 mt-6 text-3xl font-medium sm:mt-10">文章</h1>
+        <div id="content-header" className="mb-8 mt-6 sm:mt-10">
+          <div className="mb-2 font-mono text-xs uppercase tracking-wider text-muted-foreground">
+            // ARCHIVES &amp; ESSAYS
+          </div>
+          <h1 className="font-serif text-3xl font-medium tracking-tight text-foreground sm:text-4xl">文章</h1>
         </div>
 
         {allPosts.length === 0 ? (

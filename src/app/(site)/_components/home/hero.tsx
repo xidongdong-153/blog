@@ -149,12 +149,12 @@ export function Hero({ profile }: HeroProps) {
               width={128}
               height={128}
               priority
-              className="size-24 rounded-2xl bg-muted/40 object-cover shadow-sm sm:size-28 lg:size-32"
+              className="size-24 rounded-xl border border-border/60 bg-muted/40 object-cover shadow-sm sm:size-28 lg:size-32"
             />
           ) : (
             <div
               aria-label={siteConfig.author}
-              className="flex size-24 select-none items-center justify-center rounded-2xl bg-muted/60 text-3xl font-bold text-foreground shadow-sm sm:size-28 sm:text-4xl lg:size-32"
+              className="flex size-24 select-none items-center justify-center rounded-xl border border-border/60 bg-muted/60 text-3xl font-bold text-foreground shadow-sm sm:size-28 sm:text-4xl lg:size-32"
             >
               {firstLetter}
             </div>

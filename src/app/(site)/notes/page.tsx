@@ -11,9 +11,14 @@ export default function NotesPage() {
 
   return (
     <div className="mx-auto w-full max-w-3xl flex flex-col gap-10">
-      <div className="flex flex-col gap-1">
-        <h1 className="text-2xl font-bold tracking-tight">笔记</h1>
-        <p className="text-sm text-muted-foreground">短笔记和研究卡片，状态分四种：进行中、待补充、已整理、已归档。</p>
+      <div className="flex flex-col gap-2 border-b border-border/40 pb-6">
+        <div className="font-mono text-xs uppercase tracking-wider text-muted-foreground">
+          // DIGITAL GARDEN &amp; NOTES
+        </div>
+        <h1 className="font-serif text-3xl font-medium tracking-tight text-foreground sm:text-4xl">笔记</h1>
+        <p className="text-sm leading-relaxed text-muted-foreground">
+          短笔记与研究记录，状态包含：进行中、待补充、已整理、已归档。
+        </p>
       </div>
 
       {notes.length > 0 ? (

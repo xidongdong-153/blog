@@ -50,9 +50,9 @@ export default function HomePage() {
             <div className="pt-1 text-right">
               <Link
                 href="/blog"
-                className="inline-flex items-center text-xs font-medium text-muted-foreground transition-colors hover:text-primary hover:underline"
+                className="inline-flex items-center font-mono text-xs uppercase tracking-wider text-muted-foreground transition-colors hover:text-foreground hover:underline"
               >
-                查看全部文章 →
+                // ALL ARTICLES →
               </Link>
             </div>
           )}
@@ -74,9 +74,9 @@ export default function HomePage() {
             <div className="pt-1 text-right">
               <Link
                 href="/notes"
-                className="inline-flex items-center text-xs font-medium text-muted-foreground transition-colors hover:text-primary hover:underline"
+                className="inline-flex items-center font-mono text-xs uppercase tracking-wider text-muted-foreground transition-colors hover:text-foreground hover:underline"
               >
-                查看全部笔记 →
+                // ALL NOTES →
               </Link>
             </div>
           )}

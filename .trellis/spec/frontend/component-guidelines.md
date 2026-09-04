@@ -114,3 +114,19 @@ MDX 渲染走异步 RSC（`mdx-content.tsx` 的 `compileMDX`），不需要 clie
 - 常驻组件（`header`、`footer`、`#global-ambient-backdrop`）留在 `src/app/(site)/layout.tsx`，通过 `view-transition-name: persistent-site-chrome` 配合 `animation: none;` 隔离，避免页面切换时导航栏与背景发生晃动。
 - 必须包含 `@media (prefers-reduced-motion: reduce)` 无障碍媒体查询，在用户开启减少动态效果时回退至即时切换。
 
+## 全站出版物设计语言与排版规范
+
+- **圆角规范收敛**：
+  - 容器与卡片统一采用 `rounded-lg`（`border border-border/60 bg-card/30`），微交互悬浮态为 `hover:border-foreground/30 hover:bg-muted/30`。
+  - 交互按钮与小徽标统一收敛至 `rounded-md`。
+  - 严禁在页面卡片、列表行或标签云中使用 `rounded-2xl` 或 `rounded-full` 胶囊，杜绝通用消费级 App 质感。
+- **全大写等宽技术微标（Mono Metadata System）**：
+  - 文章分类、笔记状态、日期、阅读耗时、分类索引、小标题一律采用 `font-mono text-xs uppercase tracking-wider text-muted-foreground`。
+  - 结构前缀统一采用双斜杠，如 `// ARTICLE / DATE / READ_TIME`、`// NOTE / STATUS: READY`、`// TAGS`。
+  - 标签一律统一为 `#TAG` 无实心背景微标格式。
+- **全域贯通西文衬线排版（Serif Headline System）**：
+  - 全站所有一级路由 H1 标题、文章详情 H1 以及首页各 Section H2 标题统一挂载 `font-serif` 衬线字体（Newsreader），字重采用 `font-medium tracking-tight text-foreground`。
+  - 页面顶部标题统一由技术等宽眉标、衬线大标题与描述段落三层结构组成。
+- **结构化页面规范**：
+  - 项目页（`/projects`）、关于页（`/about`）、友链页（`/links`）、联系页（`/contact`）必须具备结构化内容与响应式网格排版，不得退回粗糙的泛用型 EmptyState。
+

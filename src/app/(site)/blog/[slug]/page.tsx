@@ -57,30 +57,23 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
           {/* Hero 区域 */}
           <div className="flex flex-col gap-2">
             {post.heroImage && (
-              <div className="relative mb-4 aspect-video overflow-hidden rounded-2xl">
+              <div className="relative mb-6 aspect-video overflow-hidden rounded-lg border border-border/60">
                 <Image src={post.heroImage} alt={`${post.title} hero image`} fill className="object-cover" priority />
               </div>
             )}
 
-            <div className="flex flex-wrap items-center gap-x-3 gap-y-2 text-xs text-muted-foreground">
+            <div className="flex flex-wrap items-center gap-2 font-mono text-xs uppercase tracking-wider text-muted-foreground">
+              <span>// ARTICLE</span>
+              <span>/</span>
               <time dateTime={post.date}>{formatDate(post.date)}</time>
-              {post.updatedDate && <span>（更新于 {formatDate(post.updatedDate)}）</span>}
-              <span className="flex items-center gap-1">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  className="size-3.5 shrink-0"
-                >
-                  <circle cx="12" cy="12" r="10" />
-                  <polyline points="12 6 12 12 16 14" />
-                </svg>
-                {readingTime}
-              </span>
+              {post.updatedDate && (
+                <>
+                  <span>/</span>
+                  <span>UPDATED: {formatDate(post.updatedDate)}</span>
+                </>
+              )}
+              <span>/</span>
+              <span>{readingTime.toUpperCase()}</span>
             </div>
 
             <h1 className="font-serif text-3xl font-medium tracking-tight text-foreground sm:text-4xl lg:text-[2.6rem] leading-[1.2]">

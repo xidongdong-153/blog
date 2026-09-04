@@ -1,18 +1,132 @@
 import type { Metadata } from 'next'
-import { EmptyState } from '../_components/placeholder/empty-state'
+import Link from 'next/link'
 
 export const metadata: Metadata = {
   title: '项目',
 }
 
+interface Project {
+  title: string
+  description: string
+  tags: string[]
+  href?: string
+  github?: string
+  status: 'active' | 'maintained' | 'experimental' | 'archived'
+}
+
+const STATUS_CONFIG: Record<Project['status'], { label: string; className: string }> = {
+  active: { label: 'ACTIVE', className: 'text-emerald-600 dark:text-emerald-400' },
+  maintained: { label: 'MAINTAINED', className: 'text-primary' },
+  experimental: { label: 'EXPERIMENTAL', className: 'text-amber-600 dark:text-amber-400' },
+  archived: { label: 'ARCHIVED', className: 'text-muted-foreground' },
+}
+
+const PROJECTS: Project[] = [
+  {
+    title: 'Personal Blog',
+    description: '采用 Next.js 16 与 React 19 构建的技术博客，落地纸本暖色调、西文衬线排版与轨道式阅读导轨。',
+    tags: ['Next.js 16', 'React 19', 'Tailwind CSS 4', 'TypeScript'],
+    github: 'https://github.com/xidongdong-153/blog',
+    status: 'active',
+  },
+  {
+    title: 'Starter Web',
+    description: '现代全栈单应用开发脚手架，具备严格的代码质量门禁与内聚式架构设计规范。',
+    tags: ['TypeScript', 'Next.js', 'Tailwind CSS', 'ESLint'],
+    github: 'https://github.com/xidongdong-153/starter',
+    status: 'maintained',
+  },
+  {
+    title: 'Trellis Workflow Engine',
+    description: 'AI 辅助软件工程规范与任务驱动协作工作流引擎，保障人机协同编码上下文稳定收敛。',
+    tags: ['Python', 'CLI', 'Workflow', 'Specification'],
+    status: 'active',
+  },
+  {
+    title: 'Impeccable Design System',
+    description: '高反差技术出版物美学组件库，聚焦工业克制微标、细线导轨与流体交融动效。',
+    tags: ['Design System', 'Typography', 'Micro-interactions'],
+    status: 'maintained',
+  },
+]
+
 export default function ProjectsPage() {
   return (
-    <div className="mx-auto w-full max-w-3xl flex flex-col gap-6">
-      <h1 className="text-2xl font-bold tracking-tight">项目</h1>
-      <EmptyState
-        title="项目展示待实现"
-        description="计划从 GitHub 读取仓库数据，按类型分组展示项目卡片、star 数和主页链接。"
-      />
+    <div className="mx-auto flex w-full max-w-4xl flex-col gap-10">
+      <div className="flex flex-col gap-2 border-b border-border/40 pb-6">
+        <div className="font-mono text-xs uppercase tracking-wider text-muted-foreground">
+          // WORKS &amp; OPEN SOURCE
+        </div>
+        <h1 className="font-serif text-3xl font-medium tracking-tight text-foreground sm:text-4xl">项目</h1>
+        <p className="text-sm leading-relaxed text-muted-foreground">开源工具、实验性软件工程与代表作陈列。</p>
+      </div>
+
+      <div className="grid gap-4 sm:grid-cols-2">
+        {PROJECTS.map((project) => {
+          const status = STATUS_CONFIG[project.status]
+          return (
+            <div
+              key={project.title}
+              className="group flex flex-col justify-between rounded-lg border border-border/60 bg-card/30 p-5 transition-all hover:border-foreground/30 hover:bg-muted/30"
+            >
+              <div className="flex flex-col gap-2.5">
+                <div className="flex items-center justify-between font-mono text-xs uppercase tracking-wider text-muted-foreground">
+                  <span>// PROJECT</span>
+                  <span className={status.className}>STATUS: {status.label}</span>
+                </div>
+
+                <h2 className="font-serif text-xl font-medium tracking-tight text-foreground transition-colors group-hover:text-primary">
+                  {project.href ? (
+                    <Link href={project.href} className="hover:underline">
+                      {project.title}
+                    </Link>
+                  ) : (
+                    <span>{project.title}</span>
+                  )}
+                </h2>
+
+                <p className="text-sm leading-relaxed text-muted-foreground">{project.description}</p>
+              </div>
+
+              <div className="mt-6 flex flex-col gap-3">
+                <div className="flex flex-wrap gap-2 font-mono text-xs text-muted-foreground">
+                  {project.tags.map((tag) => (
+                    <span key={tag} className="select-none">
+                      #{tag}
+                    </span>
+                  ))}
+                </div>
+
+                {project.github && (
+                  <div className="pt-2 border-t border-border/30">
+                    <a
+                      href={project.github}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-1.5 font-mono text-xs text-muted-foreground transition-colors hover:text-foreground"
+                    >
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        className="size-3.5"
+                      >
+                        <path d="M15 22v-4a4.8 4.8 0 0 0-1-3.5c3 0 6-2 6-5.5.08-1.25-.27-2.48-1-3.5.28-1.15.28-2.35 0-3.5 0 0-1 0-3 1.5-2.64-.5-5.36-.5-8 0C6 2 5 2 5 2c-.3 1.15-.3 2.35 0 3.5A5.403 5.403 0 0 0 4 9c0 3.5 3 5.5 6 5.5-.39.49-.68 1.05-.85 1.65-.17.6-.22 1.23-.15 1.85v4" />
+                        <path d="M9 18c-4.51 2-5-2-7-2" />
+                      </svg>
+                      <span>GITHUB REPO →</span>
+                    </a>
+                  </div>
+                )}
+              </div>
+            </div>
+          )
+        })}
+      </div>
     </div>
   )
 }

@@ -34,12 +34,16 @@ export default async function TagPage({ params }: TagPageProps) {
   }
 
   return (
-    <div className="mx-auto w-full max-w-3xl flex flex-col gap-10">
-      <div className="flex items-baseline justify-between">
-        <h1 className="text-2xl font-bold tracking-tight">#{decodedTag}</h1>
-        <Link href="/blog" className="text-sm text-muted-foreground hover:underline">
-          全部文章
-        </Link>
+    <div className="mx-auto flex w-full max-w-3xl flex-col gap-10">
+      <div className="flex flex-col gap-2 border-b border-border/40 pb-6">
+        <div className="flex items-center justify-between font-mono text-xs uppercase tracking-wider text-muted-foreground">
+          <span>// TAG FILTER</span>
+          <Link href="/blog" className="transition-colors hover:text-foreground">
+            // ALL POSTS →
+          </Link>
+        </div>
+        <h1 className="font-serif text-3xl font-medium tracking-tight text-foreground sm:text-4xl">#{decodedTag}</h1>
+        <p className="text-sm leading-relaxed text-muted-foreground">共收录 {posts.length} 篇关联文章。</p>
       </div>
 
       <ul className="flex flex-col gap-y-4">

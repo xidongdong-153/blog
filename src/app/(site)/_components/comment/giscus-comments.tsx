@@ -96,11 +96,11 @@ export function GiscusComments() {
   return (
     <section aria-label="评论区" className="border-t border-border pt-8">
       <div className="mb-6 flex items-center justify-between">
-        <h2 className="text-xl font-bold tracking-tight">评论</h2>
+        <h2 className="font-serif text-2xl font-medium tracking-tight text-foreground">评论</h2>
       </div>
 
       {!isConfigured ? (
-        <div className="rounded-2xl border border-dashed border-border bg-muted/20 p-6 text-center text-sm text-muted-foreground">
+        <div className="rounded-lg border border-border/60 bg-card/30 p-6 text-center text-sm text-muted-foreground">
           <p className="font-medium text-foreground">评论区尚未配置</p>
           <p className="mt-1.5 text-xs text-muted-foreground">
             在 <code className="rounded bg-muted px-1 py-0.5 font-mono text-[11px]">.env.local</code> 中配置{' '}

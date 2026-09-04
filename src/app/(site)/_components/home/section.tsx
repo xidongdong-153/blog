@@ -13,7 +13,7 @@ interface SectionProps {
 export function Section({ title, children }: SectionProps) {
   return (
     <section className="flex flex-col gap-y-5 md:flex-row">
-      <h2 className="text-xl font-semibold tracking-tight md:min-w-36">{title}</h2>
+      <h2 className="font-serif text-2xl font-medium tracking-tight text-foreground md:min-w-36">{title}</h2>
       <div className="flex flex-1 flex-col gap-y-4">{children}</div>
     </section>
   )
