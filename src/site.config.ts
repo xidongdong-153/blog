@@ -2,7 +2,7 @@ export const siteConfig = {
   /** 站点标题，浏览器标签页和页头都用这个值 */
   title: '喜东东的博客',
   /** 站点简介，进首页 hero 和 SEO meta description */
-  description: '喜东东的技术博客，记录 AI Agent、Web 开发与 TypeScript 全栈实践。',
+  description: '一个写 TypeScript、和 AI 智能体打交道的人，在这里记录造东西过程中的弯路和发现。',
   /** 站点作者 */
   author: '喜东东',
   /** 部署后的正式域名，RSS、sitemap、OG 图生成链接时要用；本地开发不读它 */

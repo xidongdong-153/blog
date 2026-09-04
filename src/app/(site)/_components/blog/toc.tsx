@@ -194,10 +194,10 @@ export function TableOfContents({ headings, onItemClick }: TableOfContentsProps)
         <button
           type="button"
           onClick={() => setIsOpen((prev) => !prev)}
-          className="flex items-center gap-2 font-mono text-[0.7rem] uppercase tracking-wider text-muted-foreground transition-colors hover:text-foreground"
+          className="flex items-center gap-2 font-mono text-[0.7rem] tracking-wider text-muted-foreground transition-colors hover:text-foreground"
           aria-expanded={isOpen}
         >
-          <span className="font-semibold">// TABLE OF CONTENTS</span>
+          <span className="font-semibold">// 目录</span>
           <svg
             xmlns="http://www.w3.org/2000/svg"
             viewBox="0 0 24 24"

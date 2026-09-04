@@ -51,9 +51,7 @@ export default async function BlogPage({ searchParams }: BlogPageProps) {
 
       <main className="mt-6 lg:mt-10">
         <div id="content-header" className="mb-8 mt-6 sm:mt-10">
-          <div className="mb-2 font-mono text-xs uppercase tracking-wider text-muted-foreground">
-            // ARCHIVES &amp; ESSAYS
-          </div>
+          <div className="mb-2 font-mono text-xs tracking-wider text-muted-foreground">// 文章归档</div>
           <h1 className="font-serif text-3xl font-medium tracking-tight text-foreground sm:text-4xl">文章</h1>
         </div>
 

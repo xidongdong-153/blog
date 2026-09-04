@@ -231,6 +231,14 @@ export function formatDate(iso: string): string {
   }).format(new Date(iso))
 }
 
+/** 首页最近写作时间线日期格式，输出 MM / DD（如 07 / 25）。 */
+export function formatTimelineDate(iso: string): string {
+  const date = new Date(iso)
+  const month = String(date.getUTCMonth() + 1).padStart(2, '0')
+  const day = String(date.getUTCDate()).padStart(2, '0')
+  return `${month} / ${day}`
+}
+
 /**
  * 估算文章或笔记阅读时间（分钟），按中文 350 字/分钟、英文 160 词/分钟估算。
  * 格式如 "预计阅读 1 分钟"。

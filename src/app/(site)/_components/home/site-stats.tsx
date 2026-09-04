@@ -1,8 +1,9 @@
 import { getAllBlogPosts, getAllBlogTags, getAllNotes } from '@/lib/content'
 
 /**
- * 首页站点统计卡片组件。
- * 基于本地 MDX 内容计算文章、笔记与标签总量，采用 3 列半透明卡片展示。
+ * 首页站点统计收尾组件。
+ * 基于本地 MDX 内容计算文章、笔记与标签总量，
+ * 以一行居中衬线大字的人文表达呈现（参考 innei.in 的「N 篇 · N 万字 · N 天」），无卡片边框。
  */
 export function SiteStats() {
   const postsCount = getAllBlogPosts().filter((post) => !post.draft).length
@@ -10,19 +11,20 @@ export function SiteStats() {
   const tagsCount = getAllBlogTags().length
 
   const stats = [
-    { label: '文章', value: postsCount },
-    { label: '笔记', value: notesCount },
-    { label: '标签', value: tagsCount },
+    { label: '篇文章', value: postsCount },
+    { label: '篇笔记', value: notesCount },
+    { label: '个标签', value: tagsCount },
   ]
 
   return (
-    <div className="grid grid-cols-3 gap-3">
-      {stats.map(({ label, value }) => (
-        <div key={label} className="rounded-lg border border-border/60 bg-card/30 px-4 py-3 text-center">
-          <div className="font-serif text-2xl font-medium tabular-nums text-foreground">{value}</div>
-          <div className="mt-1 font-mono text-[0.7rem] uppercase tracking-wider text-muted-foreground">{label}</div>
-        </div>
+    <p className="text-center leading-relaxed">
+      {stats.map(({ label, value }, index) => (
+        <span key={label}>
+          {index > 0 && <span className="mx-2 text-muted-foreground/60">·</span>}
+          <span className="font-serif text-2xl tabular-nums text-foreground sm:text-3xl">{value}</span>
+          <span className="ml-1 text-sm text-muted-foreground">{label}</span>
+        </span>
       ))}
-    </div>
+    </p>
   )
 }

@@ -62,18 +62,18 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
               </div>
             )}
 
-            <div className="flex flex-wrap items-center gap-2 font-mono text-xs uppercase tracking-wider text-muted-foreground">
-              <span>// ARTICLE</span>
+            <div className="flex flex-wrap items-center gap-2 font-mono text-xs tracking-wider text-muted-foreground">
+              <span>// 文章</span>
               <span>/</span>
               <time dateTime={post.date}>{formatDate(post.date)}</time>
               {post.updatedDate && (
                 <>
                   <span>/</span>
-                  <span>UPDATED: {formatDate(post.updatedDate)}</span>
+                  <span>更新于 {formatDate(post.updatedDate)}</span>
                 </>
               )}
               <span>/</span>
-              <span>{readingTime.toUpperCase()}</span>
+              <span>{readingTime}</span>
             </div>
 
             <h1 className="font-serif text-3xl font-medium tracking-tight text-foreground sm:text-4xl lg:text-[2.6rem] leading-[1.2]">

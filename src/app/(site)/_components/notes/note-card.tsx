@@ -12,12 +12,12 @@ const STATUS_TEXT_COLORS: Record<Note['status'], string> = {
 export function NoteCard({ note }: { note: Note }) {
   return (
     <article className="group flex flex-col gap-2.5 border-b border-border/50 pb-8 pt-2 transition-colors">
-      <div className="flex flex-wrap items-center gap-2 font-mono text-xs uppercase tracking-wider text-muted-foreground">
-        <span>// NOTE</span>
+      <div className="flex flex-wrap items-center gap-2 font-mono text-xs tracking-wider text-muted-foreground">
+        <span>// 笔记</span>
         <span>/</span>
         <time dateTime={note.date}>{formatDate(note.date)}</time>
         <span>/</span>
-        <span className={STATUS_TEXT_COLORS[note.status]}>STATUS: {NOTE_STATUS_LABELS[note.status]}</span>
+        <span className={STATUS_TEXT_COLORS[note.status]}>状态: {NOTE_STATUS_LABELS[note.status]}</span>
       </div>
 
       <h2 className="font-serif text-xl font-medium tracking-tight text-foreground transition-colors group-hover:text-primary sm:text-2xl">

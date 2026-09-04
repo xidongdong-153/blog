@@ -1,0 +1,2 @@
+{"file": ".trellis/spec/frontend/quality-guidelines.md", "reason": "验收需过 typecheck / lint / format 质量门"}
+{"file": ".trellis/spec/frontend/directory-structure.md", "reason": "新组件 WritingTimeline 的位置需符合 _components 分组规则"}

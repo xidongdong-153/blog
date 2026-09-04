@@ -12,10 +12,10 @@ export default function TagsPage() {
   return (
     <div className="mx-auto flex w-full max-w-3xl flex-col gap-10">
       <div className="flex flex-col gap-2 border-b border-border/40 pb-6">
-        <div className="flex items-center justify-between font-mono text-xs uppercase tracking-wider text-muted-foreground">
-          <span>// TAXONOMY &amp; TOPICS</span>
+        <div className="flex items-center justify-between font-mono text-xs tracking-wider text-muted-foreground">
+          <span>// 标签分类</span>
           <Link href="/blog" className="transition-colors hover:text-foreground">
-            // ALL POSTS →
+            // 全部文章 →
           </Link>
         </div>
         <h1 className="font-serif text-3xl font-medium tracking-tight text-foreground sm:text-4xl">标签</h1>

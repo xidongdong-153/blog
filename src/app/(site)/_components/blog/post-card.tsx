@@ -29,8 +29,8 @@ export function PostCard({ post, detailed = true, className = '', as: Component 
     <Component className={cardClasses}>
       <Link href={`/blog/${post.slug}`} className="group/link flex w-full flex-col transition-all">
         {/* 顶部技术等宽眉标 (Mono Kicker) */}
-        <div className="mb-2.5 flex flex-wrap items-center gap-2 font-mono text-xs uppercase tracking-wider text-muted-foreground">
-          <span className="font-semibold text-foreground/80">{post.draft ? '// DRAFT' : '// ARTICLE'}</span>
+        <div className="mb-2.5 flex flex-wrap items-center gap-2 font-mono text-xs tracking-wider text-muted-foreground">
+          <span className="font-semibold text-foreground/80">{post.draft ? '// 草稿' : '// 文章'}</span>
           <span className="text-border">/</span>
           <time dateTime={post.date}>{formatDate(post.date)}</time>
           {detailed && (
@@ -86,7 +86,7 @@ export function PostCard({ post, detailed = true, className = '', as: Component 
             <li key={tag}>
               <Link
                 href={`/blog/tags/${tag}`}
-                className="inline-flex items-center rounded border border-border/60 bg-muted/30 px-2 py-0.5 font-mono text-[0.75rem] uppercase tracking-wider text-muted-foreground transition-colors hover:border-foreground/40 hover:bg-muted hover:text-foreground"
+                className="inline-flex items-center rounded border border-border/60 bg-muted/30 px-2 py-0.5 font-mono text-[0.75rem] tracking-wider text-muted-foreground transition-colors hover:border-foreground/40 hover:bg-muted hover:text-foreground"
               >
                 #{tag}
               </Link>

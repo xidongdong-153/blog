@@ -15,9 +15,7 @@ export function BlogSidebar({ tags, className = '' }: BlogSidebarProps) {
   return (
     <aside id="sidebar" className={`flex flex-col ${className}`}>
       <div className="mb-4 flex items-center justify-between border-b border-border/40 pb-2">
-        <span className="font-mono text-[0.7rem] font-semibold uppercase tracking-wider text-muted-foreground">
-          // TAGS
-        </span>
+        <span className="font-mono text-[0.7rem] font-semibold tracking-wider text-muted-foreground">// 标签</span>
       </div>
 
       <ul className="flex flex-wrap gap-2 text-xs font-mono">
@@ -37,9 +35,9 @@ export function BlogSidebar({ tags, className = '' }: BlogSidebarProps) {
       <span className="mt-4 block sm:text-end">
         <Link
           href="/blog/tags"
-          className="font-mono text-xs uppercase tracking-wider text-muted-foreground transition-colors hover:text-foreground hover:underline"
+          className="font-mono text-xs tracking-wider text-muted-foreground transition-colors hover:text-foreground hover:underline"
         >
-          // VIEW ALL TAGS →
+          // 查看全部标签 →
         </Link>
       </span>
     </aside>

@@ -134,4 +134,8 @@ MDX 渲染走异步 RSC（`mdx-content.tsx` 的 `compileMDX`），不需要 clie
 - **Hero 无界融入全站顶光规范**：
   - 首页 Hero 采用完全无边框的自然沉浸结构，不设容器外围边框、实色背景与卡片阴影，保持正文出版物排版纯净无界。
   - 背景动效 Canvas（`SpatialField`）突破父容器限制横向全宽铺展（`w-screen left-1/2 -translate-x-1/2`），通过大椭圆径向 CSS `mask-image` / `-webkit-mask-image` 衰减 Alpha 通道向四周柔和羽化；严禁在 Canvas 上方叠加使用 `--background` 实色的纯色或半透渐变层，让全站底层 `AmbientBackdrop` 的漫射顶光无界贯通。
+- **首页最近写作时间线**：
+  - `page.tsx` 将已过滤 draft 的文章与笔记映射为 `{ kind, slug, title, date }`，按 ISO `date` 倒序后取前 8 条，再传给 `WritingTimeline`。
+  - `WritingTimeline` 用 `${kind}-${slug}` 作为 key，根据 `kind` 生成 `/blog/<slug>` 或 `/notes/<slug>` 链接；日期显示使用 `formatTimelineDate`，不在组件中直接格式化日期。
+  - 时间线分类微标使用 `font-mono text-xs uppercase tracking-wider`，列表行用 `divide-y` 细线，不给每行添加卡片底色。
 

@@ -24,16 +24,14 @@ export default function LinksPage() {
     <div className="mx-auto flex w-full max-w-3xl flex-col gap-12">
       {/* 页面主标题 */}
       <div className="flex flex-col gap-2 border-b border-border/40 pb-6">
-        <div className="font-mono text-xs uppercase tracking-wider text-muted-foreground">
-          // CONNECTIONS &amp; FRIENDS
-        </div>
+        <div className="font-mono text-xs tracking-wider text-muted-foreground">// 友情链接</div>
         <h1 className="font-serif text-3xl font-medium tracking-tight text-foreground sm:text-4xl">友链</h1>
         <p className="text-sm leading-relaxed text-muted-foreground">志同道合的技术伙伴、独立博客与设计探索者。</p>
       </div>
 
       {/* 友链网格 */}
       <section className="flex flex-col gap-4">
-        <div className="font-mono text-xs uppercase tracking-wider text-muted-foreground">// 01. RECOMMENDED SITES</div>
+        <div className="font-mono text-xs tracking-wider text-muted-foreground">// 01. 推荐站点</div>
         <div className="grid gap-4 sm:grid-cols-2">
           {FRIEND_LINKS.map((link) => (
             <a
@@ -67,9 +65,7 @@ export default function LinksPage() {
 
       {/* 互换规则契约 */}
       <section className="flex flex-col gap-4 border-t border-border/40 pt-8">
-        <div className="font-mono text-xs uppercase tracking-wider text-muted-foreground">
-          // 02. LINK EXCHANGE PROTOCOL
-        </div>
+        <div className="font-mono text-xs tracking-wider text-muted-foreground">// 02. 友链互换</div>
         <h2 className="font-serif text-2xl font-medium tracking-tight text-foreground">友链申请约定</h2>
         <div className="flex flex-col gap-3 text-sm leading-relaxed text-muted-foreground">
           <p>欢迎原创技术博客、独立开发者或数字花园交换链接。为保证阅读体验，希望你的站点：</p>

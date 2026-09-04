@@ -1,0 +1,2 @@
+{"file": ".trellis/spec/frontend/component-guidelines.md", "reason": "首页组件需遵守 RSC/client 划分与 Tailwind 用法约定"}
+{"file": ".trellis/spec/frontend/type-safety.md", "reason": "profile.config 新增字段与 content.ts 新函数需遵守类型与日期约定"}

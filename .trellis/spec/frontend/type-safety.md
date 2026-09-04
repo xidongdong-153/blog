@@ -28,6 +28,8 @@ export type NoteStatus = 'in-progress' | 'incomplete' | 'ready' | 'archived'
 
 数据层日期是 ISO 字符串（`string` 类型，注释标明格式如 `2026-06-15`），不是 `Date`。frontmatter 里 YAML 裸日期被 gray-matter 解析成 `Date` 的情况在 `src/lib/content.ts` 的 `readDate` 里统一转字符串。渲染统一走 `formatDate`。
 
+首页时间线的短日期统一调用 `formatTimelineDate(iso)`，输出 `MM / DD`；该函数使用 UTC 的月、日，避免服务端与浏览器时区不同导致首页日期跨天。
+
 ## 运行时校验
 
 frontmatter 是外部输入，读取时逐字段校验，`src/lib/content.ts` 的模式：

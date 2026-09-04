@@ -10,15 +10,13 @@ export default function ContactPage() {
     <div className="mx-auto flex w-full max-w-3xl flex-col gap-12">
       {/* 页面主标题 */}
       <div className="flex flex-col gap-2 border-b border-border/40 pb-6">
-        <div className="font-mono text-xs uppercase tracking-wider text-muted-foreground">
-          // CONTACT &amp; CHANNELS
-        </div>
+        <div className="font-mono text-xs tracking-wider text-muted-foreground">// 联系通道</div>
         <h1 className="font-serif text-3xl font-medium tracking-tight text-foreground sm:text-4xl">联系</h1>
         <p className="text-sm leading-relaxed text-muted-foreground">沟通交流、项目探讨与反馈通道。</p>
       </div>
 
       <section className="flex flex-col gap-4">
-        <div className="font-mono text-xs uppercase tracking-wider text-muted-foreground">// 01. DIRECT CHANNELS</div>
+        <div className="font-mono text-xs tracking-wider text-muted-foreground">// 01. 直接联系</div>
         <div className="grid gap-4 sm:grid-cols-2">
           {siteConfig.social.map((item) => (
             <a
@@ -29,7 +27,7 @@ export default function ContactPage() {
               className="group flex items-center justify-between rounded-lg border border-border/60 bg-card/30 p-4 transition-all hover:border-foreground/30 hover:bg-muted/30"
             >
               <div className="flex flex-col gap-1">
-                <span className="font-mono text-xs text-muted-foreground">// PLATFORM</span>
+                <span className="font-mono text-xs text-muted-foreground">// 平台</span>
                 <span className="font-serif text-lg font-medium text-foreground transition-colors group-hover:text-primary">
                   {item.name}
                 </span>
@@ -43,9 +41,7 @@ export default function ContactPage() {
       </section>
 
       <section className="flex flex-col gap-4 border-t border-border/40 pt-8">
-        <div className="font-mono text-xs uppercase tracking-wider text-muted-foreground">
-          // 02. COMMUNICATION NOTE
-        </div>
+        <div className="font-mono text-xs tracking-wider text-muted-foreground">// 02. 沟通说明</div>
         <h2 className="font-serif text-2xl font-medium tracking-tight text-foreground">沟通说明</h2>
         <div className="flex flex-col gap-3 text-sm leading-relaxed text-muted-foreground">
           <p>如果你有关于文章、技术探讨或开源合作的交流想法，可以通过上方渠道联系我。</p>

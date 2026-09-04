@@ -18,7 +18,7 @@ export default function SearchPage() {
   return (
     <div className="mx-auto flex w-full max-w-3xl flex-col gap-10">
       <div className="flex flex-col gap-2 border-b border-border/40 pb-6">
-        <div className="font-mono text-xs uppercase tracking-wider text-muted-foreground">// SEARCH &amp; INDEX</div>
+        <div className="font-mono text-xs tracking-wider text-muted-foreground">// 站内搜索</div>
         <h1 className="font-serif text-3xl font-medium tracking-tight text-foreground sm:text-4xl">搜索</h1>
         <p className="text-sm leading-relaxed text-muted-foreground">站内文章与笔记全文检索。</p>
       </div>

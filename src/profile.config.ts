@@ -33,6 +33,10 @@ export interface Profile {
   avatar: string | null
   /** 所在城市 */
   location: string
+  /** 全大写英文站点定位，渲染在首页 Hero 巨标题下方 */
+  tagline: string
+  /** 中文金句，渲染在首页 Hero 副标题下方，组件会自动加「」引号 */
+  quote: string
   /** 一段自我介绍，渲染在 About 段 */
   about: string[]
   skills: SkillGroup[]
@@ -44,10 +48,15 @@ export interface Profile {
 export const profileConfig: Profile = {
   avatar: '/avatar.jpg',
   location: '上海',
-  about: ['专注 TypeScript 全栈开发与 Web 应用构建。', '探索 AI Agent 协作与自动化工作流，打磨轻快可靠的产品体验。'],
+  tagline: '写代码，也写句子。把想法变成可以运行的东西。',
+  quote: '好的工具不解释自己，用过的人会再回来。',
+  about: [
+    '白天写 TypeScript，晚上和 AI 智能体对话，试着让它们替我干更多的活。',
+    '喜欢把模糊的需求拆成清晰的接口，再用尽量少的代码把事情做完。偶尔写点东西记录弯路和发现。',
+  ],
   skills: [
     {
-      title: 'Web / 前端',
+      title: '网页 / 前端',
       items: ['TypeScript', 'React 19', 'Next.js 16', 'Tailwind CSS 4', 'Vite', 'Ant Design'],
     },
     {
@@ -55,8 +64,8 @@ export const profileConfig: Profile = {
       items: ['Hono', 'Node.js', 'Drizzle ORM', 'SQLite', 'Better Auth', 'Zod'],
     },
     {
-      title: 'Agent / 工程',
-      items: ['AI Agent', 'Turborepo', 'pnpm workspace', 'Vitest', 'Git', 'ESLint'],
+      title: '智能体 / 工程',
+      items: ['AI 智能体', 'Turborepo', 'pnpm workspace', 'Vitest', 'Git', 'ESLint'],
     },
   ],
   experience: [],
