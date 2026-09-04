@@ -9,22 +9,21 @@ interface TableOfContentsProps {
 }
 
 /**
- * 文章目录组件。
- * 复刻 Joye 博客的目录交互与视觉设计：
- * 1. 左侧动态高度的阅读进度条（0% - 90%）。
- * 2. 基于 RAF 的滚动位置计算与当前章节高亮。
- * 3. 离开视口已读完章节标识。
- * 4. 点击平滑滚动与互斥锁（避免中间章节闪烁）。
- * 5. 用户手势（滚轮、触摸、按键）打断释放互斥。
- * 6. 侧边栏容器在超出上下边界 56px 时独立平滑滚动居中。
- * 7. 目录折叠展开支持。
+ * 文章目录组件（轨道式参考导轨 Rail Wayfinding）。
+ *
+ * 核心特性与边界防护：
+ * 1. 视口多章节同时感知高亮：视口内出现的所有章节对应目录项与刻度节点同时高亮，保留原有的全景感知逻辑。
+ * 2. 采用 getBoundingClientRect 计算章节在视口内的实时投影，彻底解决 offsetTop/offsetParent 与图片延迟加载导致的失敏与时序竞态。
+ * 3. 导轨内缩安全边距（ps-3 复合内边距），彻底杜绝侧边栏 overflow-y: auto 截断左侧刻度圆圈的问题。
+ * 4. 保持点击平滑跳转互斥锁与用户手势主动打断。
  */
 export function TableOfContents({ headings, onItemClick }: TableOfContentsProps) {
   const [isOpen, setIsOpen] = useState(true)
+  const [activeIds, setActiveIds] = useState<string[]>([])
   const containerRef = useRef<HTMLDivElement>(null)
   const suppressFollowRef = useRef(false)
   const pendingClickSlugRef = useRef<string>('')
-  const activeSlugRef = useRef<string>('')
+  const activeIdsRef = useRef<string[]>([])
   const rafIdRef = useRef<number>(0)
 
   useEffect(() => {
@@ -33,28 +32,16 @@ export function TableOfContents({ headings, onItemClick }: TableOfContentsProps)
     const container = containerRef.current
     if (!container) return
 
-    const contentElement = document.querySelector('article') as HTMLElement | null
+    const scrollContainer = container.closest<HTMLElement>('#sidebar') ?? container
 
-    const articleHeadings = headings
-      .map((h) => document.getElementById(h.id))
-      .filter((el): el is HTMLElement => el !== null)
-
-    if (articleHeadings.length === 0) return
-
-    const links = Array.from(container.querySelectorAll<HTMLAnchorElement>('a[data-toc-link]'))
-    const progressBars = links.map((link) => link.parentElement?.querySelector<HTMLElement>('[data-toc-progress]'))
-
-    // 用户主动手势立即释放互斥锁
     const releaseFollow = () => {
       suppressFollowRef.current = false
     }
 
-    const scrollContainer = container.closest<HTMLElement>('#sidebar') ?? container
-
     const ensureLinkVisible = (link: HTMLElement) => {
       const containerRect = scrollContainer.getBoundingClientRect()
       const linkRect = link.getBoundingClientRect()
-      const edgePadding = 56
+      const edgePadding = 48
       const isAbove = linkRect.top < containerRect.top + edgePadding
       const isBelow = linkRect.bottom > containerRect.bottom - edgePadding
 
@@ -71,71 +58,66 @@ export function TableOfContents({ headings, onItemClick }: TableOfContentsProps)
     }
 
     const updatePositionAndStyle = () => {
-      const windowHeight = window.innerHeight
-      const pageOffset = window.scrollY - (contentElement?.offsetTop || 0)
-      const postOffset = (contentElement?.offsetHeight || 0) + 127
+      // 动态查询所有真实有效标题元素
+      const headingElements = headings
+        .map((h) => ({ id: h.id, el: document.getElementById(h.id) }))
+        .filter((item): item is { id: string; el: HTMLElement } => item.el !== null)
 
-      let activeLink: HTMLAnchorElement | null = null
+      if (headingElements.length === 0) return
 
-      articleHeadings.forEach((el, index) => {
-        const nextHeadingTop = articleHeadings[index + 1]?.offsetTop || postOffset
-        const rangeTop = el.offsetTop - pageOffset
-        const rangeBottom = nextHeadingTop - pageOffset - el.offsetHeight
-        const rangeHeight = rangeBottom - rangeTop
-        const progress = rangeHeight > 0 ? (windowHeight - rangeTop) / rangeHeight : 1
-
-        const inView = rangeTop < windowHeight && rangeBottom > 0
-        const clampedProgress = Math.max(0, Math.min(1, Number.isFinite(progress) ? progress : 1))
-
-        const link = links[index]
-        const progressBar = progressBars[index]
-
-        if (!link) return
-
-        if (inView) {
-          link.classList.add('text-primary', 'font-medium', 'bg-primary/5')
-          link.classList.remove('text-muted-foreground')
-        } else {
-          link.classList.remove('text-primary', 'font-medium', 'bg-primary/5')
-          link.classList.add('text-muted-foreground')
-        }
-
-        if (progressBar) {
-          progressBar.style.height = `${clampedProgress * 90}%`
-          if (inView) {
-            progressBar.classList.add('bg-primary')
-            progressBar.classList.remove('bg-border', 'opacity-40')
-          } else if (clampedProgress === 1) {
-            progressBar.classList.remove('bg-primary')
-            progressBar.classList.add('bg-border', 'opacity-40')
-          } else {
-            progressBar.classList.remove('bg-primary')
-            progressBar.classList.add('bg-border')
-          }
-        }
-
-        if (inView && !activeLink) {
-          activeLink = link
-        }
-      })
-
-      // 到达判定与互斥锁释放
+      // 到达判定与点击互斥锁释放
       if (suppressFollowRef.current) {
-        const targetHeading = articleHeadings.find((h) => h.id === pendingClickSlugRef.current)
-        const arrived = !targetHeading || Math.abs(targetHeading.getBoundingClientRect().top) <= 150
+        const targetHeading = headingElements.find((h) => h.id === pendingClickSlugRef.current)
+        const arrived = !targetHeading || Math.abs(targetHeading.el.getBoundingClientRect().top - 100) <= 80
         if (arrived) {
           suppressFollowRef.current = false
         }
-        return
       }
 
-      // 如果未锁定且有激活项，则保证侧边栏可见
-      if (activeLink) {
-        const link = activeLink as HTMLAnchorElement
-        const slug = link.getAttribute('data-toc-link') || ''
-        if (slug !== activeSlugRef.current) {
-          activeSlugRef.current = slug
-          ensureLinkVisible(link)
+      let currentActiveIds: string[] = []
+
+      if (suppressFollowRef.current && pendingClickSlugRef.current) {
+        currentActiveIds = [pendingClickSlugRef.current]
+      } else {
+        const TOP_OFFSET = 100
+        const windowHeight = window.innerHeight
+        const article = document.querySelector('article')
+        const articleBottom = article ? article.getBoundingClientRect().bottom : windowHeight
+
+        // 视口内多标题高亮判定：章节从当前标题顶部至下一标题顶部（或文章底部）在视口内有投影
+        currentActiveIds = headingElements
+          .filter((item, index) => {
+            const rangeTop = item.el.getBoundingClientRect().top
+            const nextEl = headingElements[index + 1]?.el
+            const rangeBottom = nextEl ? nextEl.getBoundingClientRect().top : articleBottom
+            return rangeTop < windowHeight && rangeBottom > TOP_OFFSET
+          })
+          .map((item) => item.id)
+
+        // 边界防护：刚进文章还未滑入第一个标题，且第一个标题已在视口下半部分
+        if (currentActiveIds.length === 0 && headingElements.length > 0) {
+          const firstTop = headingElements[0].el.getBoundingClientRect().top
+          if (firstTop < windowHeight * 0.7 && firstTop > 0) {
+            currentActiveIds = [headingElements[0].id]
+          }
+        }
+      }
+
+      // 仅在激活项列表发生改变时才触发 React state 更新，滚动中无多余 re-render
+      const isDifferent =
+        currentActiveIds.length !== activeIdsRef.current.length ||
+        currentActiveIds.some((id, i) => id !== activeIdsRef.current[i])
+
+      if (isDifferent) {
+        activeIdsRef.current = currentActiveIds
+        setActiveIds(currentActiveIds)
+
+        // 将首个激活章节对齐在侧边栏可见区域
+        if (currentActiveIds.length > 0 && !suppressFollowRef.current) {
+          const firstActiveLink = container.querySelector<HTMLAnchorElement>(`a[href="#${currentActiveIds[0]}"]`)
+          if (firstActiveLink) {
+            ensureLinkVisible(firstActiveLink)
+          }
         }
       }
     }
@@ -148,9 +130,13 @@ export function TableOfContents({ headings, onItemClick }: TableOfContentsProps)
       })
     }
 
-    // 初始执行一次
+    // 初始执行，并在 100ms / 300ms / 600ms 补发探测，防止动态 MDX 渲染导致初次查找落空
     updatePositionAndStyle()
+    const timer1 = window.setTimeout(updatePositionAndStyle, 100)
+    const timer2 = window.setTimeout(updatePositionAndStyle, 300)
+    const timer3 = window.setTimeout(updatePositionAndStyle, 600)
 
+    const contentElement = document.querySelector('article')
     let resizeObserver: ResizeObserver | null = null
     if (contentElement && typeof ResizeObserver !== 'undefined') {
       resizeObserver = new ResizeObserver(() => {
@@ -166,6 +152,9 @@ export function TableOfContents({ headings, onItemClick }: TableOfContentsProps)
     window.addEventListener('keydown', releaseFollow)
 
     return () => {
+      window.clearTimeout(timer1)
+      window.clearTimeout(timer2)
+      window.clearTimeout(timer3)
       window.removeEventListener('scroll', scheduleUpdate)
       window.removeEventListener('resize', scheduleUpdate)
       window.removeEventListener('wheel', releaseFollow)
@@ -189,7 +178,8 @@ export function TableOfContents({ headings, onItemClick }: TableOfContentsProps)
 
     suppressFollowRef.current = true
     pendingClickSlugRef.current = id
-    activeSlugRef.current = id
+    activeIdsRef.current = [id]
+    setActiveIds([id])
 
     target.scrollIntoView({ behavior: 'smooth', block: 'start' })
 
@@ -199,15 +189,15 @@ export function TableOfContents({ headings, onItemClick }: TableOfContentsProps)
   }
 
   return (
-    <nav ref={containerRef} aria-label="目录" className="text-[0.8125rem] leading-7">
-      <div className="mb-2 flex items-center justify-between">
+    <nav ref={containerRef} aria-label="文章导轨目录" className="select-none ps-3 pe-2 text-xs leading-6">
+      <div className="mb-3 flex items-center justify-between border-b border-border/40 pb-2">
         <button
           type="button"
           onClick={() => setIsOpen((prev) => !prev)}
-          className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-foreground transition-colors hover:text-primary"
+          className="flex items-center gap-2 font-mono text-[0.7rem] uppercase tracking-wider text-muted-foreground transition-colors hover:text-foreground"
           aria-expanded={isOpen}
         >
-          <span>目录</span>
+          <span className="font-semibold">// TABLE OF CONTENTS</span>
           <svg
             xmlns="http://www.w3.org/2000/svg"
             viewBox="0 0 24 24"
@@ -216,7 +206,7 @@ export function TableOfContents({ headings, onItemClick }: TableOfContentsProps)
             strokeWidth="2"
             strokeLinecap="round"
             strokeLinejoin="round"
-            className={`size-3.5 transition-transform duration-200 ${isOpen ? 'rotate-0' : '-rotate-90'}`}
+            className={`size-3 transition-transform duration-200 ${isOpen ? 'rotate-0' : '-rotate-90'}`}
           >
             <polyline points="6 9 12 15 18 9" />
           </svg>
@@ -224,32 +214,41 @@ export function TableOfContents({ headings, onItemClick }: TableOfContentsProps)
       </div>
 
       {isOpen && (
-        <ul className="flex flex-col gap-1">
-          {headings.map((heading) => (
-            <li key={heading.id} className="relative flex items-center">
-              {/* 左侧 2px 阅读指示条 */}
-              <div className="absolute start-0 top-[10%] h-[80%] w-[2px] rounded-full bg-border/40">
-                <span
-                  data-toc-progress
-                  className="block w-full rounded-full bg-border transition-[height] duration-150 ease-out"
-                  style={{ height: '0%' }}
-                />
-              </div>
+        <div className="relative ps-3">
+          {/* 贯穿式垂直参考导轨线：距当前相对容器左侧 3.5px */}
+          <div
+            aria-hidden="true"
+            className="pointer-events-none absolute bottom-2 start-[3.5px] top-2 w-px bg-border/60"
+          />
 
-              {/* 链接节点 */}
-              <a
-                href={`#${heading.id}`}
-                data-toc-link={heading.id}
-                onClick={(e) => handleLinkClick(e, heading.id)}
-                className={`line-clamp-2 block w-full rounded py-1 pe-2 ps-3 text-muted-foreground transition-all duration-150 hover:text-foreground ${
-                  heading.depth === 3 ? 'ms-3 text-xs' : 'ms-1'
-                }`}
-              >
-                {heading.text}
-              </a>
-            </li>
-          ))}
-        </ul>
+          <ul className="flex flex-col gap-1 ps-4">
+            {headings.map((heading) => {
+              const isActive = activeIds.includes(heading.id)
+              return (
+                <li key={heading.id} className="relative flex items-center">
+                  {/* 导轨刻度锚点：居中对齐导轨线，四周留有充裕安全内边距，永不被侧边栏 overflow 裁切 */}
+                  <span
+                    aria-hidden="true"
+                    className={`absolute -start-[16px] size-2 rounded-full border transition-all duration-150 ${
+                      isActive ? 'scale-125 border-primary bg-primary' : 'border-border bg-background'
+                    }`}
+                  />
+
+                  {/* 章节链接 */}
+                  <a
+                    href={`#${heading.id}`}
+                    onClick={(e) => handleLinkClick(e, heading.id)}
+                    className={`line-clamp-2 block w-full py-1 pe-2 ps-1.5 transition-colors duration-150 ${
+                      isActive ? 'font-medium text-foreground' : 'text-muted-foreground hover:text-foreground'
+                    } ${heading.depth === 3 ? 'ms-2 text-[0.75rem]' : 'font-normal'}`}
+                  >
+                    {heading.text}
+                  </a>
+                </li>
+              )
+            })}
+          </ul>
+        </div>
       )}
     </nav>
   )

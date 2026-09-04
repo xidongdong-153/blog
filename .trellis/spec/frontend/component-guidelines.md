@@ -44,7 +44,9 @@ MDX 渲染走异步 RSC（`mdx-content.tsx` 的 `compileMDX`），不需要 clie
 ## 通用模式与组件
 
 - 通用按钮组件 `Button`（`src/app/(site)/_components/blog/button.tsx`）：统一支持 `back`（向左动态展开箭头）、`pill`（圆角胶囊标签）、`ahead`（向右动态展开箭头）及普通样式。
-- 文章卡片 `PostCard`（`src/app/(site)/_components/blog/post-card.tsx`）：采用 `rounded-2xl border border-border bg-background hover:bg-muted` 卡片形态，标题配备 SVG 动态重定向箭头，正文阅读时间由 `src/lib/content.ts` 的 `calculateReadingTime` 统一推算，卡片底部标签采用独立 Pill 组。
+- 文章卡片 `PostCard`（`src/app/(site)/_components/blog/post-card.tsx`）：采用出版物排版与技术等宽眉标（`// ARTICLE / DATE / READING_TIME`），标题配备 SVG 动态伸缩展开箭头，底部标签组采用低饱和等宽微标（`#TAG`），替换通用圆角胶囊块。
+- 目录导轨 `TableOfContents`（`src/app/(site)/_components/blog/toc.tsx`）：采用贯穿式 1px 细线垂直导轨与章节刻度锚点（Rail Wayfinding），当前视口对应章节高亮并带平滑缩放与文字明度反馈。
+- 字体排版体系：大标题（Hero 主标与文章详情页 H1）使用西文高切角锐度衬线体 `Newsreader`（`font-serif`），元数据使用打字机等宽体（`font-mono`），正文使用中性克制的现代无衬线体 `Satoshi`。
 - 列表渲染 key 用稳定业务键（`post.slug`、`tag`），不用数组下标。
 - 日期显示统一 `<time dateTime={post.date}>{formatDate(post.date)}</time>`，见 `post-card.tsx` 和详情页。
 - 链接用 `next/link` 的 `Link`，站内跳转不写 `<a>`。

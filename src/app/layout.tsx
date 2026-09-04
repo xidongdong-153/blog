@@ -1,6 +1,6 @@
 import type { Metadata } from 'next'
 import { siteConfig } from '@/site.config'
-import { satoshi } from './fonts'
+import { newsreader, satoshi } from './fonts'
 import './globals.css'
 
 export const metadata: Metadata = {
@@ -18,7 +18,7 @@ export const metadata: Metadata = {
  */
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="zh-CN" className={satoshi.variable} suppressHydrationWarning>
+    <html lang="zh-CN" className={`${satoshi.variable} ${newsreader.variable}`} suppressHydrationWarning>
       <head>
         <script
           dangerouslySetInnerHTML={{

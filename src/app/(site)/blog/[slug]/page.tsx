@@ -83,7 +83,9 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
               </span>
             </div>
 
-            <h1 className="text-3xl font-bold tracking-tight">{post.title}</h1>
+            <h1 className="font-serif text-3xl font-medium tracking-tight text-foreground sm:text-4xl lg:text-[2.6rem] leading-[1.2]">
+              {post.title}
+            </h1>
             {post.description && <p className="leading-relaxed text-muted-foreground">{post.description}</p>}
           </div>
 

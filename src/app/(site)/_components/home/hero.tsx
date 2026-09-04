@@ -81,12 +81,16 @@ export function Hero({ profile }: HeroProps) {
 
           {/* 标题（现代技术出版物排版） */}
           <div className="flex flex-col gap-2">
-            <h1 className="text-3xl font-semibold tracking-tight text-foreground sm:text-4xl md:text-5xl">
-              <span className="block text-lg font-normal text-muted-foreground sm:text-xl">
+            <h1 className="tracking-tight text-foreground">
+              <span className="block text-base font-mono uppercase tracking-wider text-muted-foreground sm:text-lg">
                 Hi, I&apos;m {siteConfig.author}
               </span>
-              <span className="mt-1 block font-medium">Building with TypeScript,</span>
-              <span className="block font-medium text-foreground/90">AI Agents and the Web.</span>
+              <span className="mt-2 block font-serif text-3xl font-normal tracking-tight text-foreground sm:text-4xl md:text-5xl lg:text-[3.25rem] leading-[1.15]">
+                Building with TypeScript,
+              </span>
+              <span className="block font-serif text-3xl font-normal italic tracking-tight text-foreground/90 sm:text-4xl md:text-5xl lg:text-[3.25rem] leading-[1.15]">
+                AI Agents and the Web.
+              </span>
             </h1>
 
             <p className="mt-2 max-w-xl text-sm leading-relaxed text-muted-foreground sm:text-base">
