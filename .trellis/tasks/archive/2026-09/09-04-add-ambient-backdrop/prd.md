@@ -2,7 +2,7 @@
 
 ## Goal
 
-在博客全站与文章页实现页面首屏顶光渐变氛围底座（Ambient Backdrop），页面在上方呈现柔和环境色光晕，向下滑动到底部自然融入深黑背景，并支持每篇文章单独定制专属主题色。
+在博客全站与文章页实现基于 Catppuccin 色系（以 Lavender `#b4befe` 为基底）与顶部椭圆径向漫散的页面首屏顶光氛围底座（Ambient Backdrop），页面在上方呈现柔和环境色光晕，向下滑动到底部自然融入深黑背景，并支持每篇文章单独定制专属主题色。
 
 ## Architecture & Data Flow
 
@@ -13,7 +13,7 @@ flowchart TD
   subgraph Layout["SiteLayout 容器 (relative overflow-x-clip)"]
     direction TB
     L1["底层: body 基础背景 (hsl(var(--background)))"]
-    L2["中层: AmbientBackdrop (绝对定位 top-0, 100vh, 线性淡出, pointer-events-none)"]
+    L2["中层: AmbientBackdrop (绝对定位 top-0, 100vh, 顶部椭圆径向漫散, pointer-events-none)"]
     L3["顶层: 页面交互内容 (SiteHeader, Main, SiteFooter)"]
   end
   L1 --> L2 --> L3
@@ -24,9 +24,9 @@ flowchart TD
 ```mermaid
 flowchart LR
   PostFM["文章 frontmatter heroColor (可选)"] --> ResolveColor{"是否有文章专属色?"}
-  ResolveColor -- 是 --> UseCustom["使用文章 heroColor"]
-  ResolveColor -- 否 --> UseDefault["使用全站默认色 hsl(var(--primary)) / #659EB9"]
-  UseCustom --> Render["渲染 AmbientBackdrop linear-gradient"]
+  ResolveColor -- 是 --> UseCustom["使用文章 heroColor (推荐 Catppuccin 色谱)"]
+  ResolveColor -- 否 --> UseDefault["使用全站默认色 Catppuccin Lavender #b4befe"]
+  UseCustom --> Render["渲染 AmbientBackdrop radial-gradient"]
   UseDefault --> Render
 ```
 
@@ -43,8 +43,9 @@ flowchart LR
 - 在 `src/app/(site)/_components/site/ambient-backdrop.tsx` 创建纯样式无障碍组件。
 - 尺寸覆盖首屏：宽度 100%，高度 `100vh`。
 - 定位：`absolute inset-x-0 top-0 z-0 pointer-events-none`，不遮挡任何用户交互。
-- 渐变：自上而下从指定颜色过渡到 `transparent`。
-- 透明度：暗色模式下柔和半透明（`opacity-25`），浅色模式下适度降低（`opacity-15`）。
+- 渐变形态：顶部居中椭圆径向漫散（`radial-gradient(ellipse 80% 60% at 50% -20%, ...)`），自中心向边缘及下方平滑衰减至 `transparent`。
+- 默认色值：采用 Catppuccin Lavender（`#b4befe`），与深色底形成自然通透的冷光漫反射。
+- 透明度：暗色模式下柔和半透明（`opacity-25`），浅色模式下适度降低（`opacity-20`）。
 
 ### R2. 全站站点布局接入
 - 在 `src/app/(site)/layout.tsx` 引入 `AmbientBackdrop`。

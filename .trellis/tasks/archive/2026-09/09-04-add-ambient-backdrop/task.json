@@ -2,7 +2,7 @@
   "id": "add-ambient-backdrop",
   "name": "add-ambient-backdrop",
   "title": "添加页面顶部氛围高光背景",
-  "description": "实现页面首屏顶光渐变氛围底座，支持全局与文章级主题色",
+  "description": "实现基于 Catppuccin 色系（Lavender #b4befe）与顶部径向漫散的页面首屏顶光氛围底座，支持全局与文章级主题色",
   "status": "completed",
   "dev_type": null,
   "scope": null,
