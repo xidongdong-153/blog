@@ -1,0 +1,173 @@
+name: CI/CD
+
+on:
+  pull_request:
+    branches:
+      - main
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+concurrency:
+  group: blog-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  quality:
+    name: Quality
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 11.5.0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24.16.0
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Typecheck
+        run: pnpm typecheck
+
+      - name: Lint
+        run: pnpm lint
+
+      - name: Check formatting
+        run: pnpm format:check
+
+      - name: Build
+        run: pnpm build
+
+  deploy:
+    name: Deploy production
+    if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
+    needs: quality
+    runs-on: ubuntu-latest
+    environment:
+      name: production
+    steps:
+      - name: Prepare SSH files
+        env:
+          DEPLOY_SSH_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
+          DEPLOY_KNOWN_HOSTS: ${{ secrets.DEPLOY_KNOWN_HOSTS }}
+        run: |
+          set -euo pipefail
+          ssh_dir="$RUNNER_TEMP/xdd-blog-ssh"
+          install -d -m 700 "$ssh_dir"
+          test -n "$DEPLOY_SSH_KEY"
+          test -n "$DEPLOY_KNOWN_HOSTS"
+          printf '%s\n' "$DEPLOY_SSH_KEY" > "$ssh_dir/id_ed25519"
+          printf '%s\n' "$DEPLOY_KNOWN_HOSTS" > "$ssh_dir/known_hosts"
+          chmod 600 "$ssh_dir/id_ed25519" "$ssh_dir/known_hosts"
+          printf 'SSH_KEY_PATH=%s/id_ed25519\n' "$ssh_dir" >> "$GITHUB_ENV"
+          printf 'KNOWN_HOSTS_PATH=%s/known_hosts\n' "$ssh_dir" >> "$GITHUB_ENV"
+
+      - name: Deploy over SSH
+        env:
+          DEPLOY_HOST: ${{ vars.DEPLOY_HOST }}
+          DEPLOY_PORT: ${{ vars.DEPLOY_PORT }}
+          DEPLOY_USER: ${{ vars.DEPLOY_USER }}
+          TARGET_SHA: ${{ github.sha }}
+        run: |
+          set -euo pipefail
+          test -n "$DEPLOY_HOST"
+          test -n "$DEPLOY_PORT"
+          test -n "$DEPLOY_USER"
+          ssh_args=(
+            -o BatchMode=yes
+            -o ConnectTimeout=15
+            -o IdentitiesOnly=yes
+            -o StrictHostKeyChecking=yes
+            -o UserKnownHostsFile="$KNOWN_HOSTS_PATH"
+            -i "$SSH_KEY_PATH"
+            -p "$DEPLOY_PORT"
+          )
+
+          ssh "${ssh_args[@]}" "$DEPLOY_USER@$DEPLOY_HOST" bash -s -- "$TARGET_SHA" <<'REMOTE'
+          set -euo pipefail
+          target_sha="${1:?missing target SHA}"
+          app_dir=/home/deploy/code/xdd/blog
+
+          cd "$app_dir"
+          echo "Checking the server worktree"
+          worktree_status="$(git status --porcelain --untracked-files=all)"
+          expected_pnpm_config=$'allowBuilds:\n  sharp: true\n'
+          pnpm_config_status="$(git status --porcelain --untracked-files=all --ignored -- pnpm-workspace.yaml)"
+          if git ls-files --error-unmatch -- pnpm-workspace.yaml >/dev/null 2>&1 ||
+            [[ "$pnpm_config_status" != '' && "$pnpm_config_status" != '?? pnpm-workspace.yaml' ]]; then
+            echo "pnpm-workspace.yaml must be an untracked server-only file; deployment stopped." >&2
+            git status --short --branch >&2
+            exit 1
+          fi
+          if [[ "$pnpm_config_status" == '?? pnpm-workspace.yaml' ]]; then
+            if [[ ! -f pnpm-workspace.yaml || -L pnpm-workspace.yaml ]] ||
+              ! cmp -s pnpm-workspace.yaml <(printf '%s' "$expected_pnpm_config"); then
+              echo "pnpm-workspace.yaml does not exactly match the approved server-only config; deployment stopped." >&2
+              git status --short --branch >&2
+              exit 1
+            fi
+            echo "Keeping the approved server-only pnpm config"
+          fi
+          if [[ -n "$worktree_status" && "$worktree_status" != '?? pnpm-workspace.yaml' ]]; then
+            echo "The server worktree has unexpected uncommitted or untracked changes; deployment stopped." >&2
+            git status --short --branch >&2
+            exit 1
+          fi
+
+          if [[ ! -f .env.local ]] ||
+            ! git check-ignore -q -- .env.local ||
+            git ls-files --error-unmatch -- .env.local >/dev/null 2>&1; then
+            echo "Missing or tracked $app_dir/.env.local; deployment stopped without restarting the service." >&2
+            exit 1
+          fi
+
+          echo "Fetching origin/main"
+          git switch main
+          git fetch --prune origin main
+          remote_sha="$(git rev-parse origin/main)"
+          if [[ "$remote_sha" != "$target_sha" ]]; then
+            echo "origin/main ($remote_sha) does not match the workflow commit ($target_sha); deployment stopped." >&2
+            exit 1
+          fi
+
+          current_sha="$(git rev-parse HEAD)"
+          if ! git merge-base --is-ancestor "$current_sha" "$remote_sha"; then
+            echo "The server main ($current_sha) is not an ancestor of origin/main ($remote_sha); deployment stopped." >&2
+            exit 1
+          fi
+
+          echo "Fast-forwarding the server worktree"
+          git merge --ff-only origin/main
+
+          source /home/deploy/.nvm/nvm.sh
+          echo "Installing dependencies"
+          pnpm install --frozen-lockfile
+          echo "Building the production bundle"
+          pnpm build
+
+          echo "Restarting xdd-blog.service"
+          sudo -n systemctl restart xdd-blog.service
+          if ! systemctl is-active --quiet xdd-blog.service; then
+            echo "xdd-blog.service is not active after restart." >&2
+            systemctl status xdd-blog.service --no-pager --full >&2 || true
+            exit 1
+          fi
+
+          http_code="$(curl --silent --show-error --output /dev/null --write-out '%{http_code}' http://127.0.0.1:4400/)"
+          if [[ "$http_code" != "200" ]]; then
+            echo "The local health check returned HTTP $http_code; deployment failed." >&2
+            exit 1
+          fi
+          echo "Local health check returned HTTP 200"
+          REMOTE

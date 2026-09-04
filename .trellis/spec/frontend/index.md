@@ -4,7 +4,7 @@
 
 ## 技术栈
 
-Next.js 16（App Router）+ React 19 + TypeScript strict + Tailwind CSS 4 + MDX。无数据库、无后端、无状态库、无测试框架，构建产物纯静态，部署 Vercel。
+Next.js 16（App Router）+ React 19 + TypeScript strict + Tailwind CSS 4 + MDX。无数据库、无后端、无状态库、无测试框架，部署在自有服务器上，由 GitHub Actions 完成检查和发布；`xdd-blog.service` 监听 `127.0.0.1:4400`。
 
 ## 规范索引
 
@@ -15,6 +15,7 @@ Next.js 16（App Router）+ React 19 + TypeScript strict + Tailwind CSS 4 + MDX�
 | [状态与数据](./state-management.md) | 主题机制、内容读取模式、为什么没有状态库 |
 | [类型安全](./type-safety.md) | 类型定义位置、日期存 ISO 字符串、禁 any |
 | [质量规范](./quality-guidelines.md) | 检查命令、lint / format 关键规则、功能状态表维护 |
+| [部署规范](./deployment-guidelines.md) | GitHub Actions、SSH、服务器和 systemd 的发布契约 |
 
 本项目没有自定义 hook，无 hook 规范文件；唯一的 client 组件是 `src/app/(site)/_components/site/theme-toggle.tsx`。
 

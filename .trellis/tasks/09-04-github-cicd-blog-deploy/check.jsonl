@@ -1,0 +1,5 @@
+{"file": ".trellis/spec/frontend/quality-guidelines.md", "reason": "按项目约定执行 typecheck、lint、format 和 build"}
+{"file": ".trellis/spec/frontend/index.md", "reason": "检查部署规范与现状是否同步"}
+{"file": ".trellis/spec/guides/cross-layer-thinking-guide.md", "reason": "检查工作流、服务器文档和项目规范是否一致"}
+{"file": ".trellis/tasks/09-04-github-cicd-blog-deploy/research/github-actions-deployment.md", "reason": "复核 GitHub secrets、Environment 和 pnpm 工作流约束"}
+{"file": ".trellis/spec/frontend/deployment-guidelines.md", "reason": "按部署规范复核 secrets、分支、SHA、失败和健康检查"}
