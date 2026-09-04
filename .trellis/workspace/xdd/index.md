@@ -8,7 +8,7 @@
 
 <!-- @@@auto:current-status -->
 - **Active File**: `journal-1.md`
-- **Total Sessions**: 7
+- **Total Sessions**: 8
 - **Last Active**: 2026-09-04
 <!-- @@@/auto:current-status -->
 
@@ -19,7 +19,7 @@
 <!-- @@@auto:active-documents -->
 | File | Lines | Status |
 |------|-------|--------|
-| `journal-1.md` | ~191 | Active |
+| `journal-1.md` | ~213 | Active |
 <!-- @@@/auto:active-documents -->
 
 ---
@@ -29,6 +29,7 @@
 <!-- @@@auto:session-history -->
 | # | Date | Title | Commits | Branch |
 |---|------|-------|---------|--------|
+| 8 | 2026-09-04 | 全站文案中文化与本土化优化 | `40898e1` | `main` |
 | 7 | 2026-09-04 | 升级氛围底座为 Catppuccin Lavender 径向漫散光晕 | `393e348c3c793c074f6ee821f39ed7ab5318e8e4` | `main` |
 | 6 | 2026-09-04 | 实现首屏顶光渐变氛围底座并支持文章专属主题色 | `3923d16089c35bc53871db5b3aca39ecd6c45950` | `main` |
 | 5 | 2026-09-03 | 接入 Giscus 评论系统并支持三态主题免刷新变色 | `ffaec20` | `main` |

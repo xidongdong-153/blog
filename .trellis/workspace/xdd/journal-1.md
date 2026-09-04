@@ -189,3 +189,25 @@ trellis init -u xdd --pi 完成，填充 .trellis/spec/frontend 5 个规范文�
 ### Status
 
 [OK] **Completed**
+
+
+## Session 8: 全站文案中文化与本土化优化
+<!-- trellis-session: v=2 fp=5ff7ff7c1b2a5f79 -->
+
+**Date**: 2026-09-04
+**Task**: 全站文案中文化与本土化优化
+**Branch**: `main`
+
+### Summary
+
+汉化首页按钮与状态徽章、技能分类标题、文章列表页标题与分页、阅读时长估算格式，保留首页英文排版标语。
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `40898e1` | feat(copy): 全站文案中文化与本土化改造 |
+
+### Status
+
+[OK] **Completed**
