@@ -33,17 +33,20 @@ pnpm dev
 
 首页实时活动由本机 Hammerspoon 和 `$HOME/.hammerspoon/presence/` 采集器提供。采集器只传输 QQ、VS Code、Ghostty、ChatGPT、Antigravity、QQ 音乐、WorkBuddy，以及 Herdr 已识别的 Pi、agy、Claude 标识；不读取窗口标题、终端正文、命令、路径或聊天内容。
 
-本机 runtime 不在 Blog 仓库中。先在 `.env.local` 设置 `PRESENCE_TOKEN`，启动 Blog API，再安装或启动本机采集器：
+本机 runtime 不在 Blog 仓库中。Mac Presence Service 负责读取 Hammerspoon 和 Herdr、保存最新状态，并提供只读 API；Blog 只读取这个 API，不需要启动本地 Blog 服务才能采集活动。
+
+先安装并启动本机服务：
 
 ```bash
-chmod 600 .env.local
-pnpm dev
 $HOME/.hammerspoon/presence/bin/install
 $HOME/.hammerspoon/presence/bin/status
 $HOME/.hammerspoon/presence/bin/start
+curl --fail --silent http://127.0.0.1:4401/api/presence
 ```
 
-`bin/install` 会把 LaunchAgent 注册到用户登录会话，并重新加载 Hammerspoon 配置；它不会启动 `pnpm dev`。`bin/status` 只读取一次并打印固定状态，不发送请求；`bin/start` 会启动唯一的持续采集器，每 2 秒向本机 `http://127.0.0.1:4400/api/presence/report` 上报。
+Blog 的 `/api/presence` 默认读取 `http://127.0.0.1:4401/api/presence`。需要改变上游地址时，在 `.env.local` 设置 `PRESENCE_SOURCE_URL`。生产服务器使用 frp 的本机入口，例如 `http://127.0.0.1:18100/api/presence`。
+
+`bin/install` 会把独立服务注册到用户登录会话，并重新加载 Hammerspoon 配置；它不会启动 Blog。`bin/status` 只读取一次并打印固定报告，不保存状态；`bin/once` 读取一次并保存状态；`bin/start` 会启动唯一的持续采集器，每 2 秒更新本机状态。
 
 停止、重启或卸载本机服务：
 
@@ -53,13 +56,13 @@ $HOME/.hammerspoon/presence/bin/restart
 $HOME/.hammerspoon/presence/bin/uninstall
 ```
 
-`stop` 会停止 Hammerspoon 活动监听并请求清除服务端状态；没有 API 时，页面会在 15 秒 TTL 后离线。日志位于 `$HOME/.hammerspoon/presence/logs/`，LaunchAgent 状态使用以下命令查看：
+`stop` 会停止 Hammerspoon 活动监听，并在本机保存 hidden 状态；状态超过 15 秒没有新报告时，页面会显示离线。日志位于 `$HOME/.hammerspoon/presence/logs/`，LaunchAgent 状态使用以下命令查看：
 
 ```bash
-launchctl print "gui/$(id -u)/com.xdd.blog.presence"
+launchctl print "gui/$(id -u)/com.xdd.presence"
 ```
 
-Pi、agy、Claude 只有在 Herdr 会话中才能参与终端焦点判断。Herdr 不可用时，桌面应用仍可显示，终端状态显示为未知。后台运行只表示工具实例存在，不表示 AI 正在生成。采集器找不到稳定 Node 时，重新运行 `bin/install`；Blog API 未启动时先运行 `pnpm dev`。
+Pi、agy、Claude 只有在 Herdr 会话中才能参与终端焦点判断。Herdr 不可用时，桌面应用仍可显示，终端状态显示为未知。后台运行只表示工具实例存在，不表示 AI 正在生成。采集器找不到稳定 Node 时，重新运行 `bin/install`；Blog 不运行时不会影响本机采集，Blog 页面会按上游 API 状态显示离线。
 
 ## 内容约定
 
