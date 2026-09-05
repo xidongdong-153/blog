@@ -13,7 +13,7 @@ interface HeroProps {
  *
  * 居中卷首布局：
  * - Background: 动态 SpatialField 全幅延展，径向 mask 边缘柔和羽化
- * - Content: 署名式元数据、头像、衬线主标题、魔兽短句、CTA 与滚动提示
+ * - Content: 英文署名、头像、衬线主标题、开发方向、CTA 与滚动提示
  */
 export function Hero({ profile }: HeroProps) {
   const githubItem = siteConfig.social.find(
@@ -21,7 +21,7 @@ export function Hero({ profile }: HeroProps) {
   )
 
   return (
-    <section className="relative flex min-h-[85vh] flex-col items-center justify-center py-12 text-center">
+    <section lang="en" className="relative flex min-h-[85vh] flex-col items-center justify-center py-12 text-center">
       {/* 动态空间场背景：全宽无界延展，通过大椭圆径向 mask 边缘柔和羽化至纯透明，融入全站氛围顶光 */}
       <div
         aria-hidden="true"
@@ -43,7 +43,7 @@ export function Hero({ profile }: HeroProps) {
                 </span>
               </>
             )}
-            <span>独立开发者</span>
+            <span>XDD</span>
             <span aria-hidden="true" className="mx-2 text-border sm:mx-3">
               /
             </span>
@@ -51,7 +51,7 @@ export function Hero({ profile }: HeroProps) {
               href="/contact"
               className="text-foreground/75 underline decoration-border underline-offset-4 transition-colors hover:text-foreground hover:decoration-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
             >
-              联系我 <span aria-hidden="true">↗</span>
+              Contact <span aria-hidden="true">↗</span>
             </Link>
           </div>
           <span aria-hidden="true" className="h-px w-6 shrink-0 bg-border/70 sm:w-10" />
@@ -73,15 +73,15 @@ export function Hero({ profile }: HeroProps) {
           </div>
         )}
 
-        {/* 主标题与来自侏儒 NPC 的英文短句 */}
+        {/* 英文主标题与开发方向 */}
         <div className="flex flex-col items-center gap-4">
           <h1 className="text-balance font-serif text-4xl font-normal leading-[1.08] tracking-normal text-foreground sm:text-6xl lg:text-7xl">
-            <span className="block">有些东西，</span>
+            <span className="block">I build software</span>{' '}
             <span className="block">
-              <span className="italic text-primary">写出来</span>才算做完。
+              and <span className="italic text-primary">AI agents.</span>
             </span>
           </h1>
-          <p className="font-serif text-base italic text-muted-foreground sm:text-lg">{profile.tagline}</p>
+          <p className="text-balance font-serif text-base text-muted-foreground sm:text-lg">{profile.tagline}</p>
         </div>
 
         {/* CTA 排：黑胶囊 + 描边胶囊 + GitHub 图标 */}
@@ -90,14 +90,14 @@ export function Hero({ profile }: HeroProps) {
             href="/blog"
             className="inline-flex items-center justify-center rounded-full bg-foreground px-6 py-2.5 text-xs font-medium text-background transition-opacity hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background sm:text-sm"
           >
-            最近写了什么
+            Writing
           </Link>
 
           <Link
             href="/about"
             className="inline-flex items-center justify-center rounded-full border border-border px-6 py-2.5 text-xs font-medium text-foreground transition-colors hover:border-foreground/30 hover:bg-muted/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background sm:text-sm"
           >
-            关于我
+            About
           </Link>
 
           {githubItem && (

@@ -33,7 +33,7 @@ export interface Profile {
   avatar: string | null
   /** 所在城市 */
   location: string
-  /** 首页 Hero 的英文短句 */
+  /** 首页 Hero 的英文简介 */
   tagline: string
   /** 一段自我介绍，渲染在 About 段 */
   about: string[]
@@ -45,12 +45,9 @@ export interface Profile {
 
 export const profileConfig: Profile = {
   avatar: '/avatar.jpg',
-  location: '上海',
-  tagline: 'Daylight’s burning.',
-  about: [
-    '这里记着做 Web 产品时留下的问题、弯路和答案。',
-    '有些来自代码，有些来自和 AI 一起工作的日常。想明白一点，就写下一点。',
-  ],
+  location: 'Shanghai',
+  tagline: 'Full-stack developer working with TypeScript.',
+  about: ['做全栈和 AI Agent 开发，主要使用 TypeScript。', '这里写项目实践、技术笔记和一些日常想法。'],
   skills: [
     {
       title: '网页 / 前端',
