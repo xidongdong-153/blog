@@ -1,0 +1,3 @@
+{"file":".trellis/spec/frontend/presence-guidelines.md","reason":"实现时需要保持活动报告 schema、Bearer 鉴权、TTL、回环 endpoint 和隐私字段边界。"}
+{"file":".trellis/spec/frontend/directory-structure.md","reason":"本次会同时修改 Blog 目录归属和本机 runtime 目录，需遵守页面、数据层和脚本边界。"}
+{"file":".trellis/spec/frontend/state-management.md","reason":"需要区分 Blog 构建期内容、活动 API 和本机采集状态的归属。"}
