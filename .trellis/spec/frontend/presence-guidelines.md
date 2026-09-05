@@ -105,6 +105,7 @@ end
 - LaunchAgent 只设置 `HOME`、显式 `PATH`、`PRESENCE_CONFIG_FILE` 和 `HERDR_ENV`。`PRESENCE_TOKEN` 不进入 plist，采集器从 `PRESENCE_ENV_FILE` 指向的 Blog `.env.local` 读取，并要求文件权限为 `600`。
 - `bin/start` 只 bootstrap 或 kickstart 固定 label；`bin/stop` 先 bootout，再停止 Hammerspoon 并发送 hidden 报告；`bin/uninstall` 移除生成的 plist 和 presence 加载行，但保留 runtime、配置、日志和备份。
 - 本机 runtime 不导入 Blog `src/lib/*`。两侧通过 `schemaVersion: 1`、固定字段和白名单保持协议一致，修改字段时必须同时更新本地协议测试和 Blog 服务端测试。
+- Caddy 通过 frp 代理线上 `GET /api/presence` 时，上游响应头 deadline 为 5 秒；首页客户端请求 deadline 为 6 秒。超时或上游错误必须显示 `offline`，不改变约 2 秒轮询间隔，也不能长期保留旧活动。
 
 错误：把当前 shell 的 fnm multishell Node 路径直接写入 LaunchAgent。
 

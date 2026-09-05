@@ -5,6 +5,8 @@ import Image from 'next/image'
 import { useEffect, useRef, useState } from 'react'
 import { createOfflinePresence, parsePublicPresence } from '@/lib/presence'
 
+const PRESENCE_REQUEST_TIMEOUT_MS = 6_000
+
 function ActivityIcon({ activity, className }: { activity: PublicActivityItem; className: string }) {
   if (activity.icon) {
     return (
@@ -42,6 +44,11 @@ export function PresenceStatus() {
       requestRef.current?.abort()
       const controller = new AbortController()
       requestRef.current = controller
+      let timedOut = false
+      const timeoutId = window.setTimeout(() => {
+        timedOut = true
+        controller.abort()
+      }, PRESENCE_REQUEST_TIMEOUT_MS)
       try {
         const response = await fetch('/api/presence', {
           cache: 'no-store',
@@ -51,8 +58,9 @@ export function PresenceStatus() {
         const parsed = parsePublicPresence((await response.json()) as unknown)
         if (!cancelled) setPresence(parsed ?? createOfflinePresence())
       } catch {
-        if (!cancelled && !controller.signal.aborted) setPresence(createOfflinePresence())
+        if (!cancelled && (!controller.signal.aborted || timedOut)) setPresence(createOfflinePresence())
       } finally {
+        window.clearTimeout(timeoutId)
         if (!cancelled) inFlightRef.current = false
       }
     }
