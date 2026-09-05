@@ -13,11 +13,12 @@ Next.js 16（App Router）+ React 19 + TypeScript strict + Tailwind CSS 4 + MDX�
 | [目录结构](./directory-structure.md) | 路由、组件分组、数据层、内容文件的位置规则 |
 | [组件规范](./component-guidelines.md) | RSC / client 划分、props、Tailwind 用法、占位页约定 |
 | [状态与数据](./state-management.md) | 主题机制、内容读取模式、为什么没有状态库 |
+| [本地活动接口](./presence-guidelines.md) | Mac 采集器、Herdr、API、TTL 与隐私边界 |
 | [类型安全](./type-safety.md) | 类型定义位置、日期存 ISO 字符串、禁 any |
 | [质量规范](./quality-guidelines.md) | 检查命令、lint / format 关键规则、功能状态表维护 |
 | [部署规范](./deployment-guidelines.md) | GitHub Actions、SSH、服务器和 systemd 的发布契约 |
 
-本项目没有自定义 hook，无 hook 规范文件；唯一的 client 组件是 `src/app/(site)/_components/site/theme-toggle.tsx`。
+本项目没有自定义 hook，无 hook 规范文件；client 组件按需处理主题、滚动、目录、评论、活动轮询等浏览器交互。
 
 ## 开发前检查清单
 

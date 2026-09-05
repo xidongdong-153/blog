@@ -6,6 +6,7 @@ import { usePathname } from 'next/navigation'
 import { useEffect, useRef, useState } from 'react'
 import { profileConfig } from '@/profile.config'
 import { siteConfig } from '@/site.config'
+import { PresenceStatus } from '../home/presence'
 import { ThemeToggle } from './theme-toggle'
 
 /**
@@ -132,7 +133,7 @@ export function SiteHeader() {
     <header
       ref={headerRef}
       data-visible={visible}
-      className="sticky top-4 z-[70] w-full px-4 transition-[transform,opacity] will-change-[transform,opacity] motion-reduce:transition-opacity motion-reduce:transform-none sm:px-6 data-[visible=false]:pointer-events-none data-[visible=false]:-translate-y-1.5 data-[visible=false]:scale-[0.98] data-[visible=false]:opacity-0 data-[visible=false]:duration-160 data-[visible=false]:ease-out data-[visible=true]:pointer-events-auto data-[visible=true]:translate-y-0 data-[visible=true]:scale-100 data-[visible=true]:opacity-100 data-[visible=true]:duration-[240ms] data-[visible=true]:ease-[cubic-bezier(0.34,1.25,0.64,1)]"
+      className="sticky top-4 z-[70] w-full px-4 transition-[transform,opacity] will-change-[transform,opacity] motion-reduce:transition-opacity motion-reduce:transform-none sm:px-6 data-[visible=false]:pointer-events-none data-[visible=false]:-translate-y-1.5 data-[visible=false]:scale-[0.98] data-[visible=false]:opacity-0 data-[visible=false]:duration-160 data-[visible=false]:ease-out data-[visible=true]:pointer-events-auto data-[visible=true]:translate-y-0 data-[visible=true]:scale-100 data-[visible=true]:opacity-100 data-[visible=true]:duration-[240ms] data-[visible=true]:ease-out"
     >
       <div
         ref={capsuleRef}
@@ -150,35 +151,38 @@ export function SiteHeader() {
           }}
         />
 
-        <Link
-          href="/"
-          aria-label={`${siteConfig.author}的个人博客首页`}
-          className="group relative flex items-center transition-transform duration-200 active:scale-95"
-        >
-          {/* 头像外层精工微边框底托 */}
-          <div className="relative flex items-center justify-center rounded-xl border border-border/80 bg-gradient-to-b from-background/95 via-card/80 to-muted/50 p-0.5 shadow-2xs backdrop-blur-sm transition-all duration-300 group-hover:border-foreground/30 group-hover:shadow-xs">
-            {profileConfig.avatar ? (
-              <Image
-                src={profileConfig.avatar}
-                alt={siteConfig.author}
-                width={32}
-                height={32}
-                priority
-                className="size-8 rounded-[10px] object-cover transition-transform duration-300 group-hover:scale-105"
-              />
-            ) : (
-              <div className="flex size-8 select-none items-center justify-center rounded-[10px] bg-muted/60 font-serif text-sm font-bold text-foreground">
-                {siteConfig.author.trim().slice(0, 1)}
-              </div>
-            )}
+        <div className="relative shrink-0">
+          <Link
+            href="/"
+            aria-label={`${siteConfig.author}的个人博客首页`}
+            className="group relative flex items-center transition-transform duration-200 active:scale-95"
+          >
+            {/* 头像外层精工微边框底托 */}
+            <div className="relative flex items-center justify-center rounded-xl border border-border/80 bg-gradient-to-b from-background/95 via-card/80 to-muted/50 p-0.5 shadow-2xs backdrop-blur-sm transition-all duration-300 group-hover:border-foreground/30 group-hover:shadow-xs">
+              {profileConfig.avatar ? (
+                <Image
+                  src={profileConfig.avatar}
+                  alt={siteConfig.author}
+                  width={32}
+                  height={32}
+                  priority
+                  className="size-8 rounded-[10px] object-cover transition-transform duration-300 group-hover:scale-105"
+                />
+              ) : (
+                <div className="flex size-8 select-none items-center justify-center rounded-[10px] bg-muted/60 font-serif text-sm font-bold text-foreground">
+                  {siteConfig.author.trim().slice(0, 1)}
+                </div>
+              )}
 
-            {/* 细微内阴影与边缘刻线 */}
-            <div
-              aria-hidden="true"
-              className="pointer-events-none absolute inset-0.5 rounded-[10px] ring-1 ring-inset ring-black/5 dark:ring-white/10"
-            />
-          </div>
-        </Link>
+              {/* 细微内阴影与边缘刻线 */}
+              <div
+                aria-hidden="true"
+                className="pointer-events-none absolute inset-0.5 rounded-[10px] ring-1 ring-inset ring-black/5 dark:ring-white/10"
+              />
+            </div>
+          </Link>
+          <PresenceStatus />
+        </div>
 
         <div className="flex items-center gap-2">
           <nav className="hidden items-center gap-4 text-sm sm:flex">

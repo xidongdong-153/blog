@@ -1,6 +1,6 @@
 # blog
 
-Next.js 单应用个人博客。文章和笔记用 MDX 文件管理，合并到 `main` 后由 GitHub Actions 完成检查并发布到现有服务器，不需要数据库和后端。
+Next.js 单应用个人博客。文章和笔记用 MDX 文件管理，合并到 `main` 后由 GitHub Actions 完成检查并发布到现有服务器；内容不依赖数据库，首页实时活动使用本地最新快照文件。
 
 架构采用 Next.js App Router 与 `(site)` 路由组，组件按功能分组内聚；文章按文件夹组织，笔记按单文件管理。
 
@@ -14,6 +14,7 @@ Next.js 单应用个人博客。文章和笔记用 MDX 文件管理，合并到 
 - `src/profile.config.ts`：个人简介、所在城市、技术栈、经历与教育等主页信息。
 - `content/blog/`：文章，每篇一个文件夹。
 - `content/notes/`：笔记，一条一个 `.md` 文件。
+- `scripts/presence/`：Mac 活动采集器和 Hammerspoon 配置源，只传输白名单 ID。
 
 ## 环境要求
 
@@ -28,6 +29,26 @@ pnpm dev
 ```
 
 打开 `http://localhost:4400`。
+
+## Mac 活动本地验证
+
+首页的实时活动由 Mac 上的 Hammerspoon 和本地采集器提供。采集器只传输 QQ、VS Code、Ghostty、ChatGPT、Antigravity、QQ 音乐、WorkBuddy，以及 Herdr 已识别的 Pi、agy、Claude 标识；不读取窗口标题、终端正文、命令、路径或聊天内容。
+
+先在 `.env.local` 设置 `PRESENCE_TOKEN`，再安装 Hammerspoon 配置：
+
+```bash
+bash scripts/presence/install-hammerspoon.sh
+pnpm presence:status
+pnpm presence:start
+```
+
+`pnpm presence:status` 只读取一次并打印固定状态，不发送请求；`pnpm presence:start` 会先恢复 Hammerspoon 监听，再每 2 秒向本机 `http://127.0.0.1:4400/api/presence/report` 上报。停止时运行：
+
+```bash
+pnpm presence:stop
+```
+
+Pi、agy、Claude 只有在 Herdr 会话中才能参与终端焦点判断。Herdr 不可用时，桌面应用仍可显示，终端状态显示为未知。后台运行只表示工具实例存在，不表示 AI 正在生成。状态文件位于 `.cache/presence/state.json`，15 秒没有心跳就自动离线。
 
 ## 内容约定
 
@@ -66,23 +87,24 @@ pnpm build
 
 ## 功能状态
 
-| 功能                               | 状态                   | 位置                                                              |
-| ---------------------------------- | ---------------------- | ----------------------------------------------------------------- |
-| 文章列表 / 详情 / 标签 / 归档      | 已实现                 | `src/app/(site)/blog/`                                            |
-| 文章目录 TOC（滚动跟随高亮）       | 已实现                 | `src/app/(site)/_components/blog/toc.tsx`                         |
-| 详情页右侧粘性 TOC 侧栏            | 已实现                 | `src/app/(site)/blog/[slug]/page.tsx`                             |
-| Hero 图 + 更新日期                 | 已实现                 | `src/lib/content.ts`、`src/app/(site)/blog/[slug]/page.tsx`       |
-| 版权卡片（CC BY-NC-SA 4.0）        | 已实现                 | `src/app/(site)/_components/blog/copyright-card.tsx`              |
-| 笔记列表 / 详情（状态标记）        | 已实现                 | `src/app/(site)/notes/`                                           |
-| 三态主题切换（系统 / 浅色 / 深色） | 已实现                 | `src/app/(site)/_components/site/theme-toggle.tsx`                |
-| sticky 胶囊页头                    | 已实现                 | `src/app/(site)/_components/site/site-header.tsx`                 |
-| 项目 / 友链 / 关于 / 联系          | 已实现                 | `src/app/(site)/` 对应目录                                        |
-| 站内搜索                           | 占位页，方案见页面注释 | `src/app/(site)/search/page.tsx`                                  |
-| Giscus 评论                        | 已实现                 | `src/app/(site)/_components/comment/giscus-comments.tsx`          |
-| RSS                                | 未开始                 | 计划 `src/app/rss.xml/route.ts`                                   |
-| sitemap / robots                   | 未开始                 | 计划 `src/app/sitemap.ts`、`src/app/robots.ts`                    |
-| OG 图自动生成                      | 未开始                 | 计划 `src/app/(site)/blog/[slug]/opengraph-image.tsx`，用 next/og |
-| 代码块高亮与复制                   | 已实现                 | `src/app/(site)/_components/blog/mdx-content.tsx`                 |
+| 功能                               | 状态                   | 位置                                                                |
+| ---------------------------------- | ---------------------- | ------------------------------------------------------------------- |
+| 文章列表 / 详情 / 标签 / 归档      | 已实现                 | `src/app/(site)/blog/`                                              |
+| 文章目录 TOC（滚动跟随高亮）       | 已实现                 | `src/app/(site)/_components/blog/toc.tsx`                           |
+| 详情页右侧粘性 TOC 侧栏            | 已实现                 | `src/app/(site)/blog/[slug]/page.tsx`                               |
+| Hero 图 + 更新日期                 | 已实现                 | `src/lib/content.ts`、`src/app/(site)/blog/[slug]/page.tsx`         |
+| 版权卡片（CC BY-NC-SA 4.0）        | 已实现                 | `src/app/(site)/_components/blog/copyright-card.tsx`                |
+| 笔记列表 / 详情（状态标记）        | 已实现                 | `src/app/(site)/notes/`                                             |
+| 三态主题切换（系统 / 浅色 / 深色） | 已实现                 | `src/app/(site)/_components/site/theme-toggle.tsx`                  |
+| sticky 胶囊页头                    | 已实现                 | `src/app/(site)/_components/site/site-header.tsx`                   |
+| 项目 / 友链 / 关于 / 联系          | 已实现                 | `src/app/(site)/` 对应目录                                          |
+| 站内搜索                           | 占位页，方案见页面注释 | `src/app/(site)/search/page.tsx`                                    |
+| Giscus 评论                        | 已实现                 | `src/app/(site)/_components/comment/giscus-comments.tsx`            |
+| RSS                                | 未开始                 | 计划 `src/app/rss.xml/route.ts`                                     |
+| sitemap / robots                   | 未开始                 | 计划 `src/app/sitemap.ts`、`src/app/robots.ts`                      |
+| OG 图自动生成                      | 未开始                 | 计划 `src/app/(site)/blog/[slug]/opengraph-image.tsx`，用 next/og   |
+| 代码块高亮与复制                   | 已实现                 | `src/app/(site)/_components/blog/mdx-content.tsx`                   |
+| Mac 实时活动（本地采集与首页展示） | 已实现                 | `src/lib/presence.ts`、`scripts/presence/`、`src/app/api/presence/` |
 
 ## 部署
 

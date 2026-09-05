@@ -19,7 +19,8 @@ const posts = getAllBlogPosts().filter((post) => !post.draft)
 规则：
 
 - 新内容需求在 `src/lib/content.ts` 加函数，不在组件里直接 `fs.readFileSync`。
-- 不写 API route 再自己 fetch——没有后端，构建期数据不需要绕网络。
+- 文章和笔记等构建期内容不写 API route 再自己 fetch；它们不需要绕网络。
+- 首页实时活动是本地验证的例外：采集器写入 `/api/presence/report`，client 组件轮询 `/api/presence`；这个接口不参与 MDX 内容读取。
 - 每次读全量再过滤是这个规模的正确做法，不做缓存层。
 
 ## 日期数据约定

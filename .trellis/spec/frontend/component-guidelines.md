@@ -10,6 +10,7 @@
 - `src/app/(site)/_components/blog/toc.tsx`（TOC 目录展开折叠、点击互斥锁、侧栏自滚动与 RAF 进度更新）
 - `src/app/(site)/_components/blog/floating-action-group.tsx`（移动端抽屉唤出与返回顶部百分比计算）
 - `src/app/(site)/_components/comment/giscus-comments.tsx`（Giscus 客户端脚本挂载、主题 DOM 监听与 postMessage 免重载变色）
+- `src/app/(site)/_components/home/presence.tsx`（活动接口轮询、在线状态和后台工具展开）
 
 MDX 渲染走异步 RSC（`mdx-content.tsx` 的 `compileMDX`），不需要 client。高频滚动联动场景使用 `requestAnimationFrame` 调度，直接更新对应节点的样式（如 TOC 进度条、SiteHeader 连续水膜插值），避免高频触发 React 整体组件树重新渲染。SiteHeader 不使用布尔阈值硬切与布局重排（如动态 margin），改用 0~80px 连续进度驱动独立背景水膜层透明度、渐进遮罩与微缩放；显隐判断加入滚动死区累积位移（向下 12px、向上 8px 缓冲及顶部 200px 常驻安全区），彻底避免慢拖滚动条时的方向震荡；显隐动画使用可中断的纯 GPU Transition（下滑 160ms ease-out 平滑微缩淡出，上滑 240ms 阻尼曲线聚显并带表面张力平息静止）。
 
