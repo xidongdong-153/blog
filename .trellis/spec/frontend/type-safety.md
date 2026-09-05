@@ -35,7 +35,7 @@ export type NoteStatus = 'in-progress' | 'incomplete' | 'ready' | 'archived'
 frontmatter 是外部输入，读取时逐字段校验，`src/lib/content.ts` 的模式：
 
 - `requireString`：必填字符串，缺失或空白抛错，错误信息带文件路径。
-- `readDate`：接受 `Date` 或字符串，都转 ISO 字符串，非法抛错。
+- `readDate`：接受 YAML `Date` 或非空字符串，输出字符串；缺失或其他类型抛错，非空字符串只去掉首尾空白，不验证日历合法性。填写要求见[内容约定](./content-guidelines.md)。
 - `readTags`：数组里只留 string，其余丢弃。
 - `status` 校验用字面量联合收窄，不在数组里 `includes` 后直接断言。
 

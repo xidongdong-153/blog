@@ -20,7 +20,7 @@ const posts = getAllBlogPosts().filter((post) => !post.draft)
 
 - 新内容需求在 `src/lib/content.ts` 加函数，不在组件里直接 `fs.readFileSync`。
 - 文章和笔记等构建期内容不写 API route 再自己 fetch；它们不需要绕网络。
-- 首页实时活动是本地验证的例外：采集器写入 `/api/presence/report`，client 组件轮询 `/api/presence`；这个接口不参与 MDX 内容读取。
+- 首页实时活动不参与 MDX 内容读取；Blog 的只读 `/api/presence` 从独立 Mac Presence Service 取公开状态，协议与配置见[活动规范](./presence-guidelines.md)。
 - 每次读全量再过滤是这个规模的正确做法，不做缓存层。
 
 ## 日期数据约定
@@ -40,4 +40,4 @@ const posts = getAllBlogPosts().filter((post) => !post.draft)
 
 ## 环境差异
 
-本地开发和构建读同一份 `content/`，没有环境变量。`src/site.config.ts` 的 `url` 只在 RSS / sitemap / OG 图生成链接时用（未实现），部署前要换成正式域名。
+本地开发和构建读同一份 `content/`，内容读取不需要环境变量。评论配置见[组件规范](./component-guidelines.md)，活动上游配置见[活动规范](./presence-guidelines.md)。正式域名在 `src/site.config.ts` 的 `url` 中维护。

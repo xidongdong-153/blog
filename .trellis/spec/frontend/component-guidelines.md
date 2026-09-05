@@ -5,6 +5,7 @@
 默认全部写 Server Components，不用加任何指令。只有用到浏览器 API（localStorage、事件监听）的组件才加 `'use client'`。
 
 现状：项目中的 client 组件包括：
+
 - `src/app/(site)/_components/site/theme-toggle.tsx`（主题存储与媒体监听）
 - `src/app/(site)/_components/site/site-header.tsx`（滚动感应与移动端菜单展开）
 - `src/app/(site)/_components/blog/toc.tsx`（TOC 目录展开折叠、点击互斥锁、侧栏自滚动与 RAF 进度更新）
@@ -102,7 +103,7 @@ MDX 渲染走异步 RSC（`mdx-content.tsx` 的 `compileMDX`），不需要 clie
 
 ## 占位页
 
-未实现的功能统一用 `src/app/(site)/_components/placeholder/empty-state.tsx`，页面注释里写实现方案（参考 `src/app/(site)/search/page.tsx`）。实现后删掉占位组件和注释，并把 README「功能状态」表的状态改成「已实现」。
+未实现的功能统一用 `src/app/(site)/_components/placeholder/empty-state.tsx`，页面注释里写实现方案（参考 `src/app/(site)/search/page.tsx`）。实现后删掉占位组件和注释，并把[功能状态](./feature-status.md)中的状态改成「已实现」。
 
 ## Metadata
 
@@ -145,4 +146,3 @@ MDX 渲染走异步 RSC（`mdx-content.tsx` 的 `compileMDX`），不需要 clie
   - `page.tsx` 将已过滤 draft 的文章与笔记映射为 `{ kind, slug, title, date }`，按 ISO `date` 倒序后取前 8 条，再传给 `WritingTimeline`。
   - `WritingTimeline` 用 `${kind}-${slug}` 作为 key，根据 `kind` 生成 `/blog/<slug>` 或 `/notes/<slug>` 链接；日期显示使用 `formatTimelineDate`，不在组件中直接格式化日期。
   - 时间线分类微标使用 `font-mono text-xs uppercase tracking-wider`，列表行用 `divide-y` 细线，不给每行添加卡片底色。
-

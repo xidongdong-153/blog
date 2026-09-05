@@ -8,7 +8,9 @@
 src/app/(site)/              公开页面，唯一页面区
 src/app/(site)/_components/  页面私有组件，按功能分组
 src/app/fonts/               本地自托管字体文件（Satoshi woff2）
-src/lib/content.ts           MDX 内容读取层（唯一数据层）
+src/app/api/presence/        Blog 只读活动 API，读取独立 Mac 服务
+src/lib/presence.ts          活动协议、白名单与公开响应校验
+src/lib/content.ts           MDX 内容读取层（唯一内容读取入口）
 src/site.config.ts           站点标题、导航、社交链接、正式域名
 src/profile.config.ts        个人信息、自我介绍、技术栈与履历配置
 content/blog/                文章，每篇一个文件夹
@@ -30,14 +32,14 @@ content/notes/               笔记，一条一个 .md
 
 页面私有组件放 `src/app/(site)/_components/<分组>/`，下划线开头让 Next.js 不把它当路由。分组按功能：
 
-| 分组 | 放什么 | 现有文件 |
-| ---- | ---- | ---- |
-| `site/` | 页头、页脚、主题切换 | `site-header.tsx`、`site-footer.tsx`、`theme-toggle.tsx` |
-| `home/` | 首页简历与信息流展示 | `hero.tsx`、`presence.tsx`、`section.tsx`、`entry-list-item.tsx`、`link-card.tsx`、`skill-list.tsx`、`site-stats.tsx` |
-| `blog/` | 文章相关 | `post-card.tsx`、`mdx-content.tsx`、`toc.tsx` |
-| `notes/` | 笔记相关 | `note-card.tsx` |
-| `comment/` | 评论 | `giscus-comments.tsx`（占位） |
-| `placeholder/` | 占位页通用内容 | `empty-state.tsx` |
+| 分组           | 放什么               | 现有文件                                                                                              |
+| -------------- | -------------------- | ----------------------------------------------------------------------------------------------------- |
+| `site/`        | 页头、页脚、主题切换 | `site-header.tsx`、`site-footer.tsx`、`theme-toggle.tsx`                                              |
+| `home/`        | 首页简历与信息流展示 | `hero.tsx`、`presence.tsx`、`section.tsx`、`writing-timeline.tsx`、`skill-list.tsx`、`site-stats.tsx` |
+| `blog/`        | 文章相关             | `post-card.tsx`、`mdx-content.tsx`、`toc.tsx`                                                         |
+| `notes/`       | 笔记相关             | `note-card.tsx`                                                                                       |
+| `comment/`     | 评论                 | `giscus-comments.tsx`                                                                                 |
+| `placeholder/` | 占位页通用内容       | `empty-state.tsx`                                                                                     |
 
 新增分组需要有新功能域才建，不要按组件类型（`ui/`、`common/`）分组。
 
@@ -49,7 +51,7 @@ content/notes/               笔记，一条一个 .md
 
 - 文章：`content/blog/<文件夹名>/post.mdx`，文件夹名是 URL slug。
 - 笔记：`content/notes/<文件名>.md`，文件名是 slug。
-- frontmatter 字段和校验规则见 `src/lib/content.ts`，README「内容约定」有字段表。
+- frontmatter 字段与校验边界见[内容约定](./content-guidelines.md)，实现位于 `src/lib/content.ts`。
 
 ## 反模式
 
