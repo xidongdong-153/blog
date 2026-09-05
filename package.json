@@ -10,12 +10,7 @@
     "lint:fix": "eslint . --fix",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "typecheck": "next typegen && tsc --noEmit",
-    "presence:test": "node --experimental-strip-types --test src/lib/presence.test.ts",
-    "presence:status": "node --experimental-strip-types scripts/presence/collector.mts --once --dry-run",
-    "presence:once": "node --experimental-strip-types scripts/presence/collector.mts --once",
-    "presence:start": "node --experimental-strip-types scripts/presence/collector.mts",
-    "presence:stop": "node --experimental-strip-types scripts/presence/collector.mts --stop"
+    "typecheck": "next typegen && tsc --noEmit"
   },
   "dependencies": {
     "github-slugger": "^2.0.0",
