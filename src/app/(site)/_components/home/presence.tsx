@@ -10,6 +10,15 @@ import { siteConfig } from '@/site.config'
 
 const PRESENCE_REQUEST_TIMEOUT_MS = 6_000
 
+const IDLE_MESSAGES = [
+  '不在工位，大概率正在摸鱼',
+  '键盘已冷却，人不知去向',
+  '工位放空中，正在给大脑散热',
+  '溜达去了，稍后再来抓我',
+  '出去吹吹风，暂时没敲代码',
+  '正在给生活充电，稍后回来',
+] as const
+
 const TOOL_ICON_MAP: Partial<Record<string, string>> = {
   pi: '/images/presence/pi.png',
   agy: '/images/presence/antigravity.png',
@@ -58,9 +67,16 @@ function ActivityIcon({ activity, className }: { activity: PublicActivityItem; c
 export function PresenceStatus() {
   const [presence, setPresence] = useState<PublicPresence | null>(null)
   const [expanded, setExpanded] = useState(false)
+  const [idleMessage, setIdleMessage] = useState<string>(IDLE_MESSAGES[0])
   const containerRef = useRef<HTMLDivElement>(null)
   const requestRef = useRef<AbortController | null>(null)
   const inFlightRef = useRef(false)
+
+  const handleOpen = () => {
+    setExpanded(true)
+    const next = IDLE_MESSAGES[Math.floor(Math.random() * IDLE_MESSAGES.length)] ?? IDLE_MESSAGES[0]
+    setIdleMessage(next)
+  }
 
   useEffect(() => {
     let cancelled = false
@@ -145,9 +161,9 @@ export function PresenceStatus() {
     <div
       ref={containerRef}
       className="relative shrink-0"
-      onMouseEnter={() => setExpanded(true)}
+      onMouseEnter={handleOpen}
       onMouseLeave={() => setExpanded(false)}
-      onFocus={() => setExpanded(true)}
+      onFocus={handleOpen}
       onBlur={(event) => {
         const relatedTarget = event.relatedTarget
         if (!(relatedTarget instanceof Node) || !event.currentTarget.contains(relatedTarget)) {
@@ -231,7 +247,9 @@ export function PresenceStatus() {
                 <p className="truncate font-mono text-xs font-medium text-foreground">{desktopApp.label}</p>
               </div>
             ) : (
-              <p className="py-1 font-mono text-xs text-muted-foreground">{active ? '无前台活动' : '工位休眠'}</p>
+              <p className="py-1 font-mono text-xs text-muted-foreground">
+                {active ? '在看别的内容，没在敲代码' : idleMessage}
+              </p>
             )}
 
             {/* 后台工具 */}
