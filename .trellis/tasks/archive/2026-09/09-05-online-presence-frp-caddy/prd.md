@@ -11,7 +11,7 @@
 - Mac 上已有用户级 `frpc` LaunchAgent，配置在 `/Users/wuwanzhu/.config/frp/frpc.toml`。
 - 服务器已有 `frps` 和 Caddy。`frps` 的 `proxyBindAddr` 为 `127.0.0.1`，现有远端端口为 `18080`、`18088`、`18033`、`18099`、`18880` 和 `2222`；拟用的 `18100` 当前未占用。
 - 服务器 Caddy 当前将 `blog.xdd.ink` 全部反代到服务器 `127.0.0.1:4400`，没有活动接口的专用路由。
-- 既有 XDD Core dev 配置已经采用“服务器本机端口 -> frps -> Mac frpc -> Mac localhost”的模式。
+- 既有喜东东 Core dev 配置已经采用“服务器本机端口 -> frps -> Mac frpc -> Mac localhost”的模式。
 - 用户已选择 `frp + Caddy` 方案，并接受 Mac 持续运行 Blog API；本任务不改为 collector 直报线上 Blog API。
 
 ## 需求

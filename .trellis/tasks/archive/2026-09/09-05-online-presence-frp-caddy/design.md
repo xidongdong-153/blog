@@ -58,7 +58,7 @@ localPort = 4400
 remotePort = 18100
 ```
 
-不改已有 `code-server`、XDD Core、GBDP 和 SSH 代理。继续使用已有的 `ink.xdd.frpc` LaunchAgent 和 frp 认证配置。
+不改已有 `code-server`、喜东东 Core、GBDP 和 SSH 代理。继续使用已有的 `ink.xdd.frpc` LaunchAgent 和 frp 认证配置。
 
 ### 服务器 frps
 

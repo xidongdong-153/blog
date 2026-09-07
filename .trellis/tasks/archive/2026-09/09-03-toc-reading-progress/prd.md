@@ -2,11 +2,11 @@
 
 ## Goal
 
-将 XDD 博客的 TOC 组件从当前的基础 IntersectionObserver 高亮升级为 Joye 博客的完整 TOC 体验：阅读进度条、章节进度指示、移动端抽屉面板、滚动联动平滑跳转和点击互斥保护。
+将喜东东博客的 TOC 组件从当前的基础 IntersectionObserver 高亮升级为 Joye 博客的完整 TOC 体验：阅读进度条、章节进度指示、移动端抽屉面板、滚动联动平滑跳转和点击互斥保护。
 
 ## Background
 
-当前 XDD 博客 TOC 状态：
+当前喜东东博客 TOC 状态：
 - 桌面端右侧粘性侧栏（`sticky top-20 basis-64`）
 - IntersectionObserver 实现滚动高亮（当前章节 `text-primary`）
 - 左侧边框线（`border-l border-border`）

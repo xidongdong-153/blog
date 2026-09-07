@@ -6,7 +6,7 @@
 - `/Users/wuwanzhu/Projects/code-server-frp-maintenance/docs/services/blog.md` 当前说明 Blog 只由服务器 Caddy 反代服务器 `127.0.0.1:4400`，不使用 frp。
 - 服务器当前 `frps` 使用 `bindPort = 7000` 和 `proxyBindAddr = "127.0.0.1"`，现有 `allowPorts` 为 `18880`、`18080`、`18088`、`18033`、`18099`、`2222`。
 - 服务器 `127.0.0.1:18100` 当前没有监听者，适合作为新增的 server-only frp 远端端口。
-- Mac 已有 `ink.xdd.frpc` 用户 LaunchAgent，现有代理没有使用 `18100`；配置包含 code-server、三个 XDD Core dev、GBDP 和 SSH 代理。
+- Mac 已有 `ink.xdd.frpc` 用户 LaunchAgent，现有代理没有使用 `18100`；配置包含 code-server、三个喜东东 Core dev、GBDP 和 SSH 代理。
 - Caddy 的 Blog 站点当前只有：
 
 ```caddyfile

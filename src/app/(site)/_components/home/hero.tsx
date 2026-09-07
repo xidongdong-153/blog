@@ -43,7 +43,7 @@ export function Hero({ profile }: HeroProps) {
                 </span>
               </>
             )}
-            <span>XDD</span>
+            <span>喜东东</span>
             <span aria-hidden="true" className="mx-2 text-border sm:mx-3">
               /
             </span>
