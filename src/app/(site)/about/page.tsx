@@ -40,12 +40,27 @@ export default function AboutPage() {
             <div key={group.title} className="flex flex-col gap-3 rounded-lg border border-border/60 bg-card/30 p-4">
               <span className="font-mono text-xs font-semibold tracking-wider text-foreground">{group.title}</span>
               <ul className="flex flex-col gap-1.5 font-mono text-xs text-muted-foreground">
-                {group.items.map((item) => (
-                  <li key={item} className="flex items-center gap-1.5">
-                    <span className="size-1 rounded-full bg-border" />
-                    <span>{item}</span>
-                  </li>
-                ))}
+                {group.items.map((item) => {
+                  const name = typeof item === 'string' ? item : item.name
+                  const href = typeof item === 'string' ? undefined : item.href
+                  return (
+                    <li key={name} className="flex items-center gap-1.5">
+                      <span className="size-1 rounded-full bg-border" />
+                      {href ? (
+                        <a
+                          href={href}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="transition-colors hover:text-foreground hover:underline"
+                        >
+                          {name} <span aria-hidden="true">↗</span>
+                        </a>
+                      ) : (
+                        <span>{name}</span>
+                      )}
+                    </li>
+                  )
+                })}
               </ul>
             </div>
           ))}

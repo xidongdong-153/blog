@@ -10,34 +10,27 @@ export interface WritingEntry {
   date: string
 }
 
-const KIND_LABELS = {
-  article: '文章',
-  note: '笔记',
-} as const
-
 /**
  * 首页最近写作时间线组件。
- * 文章与笔记合并按日期倒序展示：左侧衬线大日期（MM / DD），中间标题，右侧类型徽章与滑出箭头；
- * 行间用 divide-y 细线分隔，构成杂志目录式排版。
+ * 极简手记目录排版：左侧等宽日期，中间标题，仅笔记标注类型，
+ * 悬停时整体浮现轻柔底色与微动效，去除非必要线框与徽章噪点。
  */
 export function WritingTimeline({ entries }: { entries: WritingEntry[] }) {
   return (
-    <div className="flex flex-col divide-y divide-border/60">
+    <div className="flex flex-col gap-y-1">
       {entries.map((entry) => (
         <Link
           key={`${entry.kind}-${entry.slug}`}
           href={entry.kind === 'article' ? `/blog/${entry.slug}` : `/notes/${entry.slug}`}
-          className="group/link flex items-center gap-4 py-3 transition-colors"
+          className="group/link -mx-2.5 flex items-center gap-3 rounded-lg px-2.5 py-2 text-muted-foreground transition-colors hover:bg-muted/40 hover:text-foreground"
         >
-          <time dateTime={entry.date} className="w-16 shrink-0 font-serif text-lg tabular-nums text-muted-foreground">
+          <time dateTime={entry.date} className="w-14 shrink-0 font-mono text-xs tabular-nums text-muted-foreground/75">
             {formatTimelineDate(entry.date)}
           </time>
-          <span className="flex-1 truncate text-sm font-medium transition-colors group-hover/link:text-primary">
+          <span className="flex-1 truncate text-sm font-medium text-foreground transition-colors group-hover/link:text-primary">
             {entry.title}
           </span>
-          <span className="shrink-0 rounded-full border border-border/60 px-2 py-0.5 font-mono text-xs tracking-wider text-muted-foreground">
-            {KIND_LABELS[entry.kind]}
-          </span>
+          {entry.kind === 'note' && <span className="shrink-0 font-mono text-xs text-muted-foreground/60">#笔记</span>}
           <svg
             xmlns="http://www.w3.org/2000/svg"
             viewBox="0 0 24 24"
@@ -46,19 +39,9 @@ export function WritingTimeline({ entries }: { entries: WritingEntry[] }) {
             strokeWidth="2"
             strokeLinecap="round"
             strokeLinejoin="round"
-            className="size-4 shrink-0 stroke-muted-foreground transition-colors group-hover/link:stroke-primary"
+            className="size-3.5 shrink-0 opacity-0 transition-all duration-200 group-hover/link:translate-x-0.5 group-hover/link:opacity-100 motion-reduce:transition-none"
           >
-            <line
-              x1="5"
-              y1="12"
-              x2="19"
-              y2="12"
-              className="translate-x-4 scale-x-0 transition-all duration-300 ease-in-out motion-reduce:transition-none group-hover/link:translate-x-1 group-hover/link:scale-x-100"
-            />
-            <polyline
-              points="12 5 19 12 12 19"
-              className="translate-x-0 transition-all duration-300 ease-in-out motion-reduce:transition-none group-hover/link:translate-x-1"
-            />
+            <polyline points="9 18 15 12 9 6" />
           </svg>
         </Link>
       ))}

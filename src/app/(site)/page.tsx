@@ -18,7 +18,7 @@ export default function HomePage() {
       .map((note) => ({ kind: 'note' as const, slug: note.slug, title: note.title, date: note.date })),
   ]
     .sort((a, b) => b.date.localeCompare(a.date))
-    .slice(0, 8)
+    .slice(0, 5)
 
   return (
     <div className="mx-auto flex w-full flex-col gap-12 md:w-4/5 lg:w-5/6">
@@ -30,7 +30,7 @@ export default function HomePage() {
         {entries.length > 0 ? (
           <>
             <WritingTimeline entries={entries} />
-            <div className="pt-1 text-right">
+            <div className="pt-1 text-left">
               <Link
                 href="/blog"
                 className="inline-flex items-center font-mono text-xs tracking-wider text-muted-foreground transition-colors hover:text-foreground hover:underline"
@@ -48,11 +48,19 @@ export default function HomePage() {
 
       {/* 关于 */}
       {profileConfig.about.length > 0 && (
-        <Section index="02" title="关于我">
-          <div className="flex max-w-2xl flex-col gap-2 text-sm leading-relaxed text-muted-foreground">
+        <Section index="02" title="关于我" align="right">
+          <div className="ml-auto flex max-w-2xl flex-col gap-2 text-sm leading-relaxed text-muted-foreground sm:text-right">
             {profileConfig.about.map((p) => (
               <p key={p}>{p}</p>
             ))}
+            <div className="pt-1">
+              <Link
+                href="/about"
+                className="inline-flex items-center font-mono text-xs tracking-wider text-muted-foreground transition-colors hover:text-foreground hover:underline"
+              >
+                // 了解更多关于我 →
+              </Link>
+            </div>
           </div>
         </Section>
       )}

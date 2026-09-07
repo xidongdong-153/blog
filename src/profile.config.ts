@@ -1,7 +1,14 @@
+export interface SkillItemObject {
+  name: string
+  href?: string
+}
+
+export type SkillItem = string | SkillItemObject
+
 export interface SkillGroup {
   /** 分组名，如 Frontend */
   title: string
-  items: string[]
+  items: SkillItem[]
 }
 
 export interface ExperienceItem {
@@ -58,8 +65,18 @@ export const profileConfig: Profile = {
       items: ['Hono', 'Node.js', 'Drizzle ORM', 'SQLite', 'Better Auth', 'Zod'],
     },
     {
-      title: '智能体 / 工程',
-      items: ['AI 智能体', 'Turborepo', 'pnpm workspace', 'Vitest', 'Git', 'ESLint'],
+      title: 'Agent / 工程',
+      items: [
+        { name: 'Pi', href: 'https://pi.dev/docs/latest' },
+        { name: 'LangChain', href: 'https://www.langchain.com/' },
+        { name: 'Mastra', href: 'https://mastra.ai/' },
+        { name: 'Vercel AI', href: 'https://vercel.com/ai' },
+        'Turborepo',
+        'pnpm workspace',
+        'Vitest',
+        'Git',
+        'ESLint',
+      ],
     },
   ],
   experience: [],

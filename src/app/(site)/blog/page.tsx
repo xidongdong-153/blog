@@ -2,7 +2,6 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import { getAllBlogPosts, getAllBlogTags } from '@/lib/content'
 import { BlogSidebar } from '../_components/blog/blog-sidebar'
-import { Button } from '../_components/blog/button'
 import { Paginator } from '../_components/blog/paginator'
 import { PostCard } from '../_components/blog/post-card'
 
@@ -47,10 +46,8 @@ export default async function BlogPage({ searchParams }: BlogPageProps) {
 
   return (
     <div className="mx-auto w-full max-w-5xl">
-      <Button title="返回" href="/" style="back" />
-
-      <main className="mt-6 lg:mt-10">
-        <div id="content-header" className="mb-8 mt-6 sm:mt-10">
+      <main>
+        <div id="content-header" className="mb-8">
           <div className="mb-2 font-mono text-xs tracking-wider text-muted-foreground">// 文章归档</div>
           <h1 className="font-serif text-3xl font-medium tracking-tight text-foreground sm:text-4xl">文章</h1>
         </div>

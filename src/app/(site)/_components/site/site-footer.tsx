@@ -9,7 +9,7 @@ export function SiteFooter() {
         <div className="flex flex-col gap-1 text-center sm:text-left">
           <div className="font-mono tracking-wider text-foreground">{siteConfig.title}</div>
           <p className="text-muted-foreground/70">
-            © {year} {siteConfig.author}. 使用 Next.js 与 TypeScript 构建。
+            © {year} {siteConfig.author}. 使用 Next.js 构建。
           </p>
         </div>
 
