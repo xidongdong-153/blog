@@ -54,12 +54,12 @@ Blog 只提供 `GET /api/presence`，使用 `parsePublicPresence` 校验上游�
 
 - `schemaVersion`：固定为 `1`。
 - `availability`：`active` 或 `hidden`。
-- `desktopApp`：`qq`、`vscode`、`ghostty`、`chatgpt`、`antigravity`、`qqmusic`、`workbuddy`、`typora`、`lightroom`、`pixcake`，或 `null`。
+- `desktopApp`：`qq`、`vscode`、`ghostty`、`chatgpt`、`antigravity`、`qqmusic`、`workbuddy`、`typora`、`lightroom`、`pixcake`、`neteasemusic`，或 `null`。
 - `foregroundTool`：`pi`、`agy`、`antigravity`、`claude`，或 `null`。
 - `backgroundTools`：去重后的 CLI ID 数组，不保留当前 CLI。
 - `terminalDetection`：`known` 或 `unknown`。
 
-桌面显示名称分别是 QQ、VS Code、Ghostty、ChatGPT、Antigravity、QQ 音乐、WorkBuddy、Typora、Adobe Lightroom Classic、像素蛋糕。`foregroundTool` 只有在 Ghostty 前台且焦点为 `known` 时有效；hidden 状态清空桌面、当前和后台 CLI，终端为 `unknown`。
+桌面显示名称分别是 QQ、VS Code、Ghostty、ChatGPT、Antigravity、QQ 音乐、WorkBuddy、Typora、Adobe Lightroom Classic、像素蛋糕、网易云音乐。`foregroundTool` 只有在 Ghostty 前台且焦点为 `known` 时有效；hidden 状态清空桌面、当前和后台 CLI，终端为 `unknown`。
 
 runtime 保存 `$HOME/.hammerspoon/presence/state/presence.json`，增加 `receivedAt` 和 15 秒后的 `expiresAt`。同一进程内串行写临时文件后原子重命名，只保留最新状态；目录权限 `700`，状态文件权限 `600`。Blog 不再读写仓库内快照。
 
@@ -102,7 +102,7 @@ node --experimental-strip-types --test src/lib/presence.test.ts
 $HOME/.hammerspoon/presence/bin/test
 ```
 
-- 白名单：10 个桌面 ID、Pi / agy / Antigravity / Claude 仅按固定映射展示。
+- 白名单：11 个桌面 ID、Pi / agy / Antigravity / Claude 仅按固定映射展示。
 - Herdr 与组合：CLI 去重，单焦点可得到当前 CLI，多焦点为 unknown；切到 VS Code 后 Pi 只能在后台。
 - 边界：内部报告拒绝未知字段、未知 ID、重复后台 ID 和焦点冲突；公开活动拒绝伪造名称、图标和非法焦点。
 - 状态：hidden、损坏和 TTL 到期不返回旧活动；Blog 上游错误返回离线且不缓存。

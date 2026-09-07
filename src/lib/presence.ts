@@ -52,6 +52,11 @@ export const DESKTOP_APPS = {
     icon: '/images/presence/pixcake.png',
     label: '像素蛋糕',
   },
+  neteasemusic: {
+    bundleId: 'com.netease.163music',
+    icon: '/images/presence/neteasemusic.png',
+    label: '网易云音乐',
+  },
 } as const
 
 export const TERMINAL_TOOLS = {
