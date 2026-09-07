@@ -88,6 +88,19 @@ test('拒绝非法公开活动对象', () => {
   assert.equal(parsePublicPresence({ ...basePublic, foregroundTool: { id: 'pi' } }), null)
 })
 
+test('接受接口返回的 Codex 后台工具', () => {
+  const parsed = parsePublicPresence({
+    backgroundTools: [{ icon: null, id: 'codex', kind: 'terminal', label: 'Codex' }],
+    desktopApp: null,
+    expiresAt: '2026-09-05T00:00:10.000Z',
+    foregroundTool: null,
+    receivedAt: '2026-09-05T00:00:00.000Z',
+    status: 'active' as const,
+    terminalDetection: 'known' as const,
+  })
+  assert.equal(parsed?.backgroundTools[0]?.id, 'codex')
+})
+
 test('只有 Ghostty 在前台且终端焦点已知时才显示当前工具', () => {
   const terminal = {
     backgroundTools: ['pi', 'claude'] as const,

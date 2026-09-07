@@ -61,6 +61,7 @@ export const DESKTOP_APPS = {
 
 export const TERMINAL_TOOLS = {
   pi: { label: 'Pi' },
+  codex: { label: 'Codex' },
   agy: { label: 'agy' },
   antigravity: { label: 'Antigravity' },
   claude: { label: 'Claude' },
