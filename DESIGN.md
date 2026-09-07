@@ -1,5 +1,5 @@
 ---
-name: 喜东东的博客
+name: 喜东东小站
 description: 个人技术沉淀和成长记录
 colors:
   background-light: "#fbfbfd"
@@ -75,7 +75,7 @@ components:
     padding: "4px 12px"
 ---
 
-# Design System: 喜东东的博客
+# Design System: 喜东东小站
 
 ## Overview
 

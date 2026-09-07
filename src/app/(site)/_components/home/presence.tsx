@@ -175,7 +175,7 @@ export function PresenceStatus() {
     >
       <Link
         href="/"
-        aria-label={`${siteConfig.author}的个人博客首页，实时工位：${summaryText}`}
+        aria-label={`${siteConfig.title}首页，实时工位：${summaryText}`}
         className="group relative flex items-center transition-transform duration-200 active:scale-95"
       >
         {/* 有活动时的环境微光晕 */}

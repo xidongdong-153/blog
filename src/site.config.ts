@@ -1,6 +1,6 @@
 export const siteConfig = {
   /** 站点标题，浏览器标签页和页头都用这个值 */
-  title: '喜东东的博客',
+  title: '喜东东小站',
   /** 站点简介，进首页 hero 和 SEO meta description */
   description: '一个写 TypeScript、和 AI Agent 打交道的人，在这里记录造东西过程中的弯路和发现。',
   /** 站点作者 */
