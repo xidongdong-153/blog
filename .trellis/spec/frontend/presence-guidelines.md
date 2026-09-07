@@ -55,7 +55,7 @@ Blog 只提供 `GET /api/presence`，使用 `parsePublicPresence` 校验上游�
 - `schemaVersion`：固定为 `1`。
 - `availability`：`active` 或 `hidden`。
 - `desktopApp`：`qq`、`vscode`、`ghostty`、`chatgpt`、`antigravity`、`qqmusic`、`workbuddy`、`typora`、`lightroom`、`pixcake`、`neteasemusic`，或 `null`。
-- `foregroundTool`：`pi`、`agy`、`antigravity`、`claude`，或 `null`。
+- `foregroundTool`：`pi`、`agy`、`antigravity`、`claude`、`codex`，或 `null`。
 - `backgroundTools`：去重后的 CLI ID 数组，不保留当前 CLI。
 - `terminalDetection`：`known` 或 `unknown`。
 
@@ -65,7 +65,7 @@ runtime 保存 `$HOME/.hammerspoon/presence/state/presence.json`，增加 `recei
 
 公开响应包含 `status`（`active` / `offline`）、`desktopApp`、`foregroundTool`、`backgroundTools`、`terminalDetection`、`receivedAt`、`expiresAt`。活动项为白名单 `id`、`kind`、`label`、`icon`；桌面图标使用仓库内固定路径，CLI 图标为 `null`。离线响应清空活动和时间。
 
-采集器不得保存或传输窗口标题、命令参数、cwd、提示词、聊天内容、终端输出、窗格标题、截图或原始 Herdr 响应。Pi、agy、Claude 只有在 Herdr 会话中才能参与终端焦点判断；后台运行只表示工具实例存在，不表示 AI 正在生成。
+采集器不得保存或传输窗口标题、命令参数、cwd、提示词、聊天内容、终端输出、窗格标题、截图或原始 Herdr 响应。Pi、agy、Claude、Codex 只有在 Herdr 会话中才能参与终端焦点判断；后台运行只表示工具实例存在，不表示 AI 正在生成。
 
 ## 错误与过期处理
 
@@ -102,7 +102,7 @@ node --experimental-strip-types --test src/lib/presence.test.ts
 $HOME/.hammerspoon/presence/bin/test
 ```
 
-- 白名单：11 个桌面 ID、Pi / agy / Antigravity / Claude 仅按固定映射展示。
+- 白名单：11 个桌面 ID、Pi / agy / Antigravity / Claude / Codex 仅按固定映射展示。
 - Herdr 与组合：CLI 去重，单焦点可得到当前 CLI，多焦点为 unknown；切到 VS Code 后 Pi 只能在后台。
 - 边界：内部报告拒绝未知字段、未知 ID、重复后台 ID 和焦点冲突；公开活动拒绝伪造名称、图标和非法焦点。
 - 状态：hidden、损坏和 TTL 到期不返回旧活动；Blog 上游错误返回离线且不缓存。

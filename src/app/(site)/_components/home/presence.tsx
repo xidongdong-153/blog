@@ -23,6 +23,8 @@ const TOOL_ICON_MAP: Partial<Record<string, string>> = {
   pi: '/images/presence/pi.png',
   agy: '/images/presence/antigravity.png',
   antigravity: '/images/presence/antigravity.png',
+  claude: '/images/presence/claude.png',
+  codex: '/images/presence/chatgpt.png',
 }
 
 function getToolLabel(tool: PublicActivityItem): string {
