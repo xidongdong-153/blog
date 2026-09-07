@@ -37,11 +37,27 @@ export const DESKTOP_APPS = {
     icon: '/images/presence/workbuddy.png',
     label: 'WorkBuddy',
   },
+  typora: {
+    bundleId: 'abnerworks.Typora',
+    icon: '/images/presence/typora.png',
+    label: 'Typora',
+  },
+  lightroom: {
+    bundleId: 'com.adobe.LightroomClassicCC7',
+    icon: '/images/presence/lightroom.png',
+    label: 'Adobe Lightroom Classic',
+  },
+  pixcake: {
+    bundleId: 'com.xiangtian.pixcakepc',
+    icon: '/images/presence/pixcake.png',
+    label: '像素蛋糕',
+  },
 } as const
 
 export const TERMINAL_TOOLS = {
   pi: { label: 'Pi' },
   agy: { label: 'agy' },
+  antigravity: { label: 'Antigravity' },
   claude: { label: 'Claude' },
 } as const
 
@@ -297,7 +313,12 @@ export function parsePublicPresence(value: unknown): PublicPresence | null {
 
     if (!isTerminalToolId(raw.id) || raw.icon !== null) return null
     const expected = TERMINAL_TOOLS[raw.id]
-    if (expected.label !== raw.label) return null
+    const isLabelValid =
+      expected.label === raw.label ||
+      (raw.id === 'antigravity' &&
+        (raw.label === 'antigravity' || raw.label === 'agy' || raw.label === 'Antigravity')) ||
+      (raw.id === 'agy' && (raw.label === 'agy' || raw.label === 'Antigravity'))
+    if (!isLabelValid) return null
     return { id: raw.id, kind, label: raw.label, icon: null }
   }
 

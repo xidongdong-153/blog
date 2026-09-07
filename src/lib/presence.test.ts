@@ -1,6 +1,6 @@
 /* eslint-disable test/no-import-node-test */
 
-import type { PresenceState } from './presence.ts'
+import type { PresenceState, TerminalToolId } from './presence.ts'
 import assert from 'node:assert/strict'
 import test from 'node:test'
 import {
@@ -15,7 +15,7 @@ import {
 
 const baseReport = {
   availability: 'active' as const,
-  backgroundTools: [] as ('pi' | 'agy' | 'claude')[],
+  backgroundTools: [] as TerminalToolId[],
   desktopApp: null,
   foregroundTool: null,
   schemaVersion: 1 as const,
@@ -137,4 +137,29 @@ test('过期状态公开为离线并且不带旧活动', () => {
   const active = toPublicPresence(state, Date.parse('2026-09-05T00:00:05.000Z'))
   assert.equal(active.desktopApp?.label, 'ChatGPT')
   assert.equal(active.desktopApp?.icon, '/images/presence/chatgpt.png')
+})
+
+test('支持 antigravity 与 agy 标识及别名兼容', () => {
+  const base = {
+    backgroundTools: [],
+    desktopApp: null,
+    expiresAt: '2026-09-05T00:00:10.000Z',
+    foregroundTool: null,
+    receivedAt: '2026-09-05T00:00:00.000Z',
+    status: 'active' as const,
+    terminalDetection: 'known' as const,
+  }
+  const parsedAg = parsePublicPresence({
+    ...base,
+    desktopApp: { icon: '/images/presence/ghostty.png', id: 'ghostty', kind: 'desktop', label: 'Ghostty' },
+    foregroundTool: { icon: null, id: 'antigravity', kind: 'terminal', label: 'Antigravity' },
+  })
+  assert.equal(parsedAg?.foregroundTool?.id, 'antigravity')
+
+  const parsedAgy = parsePublicPresence({
+    ...base,
+    desktopApp: { icon: '/images/presence/ghostty.png', id: 'ghostty', kind: 'desktop', label: 'Ghostty' },
+    foregroundTool: { icon: null, id: 'agy', kind: 'terminal', label: 'agy' },
+  })
+  assert.equal(parsedAgy?.foregroundTool?.id, 'agy')
 })
