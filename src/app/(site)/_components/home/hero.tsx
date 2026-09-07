@@ -76,7 +76,7 @@ export function Hero({ profile }: HeroProps) {
         {/* 英文主标题与开发方向 */}
         <div className="flex flex-col items-center gap-4">
           <h1 className="text-balance font-serif text-4xl font-normal leading-[1.08] tracking-normal text-foreground sm:text-6xl lg:text-7xl">
-            <span className="block">I build software</span>{' '}
+            <span className="block">Building software</span>{' '}
             <span className="block">
               and <span className="italic text-primary">AI agents.</span>
             </span>
