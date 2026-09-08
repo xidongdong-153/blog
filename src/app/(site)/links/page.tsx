@@ -1,21 +1,42 @@
+/* eslint-disable next/no-img-element */
 import type { Metadata } from 'next'
+import { desc, eq } from 'drizzle-orm'
 import { CopyInviteButton } from '@/app/(site)/_components/links/copy-invite-button'
 import { FriendApplyButton } from '@/app/(site)/_components/links/friend-apply-button'
+import { db } from '@/server/infra/db/client'
+import { friendLinks } from '@/server/infra/db/schema'
 import { siteConfig } from '@/site.config'
 
 export const metadata: Metadata = {
   title: '友链',
 }
 
-interface FriendLink {
+interface FriendLinkItem {
   name: string
   description: string
   url: string
+  avatarUrl?: string
 }
 
-const FRIEND_LINKS: FriendLink[] = []
+export default async function LinksPage() {
+  let friendLinksList: FriendLinkItem[] = []
 
-export default function LinksPage() {
+  try {
+    const records = await db.query.friendLinks.findMany({
+      where: eq(friendLinks.status, 'approved'),
+      orderBy: [desc(friendLinks.sortOrder), desc(friendLinks.createdAt)],
+    })
+
+    friendLinksList = records.map((r) => ({
+      name: r.name,
+      description: r.description,
+      url: r.url,
+      avatarUrl: r.avatarUrl || undefined,
+    }))
+  } catch (err) {
+    console.error('[LinksPage] 查询友链数据失败:', err)
+  }
+
   return (
     <div className="mx-auto flex w-full max-w-3xl flex-col gap-12">
       {/* 页面主标题 */}
@@ -28,9 +49,9 @@ export default function LinksPage() {
       {/* 友链网格 */}
       <section className="flex flex-col gap-4">
         <div className="font-mono text-xs tracking-wider text-muted-foreground">// 01. 推荐站点</div>
-        {FRIEND_LINKS.length > 0 ? (
+        {friendLinksList.length > 0 ? (
           <div className="grid gap-4 sm:grid-cols-2">
-            {FRIEND_LINKS.map((link) => (
+            {friendLinksList.map((link) => (
               <a
                 key={link.name}
                 href={link.url}
@@ -40,9 +61,18 @@ export default function LinksPage() {
               >
                 <div className="flex flex-col gap-1.5">
                   <div className="flex items-center justify-between">
-                    <h3 className="font-serif text-lg font-medium text-foreground transition-colors group-hover:text-primary">
-                      {link.name}
-                    </h3>
+                    <div className="flex items-center gap-2">
+                      {link.avatarUrl ? (
+                        <img
+                          src={link.avatarUrl}
+                          alt={link.name}
+                          className="h-5 w-5 rounded border border-border/50 object-cover"
+                        />
+                      ) : null}
+                      <h3 className="font-serif text-lg font-medium text-foreground transition-colors group-hover:text-primary">
+                        {link.name}
+                      </h3>
+                    </div>
                     <span className="font-mono text-xs text-muted-foreground transition-transform group-hover:translate-x-0.5">
                       ↗
                     </span>

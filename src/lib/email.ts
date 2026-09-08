@@ -11,6 +11,7 @@ export interface FriendApplyPayload {
   avatarUrl?: string
   description: string
   hasAddedUs: boolean
+  reviewToken?: string
 }
 
 /**
@@ -64,6 +65,13 @@ export function renderFriendApplyEmail(payload: FriendApplyPayload): string {
   const safeDescription = escapeHtml(payload.description.trim())
   const safeTime = formatEmailTime()
 
+  const approveUrl = payload.reviewToken
+    ? `${siteConfig.url}/links/review?token=${encodeURIComponent(payload.reviewToken)}&action=approve`
+    : ''
+  const rejectUrl = payload.reviewToken
+    ? `${siteConfig.url}/links/review?token=${encodeURIComponent(payload.reviewToken)}&action=reject`
+    : ''
+
   const addedStatusHtml = payload.hasAddedUs
     ? '<span style="color: #15803d; font-weight: 500;">已在对方站点添加本站</span>'
     : '<span style="color: #71717a;">未确认或暂未添加</span>'
@@ -74,6 +82,25 @@ export function renderFriendApplyEmail(payload: FriendApplyPayload): string {
          <a href="${safeAvatarUrl}" target="_blank" rel="noopener noreferrer" style="font-family: ui-monospace, Menlo, monospace; font-size: 11px; color: #71717a; text-decoration: none; word-break: break-all;">${safeAvatarUrl}</a>
        </div>`
     : '<span style="color: #a1a1aa; font-family: ui-monospace, Menlo, monospace; font-size: 12px;">(未提供)</span>'
+
+  const reviewActionsHtml = payload.reviewToken
+    ? `<!-- 第一行：一键审批操作 -->
+       <table role="presentation" border="0" cellpadding="0" cellspacing="0" style="margin-bottom: 12px;">
+         <tr>
+           <td style="border-radius: 6px; background-color: #16a34a; text-align: center;">
+             <a href="${approveUrl}" target="_blank" rel="noopener noreferrer" style="display: inline-block; padding: 10px 18px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size: 13px; font-weight: 600; color: #ffffff; text-decoration: none; border-radius: 6px; letter-spacing: 0.02em;">
+               通过并展示
+             </a>
+           </td>
+           <td style="width: 14px; min-width: 14px;"></td>
+           <td style="border-radius: 6px; background-color: #f4f4f5; border: 1px solid #e4e4e7; text-align: center;">
+             <a href="${rejectUrl}" target="_blank" rel="noopener noreferrer" style="display: inline-block; padding: 10px 18px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size: 13px; font-weight: 500; color: #52525b; text-decoration: none; border-radius: 6px;">
+               婉拒申请
+             </a>
+           </td>
+         </tr>
+       </table>`
+    : ''
 
   return `<!DOCTYPE html>
 <html lang="zh-CN">
@@ -175,15 +202,33 @@ export function renderFriendApplyEmail(payload: FriendApplyPayload): string {
           </div>
         </div>
 
-        <!-- 快捷操作栏 -->
-        <div style="margin-top: 24px; padding-top: 20px; border-top: 1px solid #f0f0ed; display: flex; gap: 12px;">
-          <a href="${safeSiteUrl}" target="_blank" rel="noopener noreferrer" style="display: inline-block; background-color: #18181b; color: #fafafa; padding: 9px 16px; font-size: 12px; font-family: ui-monospace, Menlo, monospace; text-decoration: none; border-radius: 6px; font-weight: 500;">
-            访问该小站 ↗
-          </a>
-          <a href="mailto:${safeEmail}?subject=${encodeURIComponent(`关于「${payload.siteName}」与「${siteConfig.title}」的友链交换`)}" style="display: inline-block; background-color: #f4f4f5; color: #18181b; padding: 9px 16px; font-size: 12px; font-family: ui-monospace, Menlo, monospace; text-decoration: none; border-radius: 6px; border: 1px solid #e4e4e7; font-weight: 500;">
-            回复邮件 ✉
-          </a>
-        </div>
+        <!-- 快捷审批与操作栏：使用独立表格与固定物理间距单元格，杜绝按钮粘连 -->
+        <table role="presentation" border="0" cellpadding="0" cellspacing="0" style="margin-top: 24px; padding-top: 20px; border-top: 1px solid #f0f0ed; width: 100%;">
+          <tr>
+            <td>
+              <div style="font-family: ui-monospace, Menlo, monospace; font-size: 11px; text-transform: uppercase; color: #71717a; margin-bottom: 12px;">
+                // 快捷处理
+              </div>
+              ${reviewActionsHtml}
+              <!-- 辅助操作 -->
+              <table role="presentation" border="0" cellpadding="0" cellspacing="0">
+                <tr>
+                  <td style="border-radius: 6px; background-color: #18181b; text-align: center;">
+                    <a href="${safeSiteUrl}" target="_blank" rel="noopener noreferrer" style="display: inline-block; padding: 8px 15px; font-family: ui-monospace, Menlo, monospace; font-size: 12px; font-weight: 500; color: #fafafa; text-decoration: none; border-radius: 6px;">
+                      访问该小站 ↗
+                    </a>
+                  </td>
+                  <td style="width: 14px; min-width: 14px;"></td>
+                  <td style="border-radius: 6px; background-color: #ffffff; border: 1px solid #e4e4e7; text-align: center;">
+                    <a href="mailto:${safeEmail}?subject=${encodeURIComponent(`关于「${payload.siteName}」与「${siteConfig.title}」的友链交换`)}" style="display: inline-block; padding: 8px 15px; font-family: ui-monospace, Menlo, monospace; font-size: 12px; font-weight: 500; color: #18181b; text-decoration: none; border-radius: 6px;">
+                      回复邮件 ✉
+                    </a>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+        </table>
       </td>
     </tr>
 
@@ -202,6 +247,13 @@ export function renderFriendApplyEmail(payload: FriendApplyPayload): string {
  * 渲染纯文本版本的友链申请内容（用于邮件客户端降级与反垃圾过滤器评分）
  */
 export function renderFriendApplyText(payload: FriendApplyPayload): string {
+  const approveUrl = payload.reviewToken
+    ? `${siteConfig.url}/links/review?token=${encodeURIComponent(payload.reviewToken)}&action=approve`
+    : ''
+  const rejectUrl = payload.reviewToken
+    ? `${siteConfig.url}/links/review?token=${encodeURIComponent(payload.reviewToken)}&action=reject`
+    : ''
+
   const lines = [
     `// 友链申请 · 来自「${payload.siteName}」的互换申请`,
     '',
@@ -216,6 +268,7 @@ export function renderFriendApplyText(payload: FriendApplyPayload): string {
     '// 站点简介：',
     payload.description,
     '',
+    payload.reviewToken ? `// 一键审批操作：\n通过上线：${approveUrl}\n婉拒申请：${rejectUrl}\n` : '',
     `---\n此邮件由 ${siteConfig.title} 自动发出 · ${siteConfig.url}`,
   ]
   return lines.filter(Boolean).join('\n')
