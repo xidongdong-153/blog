@@ -30,22 +30,11 @@ const PROJECTS: Project[] = [
     status: 'active',
   },
   {
-    title: 'Starter Web',
-    description: 'TypeScript 全栈模板，包含 Next.js Web、Vite 管理后台与 Hono API，集成 Drizzle ORM 与 Better Auth。',
-    tags: ['TypeScript', 'Next.js', 'Hono', 'Drizzle ORM', 'Turborepo'],
+    title: 'Starter',
+    description:
+      'TypeScript 全栈 Monorepo 脚手架，包含 Next.js 前台、Vite React 管理后台与 Hono API 服务，集成 Better Auth、Drizzle ORM 与 SQLite。',
+    tags: ['TypeScript', 'Turborepo', 'Next.js', 'Hono', 'Drizzle ORM'],
     github: 'https://github.com/xidongdong-153/starter',
-    status: 'maintained',
-  },
-  {
-    title: 'Trellis Workflow Engine',
-    description: '任务驱动的 AI Agent 协作工作流引擎，规范人机协同开发流程与上下文管理。',
-    tags: ['AI Agent', 'CLI', 'Workflow', 'Specification'],
-    status: 'active',
-  },
-  {
-    title: 'Impeccable Design System',
-    description: '高反差技术出版物美学组件库，聚焦工业克制微标、细线导轨与流体交融动效。',
-    tags: ['Design System', 'Typography', 'Micro-interactions'],
     status: 'maintained',
   },
 ]
