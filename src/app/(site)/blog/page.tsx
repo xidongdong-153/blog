@@ -1,7 +1,6 @@
 import type { Metadata } from 'next'
 import type { BlogCategory, BlogSortOrder } from '@/lib/content'
-import Link from 'next/link'
-import { BLOG_CATEGORY_LABELS, getAllBlogPosts, getAllBlogTags, sortBlogPosts } from '@/lib/content'
+import { getAllBlogPosts, getAllBlogTags, sortBlogPosts } from '@/lib/content'
 import { BlogSidebar } from '../_components/blog/blog-sidebar'
 import { BlogToolbar } from '../_components/blog/blog-toolbar'
 import { Paginator } from '../_components/blog/paginator'
@@ -92,7 +91,7 @@ export default async function BlogPage({ searchParams }: BlogPageProps) {
     <div className="mx-auto w-full max-w-5xl">
       <main>
         <div id="content-header" className="mb-6">
-          <div className="mb-2 font-mono text-xs tracking-wider text-muted-foreground">// 文章归档</div>
+          <div className="mb-2 font-mono text-xs tracking-wider text-muted-foreground">// 写作与手记</div>
           <h1 className="font-serif text-3xl font-medium tracking-tight text-foreground sm:text-4xl">文章</h1>
         </div>
 
@@ -105,21 +104,6 @@ export default async function BlogPage({ searchParams }: BlogPageProps) {
 
             <div className="grid gap-y-16 sm:grid-cols-[3fr_1fr] sm:gap-x-8">
               <section aria-label="文章列表" id="content">
-                {/* 列表头部信息条 */}
-                <div className="mb-3 flex flex-col justify-between text-sm sm:mb-4 sm:flex-row">
-                  <span className="text-muted-foreground">
-                    {activeCategory ? `${BLOG_CATEGORY_LABELS[activeCategory]} · ` : ''}第 {currentPage} 页 · 共{' '}
-                    {totalPosts} 篇
-                  </span>
-                  <Link
-                    aria-label="按年份查看全部文章"
-                    href="/blog/archives"
-                    className="text-muted-foreground transition-colors hover:text-primary hover:underline"
-                  >
-                    按年份查看全部文章 →
-                  </Link>
-                </div>
-
                 {/* 文章列表 */}
                 {posts.length > 0 ? (
                   <ul className="flex flex-col text-start">

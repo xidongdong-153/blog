@@ -68,35 +68,48 @@ export function BlogToolbar({ currentCategory, currentSort, categoryCounts }: Bl
         })}
       </nav>
 
-      {/* 排序模式组 */}
-      <div className="flex items-center gap-2 font-mono text-xs sm:justify-end">
-        <span className="tracking-wider text-muted-foreground">// 排序</span>
-        <div className="flex items-center gap-1">
-          {SORT_OPTIONS.map((sortKey, index) => {
-            const isActive = currentSort === sortKey
-            const href = buildQueryString(currentCategory, sortKey)
-            const label = BLOG_SORT_LABELS[sortKey]
+      {/* 排序模式与时间线入口 */}
+      <div className="flex flex-wrap items-center gap-3 font-mono text-xs sm:justify-end">
+        <div className="flex items-center gap-2">
+          <span className="tracking-wider text-muted-foreground">// 排序</span>
+          <div className="flex items-center gap-1">
+            {SORT_OPTIONS.map((sortKey, index) => {
+              const isActive = currentSort === sortKey
+              const href = buildQueryString(currentCategory, sortKey)
+              const label = BLOG_SORT_LABELS[sortKey]
 
-            return (
-              <span key={sortKey} className="flex items-center gap-1">
-                {index > 0 && <span className="text-border/80">·</span>}
-                <Link
-                  href={href}
-                  scroll={false}
-                  aria-current={isActive ? 'true' : undefined}
-                  className={[
-                    'px-1 py-0.5 transition-colors',
-                    isActive
-                      ? 'font-medium text-foreground underline underline-offset-4 decoration-primary'
-                      : 'text-muted-foreground hover:text-foreground',
-                  ].join(' ')}
-                >
-                  {label}
-                </Link>
-              </span>
-            )
-          })}
+              return (
+                <span key={sortKey} className="flex items-center gap-1">
+                  {index > 0 && <span className="text-border/80">·</span>}
+                  <Link
+                    href={href}
+                    scroll={false}
+                    aria-current={isActive ? 'true' : undefined}
+                    className={[
+                      'px-1 py-0.5 transition-colors',
+                      isActive
+                        ? 'font-medium text-foreground underline underline-offset-4 decoration-primary'
+                        : 'text-muted-foreground hover:text-foreground',
+                    ].join(' ')}
+                  >
+                    {label}
+                  </Link>
+                </span>
+              )
+            })}
+          </div>
         </div>
+
+        <span className="hidden text-border/80 sm:inline">/</span>
+
+        <Link
+          href="/blog/archives"
+          aria-label="按时间线查看全部文章"
+          className="inline-flex items-center gap-1 rounded-md border border-border/60 bg-muted/20 px-2 py-0.5 text-muted-foreground transition-colors hover:border-foreground/30 hover:bg-muted/50 hover:text-foreground"
+        >
+          <span>时间线</span>
+          <span className="text-xs">↗</span>
+        </Link>
       </div>
     </div>
   )
