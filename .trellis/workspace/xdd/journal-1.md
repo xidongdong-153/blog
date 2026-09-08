@@ -561,3 +561,26 @@ trellis init -u xdd --pi 完成，填充 .trellis/spec/frontend 5 个规范文�
 ### Status
 
 [OK] **Completed**
+
+
+## Session 22: 优化页脚UI与迁移明暗主题切换
+<!-- trellis-session: v=2 fp=5a3ba39a0d7f05d7 -->
+
+**Date**: 2026-09-08
+**Task**: 优化页脚UI与迁移明暗主题切换
+**Branch**: `main`
+
+### Summary
+
+参考 innei.in 优化页脚为精简双层布局，将顶栏明暗切换迁移至页脚三态直选，新增动态 RSS 路由并更新黑锋骑士团标语
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `13367d3` | feat(footer): 优化页脚为精简双层结构，迁移主题直选、新增 RSS 路由并更新标语 |
+| `f9c89aa` | chore(task): archive 09-08-footer-redesign-and-theme-toggle |
+
+### Status
+
+[OK] **Completed**
