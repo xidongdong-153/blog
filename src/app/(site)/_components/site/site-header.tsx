@@ -5,7 +5,6 @@ import { usePathname } from 'next/navigation'
 import { useEffect, useRef, useState } from 'react'
 import { siteConfig } from '@/site.config'
 import { PresenceStatus } from '../home/presence'
-import { ThemeToggle } from './theme-toggle'
 
 /**
  * 液体融合胶囊页头。
@@ -165,7 +164,6 @@ export function SiteHeader() {
               </Link>
             ))}
           </nav>
-          <ThemeToggle />
           <button
             type="button"
             aria-label="切换菜单"
