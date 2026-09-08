@@ -37,7 +37,7 @@ jobs:
       - name: Install dependencies
         run: |
           set -euo pipefail
-          printf 'allowBuilds:\n  sharp: true\n' > pnpm-workspace.yaml
+          printf 'allowBuilds:\n  sharp: true\n  esbuild: true\n' > pnpm-workspace.yaml
           pnpm install --frozen-lockfile
 
       - name: Typecheck
@@ -119,7 +119,11 @@ jobs:
           cd "$app_dir"
           echo "Checking the server worktree"
           worktree_status="$(git status --porcelain --untracked-files=all)"
-          expected_pnpm_config=$'allowBuilds:\n  sharp: true\n'
+          old_pnpm_config=$'allowBuilds:\n  sharp: true\n'
+          expected_pnpm_config=$'allowBuilds:\n  sharp: true\n  esbuild: true\n'
+          if [[ -f pnpm-workspace.yaml ]] && cmp -s pnpm-workspace.yaml <(printf '%s' "$old_pnpm_config"); then
+            printf '%s' "$expected_pnpm_config" > pnpm-workspace.yaml
+          fi
           pnpm_config_status="$(git status --porcelain --untracked-files=all --ignored -- pnpm-workspace.yaml)"
           if git ls-files --error-unmatch -- pnpm-workspace.yaml >/dev/null 2>&1 ||
             [[ "$pnpm_config_status" != '' && "$pnpm_config_status" != '?? pnpm-workspace.yaml' ]]; then
