@@ -23,6 +23,8 @@ yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
 /.cache/presence/
+*.db
+*.db-journal
 
 # env files
 .env*

@@ -89,6 +89,8 @@ jobs:
           RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
           FRIEND_APPLY_NOTIFY_EMAIL: ${{ vars.FRIEND_APPLY_NOTIFY_EMAIL || secrets.FRIEND_APPLY_NOTIFY_EMAIL }}
           RESEND_FROM_EMAIL: ${{ vars.RESEND_FROM_EMAIL || secrets.RESEND_FROM_EMAIL }}
+          TURSO_DATABASE_URL: ${{ vars.TURSO_DATABASE_URL || secrets.TURSO_DATABASE_URL }}
+          TURSO_AUTH_TOKEN: ${{ secrets.TURSO_AUTH_TOKEN }}
         run: |
           set -euo pipefail
           test -n "$DEPLOY_HOST"
@@ -104,12 +106,14 @@ jobs:
             -p "$DEPLOY_PORT"
           )
 
-          ssh "${ssh_args[@]}" "$DEPLOY_USER@$DEPLOY_HOST" bash -s -- "$TARGET_SHA" "${RESEND_API_KEY:-}" "${FRIEND_APPLY_NOTIFY_EMAIL:-}" "${RESEND_FROM_EMAIL:-}" <<'REMOTE'
+          ssh "${ssh_args[@]}" "$DEPLOY_USER@$DEPLOY_HOST" bash -s -- "$TARGET_SHA" "${RESEND_API_KEY:-}" "${FRIEND_APPLY_NOTIFY_EMAIL:-}" "${RESEND_FROM_EMAIL:-}" "${TURSO_DATABASE_URL:-}" "${TURSO_AUTH_TOKEN:-}" <<'REMOTE'
           set -euo pipefail
           target_sha="${1:?missing target SHA}"
           resend_api_key="${2:-}"
           friend_apply_notify_email="${3:-}"
           resend_from_email="${4:-}"
+          turso_database_url="${5:-}"
+          turso_auth_token="${6:-}"
           app_dir=/home/deploy/code/xdd/blog
 
           cd "$app_dir"
@@ -179,6 +183,8 @@ jobs:
           sync_env_var "RESEND_API_KEY" "$resend_api_key"
           sync_env_var "FRIEND_APPLY_NOTIFY_EMAIL" "$friend_apply_notify_email"
           sync_env_var "RESEND_FROM_EMAIL" "$resend_from_email"
+          sync_env_var "TURSO_DATABASE_URL" "$turso_database_url"
+          sync_env_var "TURSO_AUTH_TOKEN" "$turso_auth_token"
 
           source /home/deploy/.nvm/nvm.sh
           echo "Installing dependencies"
