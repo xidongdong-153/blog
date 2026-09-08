@@ -479,3 +479,41 @@ trellis init -u xdd --pi 完成，填充 .trellis/spec/frontend 5 个规范文�
 ### Status
 
 [OK] **Completed**
+
+
+## Session 19: 支持文章主题分类、多维排序与去卡片化列表排版
+<!-- trellis-session: v=2 fp=fb524769bc03c966 -->
+
+**Date**: 2026-09-08
+**Task**: 支持文章主题分类、多维排序与去卡片化列表排版
+**Branch**: `main`
+
+### Summary
+
+增加技术/捣鼓/随想文章分类与最新/最早/最近更新多维时间排序，重构列表组件移除卡片包裹转为极简出版物排版
+
+### Main Changes
+
+- 在 src/lib/content.ts 中加入 BlogCategory 枚举与强制校验，提供 sortBlogPosts 排序与分类计数辅助函数
+- 为现有 4 篇文章的 frontmatter 补充对应的 category 字段
+- 新建 BlogToolbar 组件，提供分类切换（无全部按钮，反选还原）与多维时间排序
+- 重构 PostCard 组件，剥离卡片描边与背景色，改用底部分割线与开阔留白排版
+- 更新 content-guidelines.md 与 feature-status.md 规范
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `cc2fb2f` | feat(blog): 支持文章主题分类、多维时间排序与去卡片化列表排版 |
+| `6d6b74a` | docs(spec): 更新文章分类规范与功能状态清单 |
+
+### Testing
+
+- [OK] pnpm typecheck 通过（零类型错误）
+- [OK] pnpm lint 通过（零 lint 报错）
+- [OK] pnpm format:check 通过
+- [OK] pnpm build 全站构建通过，所有静态页面与动态路由生成正常
+
+### Status
+
+[OK] **Completed**
