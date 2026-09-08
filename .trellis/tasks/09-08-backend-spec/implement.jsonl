@@ -1,0 +1,3 @@
+{"file": "/Users/wuwanzhu/Code/xdd/starter/.trellis/spec/api/backend/index.md", "reason": "用户指定的参考结构：入口 index + 分主题文件 + 开发前检查的组织方式，注意 blog 只取结构不取内容"}
+{"file": ".trellis/spec/frontend/index.md", "reason": "本项目现有 spec 层的入口写法，新 backend 层保持同等风格"}
+{"file": ".trellis/spec/frontend/directory-structure.md", "reason": "本项目 directory-structure 类文档的现有写法和粒度参照"}

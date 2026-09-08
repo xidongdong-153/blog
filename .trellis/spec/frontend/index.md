@@ -4,7 +4,7 @@
 
 ## 技术栈
 
-Next.js 16（App Router）+ React 19 + TypeScript strict + Tailwind CSS 4 + MDX。无数据库、无独立业务后端、无状态库、无测试框架（活动协议使用 Node 内置测试），Blog 提供只读活动 API。部署在自有服务器上，由 GitHub Actions 完成检查和发布；`xdd-blog.service` 监听 `127.0.0.1:4400`。
+Next.js 16（App Router）+ React 19 + TypeScript strict + Tailwind CSS 4 + MDX。数据库用 Turso（libSQL）+ Drizzle ORM，server 端约定见[后端规范](../backend/index.md)。无独立业务后端、无状态库、无测试框架（活动协议使用 Node 内置测试），Blog 提供只读活动 API。部署在自有服务器上，由 GitHub Actions 完成检查和发布；`xdd-blog.service` 监听 `127.0.0.1:4400`。
 
 ## 规范索引
 

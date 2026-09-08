@@ -1,0 +1,2 @@
+{"file": ".trellis/spec/frontend/index.md", "reason": "检查 backend spec 与现有 frontend spec 风格一致"}
+{"file": ".trellis/spec/frontend/quality-guidelines.md", "reason": "现有质量类 spec 的写法参照，核对 backend index 的质量检查节"}
