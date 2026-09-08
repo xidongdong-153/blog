@@ -584,3 +584,25 @@ trellis init -u xdd --pi 完成，填充 .trellis/spec/frontend 5 个规范文�
 ### Status
 
 [OK] **Completed**
+
+
+## Session 23: 友链申请弹窗与邮件通知功能实现
+<!-- trellis-session: v=2 fp=2791eeed635e6da3 -->
+
+**Date**: 2026-09-08
+**Task**: 友链申请弹窗与邮件通知功能实现
+**Branch**: `main`
+
+### Summary
+
+设计并实现符合出版物排版风格的友链申请弹窗与内联邮件通知。弹窗提供本站配置一键复制与亲切文案，后端接口集成参数校验、频控防刷与 Resend 邮件投递（开发模式自动降级 Mock）。修复了顶栏文字层级穿透、表单紧凑排布与定制暗色细滚动条。
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `f91976b` | feat(links): 新增友链申请弹窗与出版物风格邮件通知 |
+
+### Status
+
+[OK] **Completed**

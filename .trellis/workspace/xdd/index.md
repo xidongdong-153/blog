@@ -8,7 +8,7 @@
 
 <!-- @@@auto:current-status -->
 - **Active File**: `journal-1.md`
-- **Total Sessions**: 22
+- **Total Sessions**: 23
 - **Last Active**: 2026-09-08
 <!-- @@@/auto:current-status -->
 
@@ -19,7 +19,7 @@
 <!-- @@@auto:active-documents -->
 | File | Lines | Status |
 |------|-------|--------|
-| `journal-1.md` | ~586 | Active |
+| `journal-1.md` | ~608 | Active |
 <!-- @@@/auto:active-documents -->
 
 ---
@@ -29,6 +29,7 @@
 <!-- @@@auto:session-history -->
 | # | Date | Title | Commits | Branch |
 |---|------|-------|---------|--------|
+| 23 | 2026-09-08 | 友链申请弹窗与邮件通知功能实现 | `f91976b` | `main` |
 | 22 | 2026-09-08 | 优化页脚UI与迁移明暗主题切换 | `13367d3`, `f9c89aa` | `main` |
 | 21 | 2026-09-08 | 配置站点地图与爬虫规则 | `87fdaf8` | `main` |
 | 20 | 2026-09-08 | 优化文章页面时间线入口排版 | `4702d89` | `main` |
