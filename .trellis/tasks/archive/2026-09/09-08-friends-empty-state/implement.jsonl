@@ -1,0 +1,4 @@
+{"file": ".trellis/spec/frontend/index.md", "reason": "前端开发清单与规范索引，确定本次页面改动适用的规则。"}
+{"file": ".trellis/spec/frontend/component-guidelines.md", "reason": "确认页面组件、空列表文案、Tailwind 语义色和响应式结构约定。"}
+{"file": ".trellis/spec/frontend/directory-structure.md", "reason": "确认公开页面的修改位置和页面私有组件边界。"}
+{"file": ".trellis/spec/frontend/quality-guidelines.md", "reason": "确认页面改动后的类型、lint、格式、构建和 UI 设计检测命令。"}

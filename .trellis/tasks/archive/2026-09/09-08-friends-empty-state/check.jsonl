@@ -1,0 +1,4 @@
+{"file": ".trellis/spec/frontend/index.md", "reason": "检查实现是否遵守前端开发清单和适用规范。"}
+{"file": ".trellis/spec/frontend/component-guidelines.md", "reason": "检查空状态结构、组件边界、语义色和响应式样式。"}
+{"file": ".trellis/spec/frontend/directory-structure.md", "reason": "检查修改位置是否符合公开页面目录约定。"}
+{"file": ".trellis/spec/frontend/quality-guidelines.md", "reason": "检查质量门禁和页面视觉检测是否执行。"}
