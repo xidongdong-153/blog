@@ -179,18 +179,32 @@ html {
   height: auto;
 }
 
-#sidebar {
+#sidebar,
+.custom-scrollbar {
   scrollbar-width: thin;
   scrollbar-color: hsl(var(--border)) transparent;
 }
 
-#sidebar::-webkit-scrollbar {
+#sidebar::-webkit-scrollbar,
+.custom-scrollbar::-webkit-scrollbar {
   width: 4px;
+  height: 4px;
 }
 
-#sidebar::-webkit-scrollbar-thumb {
+#sidebar::-webkit-scrollbar-track,
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+#sidebar::-webkit-scrollbar-thumb,
+.custom-scrollbar::-webkit-scrollbar-thumb {
   background-color: hsl(var(--border));
   border-radius: 9999px;
+}
+
+#sidebar::-webkit-scrollbar-thumb:hover,
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background-color: hsl(var(--muted-foreground) / 0.5);
 }
 
 /* rehype-pretty-code 语法高亮双主题变量映射 */

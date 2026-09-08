@@ -1,0 +1,2 @@
+{"file": ".trellis/spec/frontend/component-guidelines.md", "reason": "前端组件划分、Tailwind语义token与出版物排版规范"}
+{"file": ".trellis/spec/frontend/type-safety.md", "reason": "TypeScript类型安全与API路由输入校验"}

@@ -1,5 +1,5 @@
 import type { Metadata } from 'next'
-import Link from 'next/link'
+import { FriendApplyButton } from '@/app/(site)/_components/links/friend-apply-button'
 import { siteConfig } from '@/site.config'
 
 export const metadata: Metadata = {
@@ -67,17 +67,8 @@ export default function LinksPage() {
               </p>
             </div>
 
-            <div className="flex flex-col gap-4 border-t border-border/40 pt-4 sm:flex-row sm:items-center sm:justify-between">
-              <div className="font-mono text-xs tracking-wider text-muted-foreground">
-                当前条目数：<span className="text-foreground">0</span>
-              </div>
-              <Link
-                href="/contact"
-                className="inline-flex w-fit items-center gap-1.5 rounded-md border border-border/60 bg-muted/30 px-3 py-2 font-mono text-xs text-foreground motion-safe:transition-colors hover:border-foreground/30 hover:bg-muted/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
-              >
-                申请友链
-                <span aria-hidden="true">↗</span>
-              </Link>
+            <div className="border-t border-border/40 pt-4">
+              <div className="font-mono text-xs tracking-wider text-muted-foreground">// 这个人还没有朋友</div>
             </div>
           </div>
         )}
@@ -96,12 +87,17 @@ export default function LinksPage() {
           </ul>
         </div>
 
-        <div className="mt-2 rounded-lg border border-border/60 bg-card/40 p-4 font-mono text-xs text-muted-foreground">
-          <div className="text-foreground font-semibold mb-1.5">// 本站信息参考：</div>
-          <div>名称：{siteConfig.title}</div>
-          <div>简介：{siteConfig.description}</div>
-          <div>作者：{siteConfig.author}</div>
-          <div>网址：{siteConfig.url}</div>
+        <div className="mt-2 flex flex-col gap-3 rounded-lg border border-border/60 bg-card/40 p-4 font-mono text-xs text-muted-foreground">
+          <div>
+            <div className="text-foreground font-semibold mb-1.5">// 本站信息参考：</div>
+            <div>名称：{siteConfig.title}</div>
+            <div>简介：{siteConfig.description}</div>
+            <div>作者：{siteConfig.author}</div>
+            <div>网址：{siteConfig.url}</div>
+          </div>
+          <div className="border-t border-border/30 pt-3">
+            <FriendApplyButton />
+          </div>
         </div>
       </section>
     </div>
