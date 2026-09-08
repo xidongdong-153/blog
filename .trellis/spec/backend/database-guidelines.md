@@ -79,6 +79,7 @@ pnpm db:studio     # 打开 drizzle-kit studio，本地默认连 file:local.db
 
 ## 现状记录
 
-- `system_health_checks` 表已在 `schema/system.ts` 定义，没有任何代码写入或读取它。它是给健康检查历史记录预留的；等 status 页或 `/api/system/db-check` 要落盘检查记录时启用，启用后回头更新本节。
-- `src/server/infra/db/migrations/` 目录不存在，`db:generate` 从未执行过。
-- status 页（`src/app/(site)/status/page.tsx`）和 `/api/system/db-check`（`src/server/routes/system.ts`）各写了一份 `SELECT 1` 测延迟的逻辑。要不要合并成一个共用函数，等出现第二个真实查询场景再判断，触发条件见[服务调用规范](./service-call-guidelines.md)的「何时拆 service 层」。
+- `system_health_checks` 表已在 `schema/system.ts` 定义，给健康检查历史记录预留。
+- `site_friend_links` 表已在 `schema/links.ts` 定义并接入 `schema/index.ts`，用于友链数据持久化、待审记录与一次性审核令牌流转；前台友链页（`/links`）与审批接口读写此表。
+- `drizzle.config.ts` 已支持检测并自动载入 `.env.local`，执行 `pnpm db:*` 命令时自动连通线上 Turso 或本地文件库。
+- `src/server/infra/db/migrations/` 已生成迁移并应用至数据库。

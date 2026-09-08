@@ -14,6 +14,7 @@
 | 三态主题切换（明 / 系统 / 暗） | 已实现                 | `src/app/(site)/_components/site/theme-toggle.tsx`（页脚工具条）               |
 | sticky 胶囊页头                    | 已实现                 | `src/app/(site)/_components/site/site-header.tsx`                              |
 | 项目 / 友链 / 关于 / 联系          | 已实现                 | `src/app/(site)/` 对应目录                                                     |
+| 友链申请与邮件一键审批             | 已实现                 | `src/app/(site)/links/`、`src/server/routes/links.ts`、`src/lib/email.ts`      |
 | 站内搜索                           | 占位页，方案见页面注释 | `src/app/(site)/search/page.tsx`                                               |
 | Giscus 评论                        | 已实现                 | `src/app/(site)/_components/comment/giscus-comments.tsx`                       |
 | RSS                                | 已实现                 | `src/app/rss.xml/route.ts`                                                     |
