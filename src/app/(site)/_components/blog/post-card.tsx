@@ -35,26 +35,35 @@ export function PostCard({
 
   return (
     <Component className={containerClasses}>
-      <Link href={`/blog/${post.slug}`} className="group/link flex w-full flex-col">
-        {/* 顶部技术等宽眉标 (Mono Kicker) */}
-        <div className="mb-2 flex flex-wrap items-center gap-2 font-mono text-xs tracking-wider text-muted-foreground">
-          <span className="font-semibold text-foreground/80">{post.draft ? '// 草稿' : `// ${categoryLabel}`}</span>
-          <span className="text-border">/</span>
-          <time dateTime={post.date}>{formatDate(post.date)}</time>
-          {showUpdatedDate && post.updatedDate && (
-            <>
-              <span className="text-border">/</span>
-              <span className="text-primary/90">更新于 {formatDate(post.updatedDate)}</span>
-            </>
-          )}
-          {detailed && (
-            <>
-              <span className="text-border">/</span>
-              <span>{readingTime}</span>
-            </>
-          )}
-        </div>
+      {/* 顶部技术等宽眉标 (Mono Kicker) */}
+      <div className="mb-2 flex flex-wrap items-center gap-2 font-mono text-xs tracking-wider text-muted-foreground">
+        {post.draft ? (
+          <span className="font-semibold text-foreground/80">// 草稿</span>
+        ) : (
+          <Link
+            href={`/blog?category=${post.category}`}
+            className="font-semibold text-foreground/80 transition-colors hover:text-primary hover:underline"
+          >
+            // {categoryLabel}
+          </Link>
+        )}
+        <span className="text-border">/</span>
+        <time dateTime={post.date}>{formatDate(post.date)}</time>
+        {showUpdatedDate && post.updatedDate && (
+          <>
+            <span className="text-border">/</span>
+            <span className="text-primary/90">更新于 {formatDate(post.updatedDate)}</span>
+          </>
+        )}
+        {detailed && (
+          <>
+            <span className="text-border">/</span>
+            <span>{readingTime}</span>
+          </>
+        )}
+      </div>
 
+      <Link href={`/blog/${post.slug}`} className="group/link flex w-full flex-col">
         {/* 标题与平滑展开箭头 */}
         <div className="z-10 flex-grow">
           <div className="flex items-center justify-between gap-3">
@@ -83,29 +92,21 @@ export function PostCard({
         </div>
       </Link>
 
-      {/* 底部元数据：分类与标签 */}
-      {detailed && (
+      {/* 底部元数据：标签 */}
+      {detailed && post.tags.length > 0 && (
         <div className="mt-3.5 flex flex-wrap items-center gap-x-2 gap-y-1 font-mono text-xs text-muted-foreground">
-          <Link href={`/blog?category=${post.category}`} className="text-primary hover:underline">
-            {categoryLabel}
-          </Link>
-          {post.tags.length > 0 && (
-            <>
-              <span className="text-border/80">/</span>
-              <ul className="flex flex-wrap items-center gap-x-2 gap-y-1">
-                {post.tags.map((tag) => (
-                  <li key={tag}>
-                    <Link
-                      href={`/blog/tags/${tag}`}
-                      className="text-muted-foreground/85 transition-colors hover:text-foreground hover:underline"
-                    >
-                      #{tag}
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-            </>
-          )}
+          <ul className="flex flex-wrap items-center gap-x-2 gap-y-1">
+            {post.tags.map((tag) => (
+              <li key={tag}>
+                <Link
+                  href={`/blog/tags/${tag}`}
+                  className="text-muted-foreground/85 transition-colors hover:text-foreground hover:underline"
+                >
+                  #{tag}
+                </Link>
+              </li>
+            ))}
+          </ul>
         </div>
       )}
     </Component>
