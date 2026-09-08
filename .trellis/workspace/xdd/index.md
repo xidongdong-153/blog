@@ -8,7 +8,7 @@
 
 <!-- @@@auto:current-status -->
 - **Active File**: `journal-1.md`
-- **Total Sessions**: 20
+- **Total Sessions**: 21
 - **Last Active**: 2026-09-08
 <!-- @@@/auto:current-status -->
 
@@ -19,7 +19,7 @@
 <!-- @@@auto:active-documents -->
 | File | Lines | Status |
 |------|-------|--------|
-| `journal-1.md` | ~541 | Active |
+| `journal-1.md` | ~563 | Active |
 <!-- @@@/auto:active-documents -->
 
 ---
@@ -29,6 +29,7 @@
 <!-- @@@auto:session-history -->
 | # | Date | Title | Commits | Branch |
 |---|------|-------|---------|--------|
+| 21 | 2026-09-08 | 配置站点地图与爬虫规则 | `87fdaf8` | `main` |
 | 20 | 2026-09-08 | 优化文章页面时间线入口排版 | `4702d89` | `main` |
 | 19 | 2026-09-08 | 支持文章主题分类、多维排序与去卡片化列表排版 | `cc2fb2f`, `6d6b74a` | `main` |
 | 18 | 2026-09-04 | 优化 MDX 表格与代码块展示 | `dae1e30` | `main` |

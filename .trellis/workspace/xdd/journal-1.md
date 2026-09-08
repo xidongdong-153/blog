@@ -539,3 +539,25 @@ trellis init -u xdd --pi 完成，填充 .trellis/spec/frontend 5 个规范文�
 ### Status
 
 [OK] **Completed**
+
+
+## Session 21: 配置站点地图与爬虫规则
+<!-- trellis-session: v=2 fp=d62662e77b0fc573 -->
+
+**Date**: 2026-09-08
+**Task**: 配置站点地图与爬虫规则
+**Branch**: `main`
+
+### Summary
+
+配置 sitemap.ts 与 robots.ts，统一域名为 https://xdd.ink，根布局添加 metadataBase 与 canonical 声明并全量通过质量门和静态构建验证。
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `87fdaf8` | feat(seo): 新增站点地图与爬虫规则配置，统一域名为 xdd.ink |
+
+### Status
+
+[OK] **Completed**
