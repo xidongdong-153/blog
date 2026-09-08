@@ -1,0 +1,2 @@
+{"file": ".trellis/spec/backend/database-guidelines.md", "reason": "Drizzle schema 与迁移规范"}
+{"file": ".trellis/spec/backend/api-design-guidelines.md", "reason": "Hono 路由与接口错误处理规范"}
