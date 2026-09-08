@@ -5,6 +5,7 @@
 | 功能                               | 状态                   | 位置                                                                           |
 | ---------------------------------- | ---------------------- | ------------------------------------------------------------------------------ |
 | 文章列表 / 详情 / 标签 / 归档      | 已实现                 | `src/app/(site)/blog/`                                                         |
+| 文章主题分类与多维时间排序         | 已实现                 | `src/lib/content.ts`、`src/app/(site)/blog/`、`src/app/(site)/_components/blog/` |
 | 文章目录 TOC（滚动跟随高亮）       | 已实现                 | `src/app/(site)/_components/blog/toc.tsx`                                      |
 | 详情页右侧粘性 TOC 侧栏            | 已实现                 | `src/app/(site)/blog/[slug]/page.tsx`                                          |
 | Hero 图 + 更新日期                 | 已实现                 | `src/lib/content.ts`、`src/app/(site)/blog/[slug]/page.tsx`                    |
