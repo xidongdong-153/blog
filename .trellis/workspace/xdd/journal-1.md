@@ -517,3 +517,25 @@ trellis init -u xdd --pi 完成，填充 .trellis/spec/frontend 5 个规范文�
 ### Status
 
 [OK] **Completed**
+
+
+## Session 20: 优化文章页面时间线入口排版
+<!-- trellis-session: v=2 fp=ecb4cc8cffd9daab -->
+
+**Date**: 2026-09-08
+**Task**: 优化文章页面时间线入口排版
+**Branch**: `main`
+
+### Summary
+
+移除文章列表正上方多余的页码与年份跳转夹层，将归档入口文案精简为时间线，以轻量胶囊按钮样式整合至工具栏排序区右侧，保持页面流贯通且无冗余模块。
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `4702d89` | feat(blog): 将按年份归档入口重构为时间线胶囊，整合至工具栏右侧 |
+
+### Status
+
+[OK] **Completed**
