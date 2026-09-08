@@ -17,7 +17,7 @@ content/blog/                文章，每篇一个文件夹
 content/notes/               笔记，一条一个 .md
 ```
 
-`src/app/` 下还有 `layout.tsx`（根布局）、`fonts.ts`（字体加载）、`globals.css`、`not-found.tsx`，不在这个清单外建新的顶层源码目录。
+`src/app/` 下还有 `layout.tsx`（根布局）、`sitemap.ts`（站点地图）、`robots.ts`（爬虫规则）、`fonts.ts`（字体加载）、`globals.css`、`not-found.tsx`，不在这个清单外建新的顶层源码目录。
 
 路径别名 `@/*` 指向 `src/`（在 `tsconfig.json` 的 `paths` 里），`@/lib/content` 就是 `src/lib/content.ts`。`content/` 由 `src/lib/content.ts` 用 `process.cwd()` 拼绝对路径读取，锚在仓库根，不跟源码位置走。
 

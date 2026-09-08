@@ -17,7 +17,7 @@
 | 站内搜索                           | 占位页，方案见页面注释 | `src/app/(site)/search/page.tsx`                                               |
 | Giscus 评论                        | 已实现                 | `src/app/(site)/_components/comment/giscus-comments.tsx`                       |
 | RSS                                | 未开始                 | 计划 `src/app/rss.xml/route.ts`                                                |
-| sitemap / robots                   | 未开始                 | 计划 `src/app/sitemap.ts`、`src/app/robots.ts`                                 |
+| sitemap / robots                   | 已实现                 | `src/app/sitemap.ts`、`src/app/robots.ts`                                      |
 | OG 图自动生成                      | 未开始                 | 计划 `src/app/(site)/blog/[slug]/opengraph-image.tsx`，用 `next/og`            |
 | 代码块高亮与复制                   | 已实现                 | `src/app/(site)/_components/blog/mdx-content.tsx`                              |
 | Mac 实时活动（独立采集与首页展示） | 已实现                 | `src/lib/presence.ts`、`src/app/api/presence/`、`$HOME/.hammerspoon/presence/` |

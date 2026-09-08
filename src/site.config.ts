@@ -6,7 +6,7 @@ export const siteConfig = {
   /** 站点作者 */
   author: '喜东东',
   /** 部署后的正式域名，RSS、sitemap、OG 图生成链接时要用；本地开发不读它 */
-  url: 'https://blog.xdd.ink',
+  url: 'https://xdd.ink',
   /** 页头导航，name 是显示文本，href 是路由路径 */
   nav: [
     { name: '首页', href: '/' },
