@@ -1,7 +1,14 @@
 import type { Metadata } from 'next'
 import Image from 'next/image'
 import { notFound } from 'next/navigation'
-import { calculateReadingTime, extractHeadings, formatDate, getAllBlogPosts, getBlogPost } from '@/lib/content'
+import {
+  BLOG_CATEGORY_LABELS,
+  calculateReadingTime,
+  extractHeadings,
+  formatDate,
+  getAllBlogPosts,
+  getBlogPost,
+} from '@/lib/content'
 import { CopyrightCard } from '../../_components/blog/copyright-card'
 import { FloatingActionGroup } from '../../_components/blog/floating-action-group'
 import { MdxContent } from '../../_components/blog/mdx-content'
@@ -63,7 +70,7 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
             )}
 
             <div className="flex flex-wrap items-center gap-2 font-mono text-xs tracking-wider text-muted-foreground">
-              <span>// 文章</span>
+              <span>// {BLOG_CATEGORY_LABELS[post.category]}</span>
               <span>/</span>
               <time dateTime={post.date}>{formatDate(post.date)}</time>
               {post.updatedDate && (

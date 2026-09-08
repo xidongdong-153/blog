@@ -3,6 +3,24 @@ import path from 'node:path'
 import GithubSlugger from 'github-slugger'
 import matter from 'gray-matter'
 
+export type BlogCategory = 'tech' | 'tinkering' | 'thoughts'
+
+export const BLOG_CATEGORY_LABELS: Record<BlogCategory, string> = {
+  tech: '技术',
+  tinkering: '捣鼓',
+  thoughts: '随想',
+}
+
+export const BLOG_CATEGORIES: BlogCategory[] = ['tech', 'tinkering', 'thoughts']
+
+export type BlogSortOrder = 'newest' | 'oldest' | 'updated'
+
+export const BLOG_SORT_LABELS: Record<BlogSortOrder, string> = {
+  newest: '最新',
+  oldest: '最早',
+  updated: '最近更新',
+}
+
 /**
  * 博客文章。对应 content/blog/<文件夹>/post.mdx，slug 取文件夹名。
  * date 存 ISO 字符串而不是 Date，避免跨 server/client 边界序列化问题。
@@ -11,6 +29,7 @@ export interface BlogPost {
   slug: string
   title: string
   description: string
+  category: BlogCategory
   /** ISO 日期字符串，如 2026-06-15 */
   date: string
   /** 更新日期，ISO 字符串。有值时详情页会显示"更新于 ..." */
@@ -62,6 +81,16 @@ function requireString(data: Record<string, unknown>, field: string, filePath: s
     throw new Error(`${filePath} 的 frontmatter 缺少必填字段 ${field}`)
   }
   return value
+}
+
+function requireCategory(data: Record<string, unknown>, filePath: string): BlogCategory {
+  const value = data.category
+  if (value === 'tech' || value === 'tinkering' || value === 'thoughts') {
+    return value
+  }
+  throw new Error(
+    `${filePath} 的 frontmatter 缺少必填字段 category 或值非法，必须是 tech / tinkering / thoughts 之一，当前值为: ${String(value)}`,
+  )
 }
 
 /**
@@ -116,6 +145,7 @@ export function getAllBlogPosts(): BlogPost[] {
       slug: entry.name,
       title: requireString(data, 'title', filePath),
       description: typeof data.description === 'string' ? data.description : '',
+      category: requireCategory(data, filePath),
       date: readDate(data, filePath),
       updatedDate: readOptionalDate(data, 'updatedDate'),
       heroImage: typeof data.heroImage === 'string' ? data.heroImage : '',
@@ -182,6 +212,36 @@ export function getAllBlogTags(): Array<{ tag: string; count: number }> {
   return [...counter.entries()]
     .map(([tag, count]) => ({ tag, count }))
     .sort((a, b) => b.count - a.count || a.tag.localeCompare(b.tag))
+}
+
+/** 各分类已发布文章数量统计，按固定预设顺序返回。 */
+export function getBlogCategoriesWithCount(): Array<{ category: BlogCategory; label: string; count: number }> {
+  const counter = new Map<BlogCategory, number>()
+  for (const post of getAllBlogPosts()) {
+    if (post.draft) continue
+    counter.set(post.category, (counter.get(post.category) ?? 0) + 1)
+  }
+  return BLOG_CATEGORIES.map((category) => ({
+    category,
+    label: BLOG_CATEGORY_LABELS[category],
+    count: counter.get(category) ?? 0,
+  }))
+}
+
+/** 按指定模式对文章排序。支持最新（发布倒序）、最早（发布正序）、最近更新（更新时间倒序）。 */
+export function sortBlogPosts(posts: BlogPost[], sort: BlogSortOrder = 'newest'): BlogPost[] {
+  const cloned = [...posts]
+  if (sort === 'oldest') {
+    return cloned.sort((a, b) => a.date.localeCompare(b.date))
+  }
+  if (sort === 'updated') {
+    return cloned.sort((a, b) => {
+      const dateA = a.updatedDate || a.date
+      const dateB = b.updatedDate || b.date
+      return dateB.localeCompare(dateA) || b.date.localeCompare(a.date)
+    })
+  }
+  return cloned.sort((a, b) => b.date.localeCompare(a.date))
 }
 
 export interface Heading {

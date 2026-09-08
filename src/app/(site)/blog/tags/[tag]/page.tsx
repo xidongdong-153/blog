@@ -46,7 +46,7 @@ export default async function TagPage({ params }: TagPageProps) {
         <p className="text-sm leading-relaxed text-muted-foreground">共收录 {posts.length} 篇关联文章。</p>
       </div>
 
-      <ul className="flex flex-col gap-y-4">
+      <ul className="flex flex-col">
         {posts.map((post) => (
           <PostCard key={post.slug} post={post} />
         ))}
