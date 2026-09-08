@@ -606,3 +606,37 @@ trellis init -u xdd --pi 完成，填充 .trellis/spec/frontend 5 个规范文�
 ### Status
 
 [OK] **Completed**
+
+
+## Session 24: 新增后端规范层（Hono 与 Drizzle）
+<!-- trellis-session: v=2 fp=bf4c83e9d8bfb523 -->
+
+**Date**: 2026-09-08
+**Task**: 新增后端规范层（Hono 与 Drizzle）
+**Branch**: `main`
+
+### Summary
+
+为 cbf62f8 集成的 Hono + Drizzle ORM + Turso 建立 .trellis/spec/backend/ 规范层，参考 starter 项目 spec 结构并按 blog 体量裁剪
+
+### Main Changes
+
+- .trellis/spec/backend/ 新增 5 个文件（index、directory-structure、api-design-guidelines、service-call-guidelines、database-guidelines）；frontend/index.md 技术栈描述更正为 Turso + Drizzle 并链接后端规范
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `edef81f` | docs(spec): 新增后端规范层覆盖 Hono 与 Drizzle 约定 |
+
+### Testing
+
+- [OK] get_context 识别 backend 层；spec 内 src/ 路径抽查零缺失（migrations 目录按文档说明由 db:generate 生成）；ApiResponse 签名、Hono 未挂载、system_health_checks 未使用等事实逐项与源码核对一致；pnpm format:check 通过
+
+### Status
+
+[OK] **Completed**
+
+### Next Steps
+
+- Hono 应用仍未挂载到 Next.js（spec 已记录接入方式），后续如需 /api/health 可对外访问时按 api-design-guidelines 的挂载一节实施；system_health_checks 表待首个使用者
