@@ -1,5 +1,5 @@
 import type { Metadata } from 'next'
-import { FriendApplyButton } from '@/app/(site)/_components/links/friend-apply-button'
+import { CopyInviteButton } from '@/app/(site)/_components/links/copy-invite-button'
 import { siteConfig } from '@/site.config'
 
 export const metadata: Metadata = {
@@ -96,7 +96,7 @@ export default function LinksPage() {
             <div>网址：{siteConfig.url}</div>
           </div>
           <div className="border-t border-border/30 pt-3">
-            <FriendApplyButton />
+            <CopyInviteButton />
           </div>
         </div>
       </section>
