@@ -4,7 +4,7 @@
 
 ## 技术栈
 
-Hono 4 + Drizzle ORM + Turso（libSQL）。Hono 应用当前未挂载到 Next.js，端点从外部访问不到，见 [API 设计](./api-design-guidelines.md)的挂载一节。本地开发数据库自动回退 `file:local.db`，不需要配环境变量。
+Hono 4 + Drizzle ORM + Turso（libSQL）。Hono 应用已通过 `src/app/api/[[...route]]/route.ts` 挂载到 Next.js，全站 HTTP API 路由均由 Hono 统一承载。本地开发数据库自动回退 `file:local.db`，不需要配环境变量。
 
 ## 规范索引
 
@@ -17,10 +17,9 @@ Hono 4 + Drizzle ORM + Turso（libSQL）。Hono 应用当前未挂载到 Next.js
 
 ## 开发前检查清单
 
-- [ ] 新增 API 端点 → 先按 [API 设计](./api-design-guidelines.md)的判断规则选 Hono 还是 Next Route Handler
+- [ ] 新增 API 端点 → 按 [API 设计](./api-design-guidelines.md)加到 `src/server/routes/` 对应域文件并在 `routes/index.ts` 注册
 - [ ] 要动表结构 → 按 [数据库](./database-guidelines.md)的 schema 组织加文件，再走 migration 流程
 - [ ] 页面要取数据 → 按 [服务调用](./service-call-guidelines.md)的规则判断直连 `db` 还是走 API
-- [ ] Hono 端点上线前确认挂载状态（当前未挂载）
 
 ## 质量检查
 
@@ -38,12 +37,13 @@ pnpm db:verify     # 改了连接配置或执行迁移后跑
 
 | 入口          | 文件                                  |
 | ------------- | ------------------------------------- |
+| API 挂载入口  | `src/app/api/[[...route]]/route.ts`   |
 | Hono 应用工厂 | `src/server/app.ts`                   |
 | 路由聚合      | `src/server/routes/index.ts`          |
 | system 域路由 | `src/server/routes/system.ts`         |
+| presence 路由 | `src/server/routes/presence.ts`       |
+| links 域路由  | `src/server/routes/links.ts`          |
 | 数据库实例    | `src/server/infra/db/client.ts`       |
 | 表定义聚合    | `src/server/infra/db/schema/index.ts` |
 | 响应封装      | `src/server/shared/response.ts`       |
-| 活动代理 API  | `src/app/api/presence/route.ts`       |
-| 友链申请 API  | `src/app/api/links/apply/route.ts`    |
 | db 直连页面   | `src/app/(site)/status/page.tsx`      |
