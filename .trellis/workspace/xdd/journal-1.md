@@ -640,3 +640,25 @@ trellis init -u xdd --pi 完成，填充 .trellis/spec/frontend 5 个规范文�
 ### Next Steps
 
 - Hono 应用仍未挂载到 Next.js（spec 已记录接入方式），后续如需 /api/health 可对外访问时按 api-design-guidelines 的挂载一节实施；system_health_checks 表待首个使用者
+
+
+## Session 25: 实现友链邮件一键审批工作流
+<!-- trellis-session: v=2 fp=43b6130442393291 -->
+
+**Date**: 2026-09-08
+**Task**: 实现友链邮件一键审批工作流
+**Branch**: `main`
+
+### Summary
+
+新增 site_friend_links 数据库表与迁移，重构邮件模板解决按钮间距粘连问题，新增 /links/review 落地确认页与防爬误触机制，并在 /links 展示动态友链
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `5427148` | feat(links): 实现友链邮件一键审批、带间距邮件排版与落地确认页 |
+
+### Status
+
+[OK] **Completed**
