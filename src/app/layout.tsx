@@ -16,6 +16,11 @@ export const metadata: Metadata = {
       'application/rss+xml': '/rss.xml',
     },
   },
+  icons: {
+    icon: '/favicon.ico',
+    shortcut: '/favicon.ico',
+    apple: '/favicon.ico',
+  },
 }
 
 /**
