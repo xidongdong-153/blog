@@ -86,6 +86,9 @@ jobs:
           DEPLOY_PORT: ${{ vars.DEPLOY_PORT }}
           DEPLOY_USER: ${{ vars.DEPLOY_USER }}
           TARGET_SHA: ${{ github.sha }}
+          RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
+          FRIEND_APPLY_NOTIFY_EMAIL: ${{ vars.FRIEND_APPLY_NOTIFY_EMAIL || secrets.FRIEND_APPLY_NOTIFY_EMAIL }}
+          RESEND_FROM_EMAIL: ${{ vars.RESEND_FROM_EMAIL || secrets.RESEND_FROM_EMAIL }}
         run: |
           set -euo pipefail
           test -n "$DEPLOY_HOST"
@@ -101,9 +104,12 @@ jobs:
             -p "$DEPLOY_PORT"
           )
 
-          ssh "${ssh_args[@]}" "$DEPLOY_USER@$DEPLOY_HOST" bash -s -- "$TARGET_SHA" <<'REMOTE'
+          ssh "${ssh_args[@]}" "$DEPLOY_USER@$DEPLOY_HOST" bash -s -- "$TARGET_SHA" "${RESEND_API_KEY:-}" "${FRIEND_APPLY_NOTIFY_EMAIL:-}" "${RESEND_FROM_EMAIL:-}" <<'REMOTE'
           set -euo pipefail
           target_sha="${1:?missing target SHA}"
+          resend_api_key="${2:-}"
+          friend_apply_notify_email="${3:-}"
+          resend_from_email="${4:-}"
           app_dir=/home/deploy/code/xdd/blog
 
           cd "$app_dir"
@@ -156,6 +162,23 @@ jobs:
 
           echo "Fast-forwarding the server worktree"
           git merge --ff-only origin/main
+
+          echo "Syncing optional environment variables into .env.local"
+          sync_env_var() {
+            local key="$1"
+            local val="$2"
+            if [[ -n "$val" ]]; then
+              if grep -q "^${key}=" .env.local; then
+                sed -i "s|^${key}=.*|${key}=${val}|" .env.local
+              else
+                printf '\n%s=%s\n' "$key" "$val" >> .env.local
+              fi
+            fi
+          }
+
+          sync_env_var "RESEND_API_KEY" "$resend_api_key"
+          sync_env_var "FRIEND_APPLY_NOTIFY_EMAIL" "$friend_apply_notify_email"
+          sync_env_var "RESEND_FROM_EMAIL" "$resend_from_email"
 
           source /home/deploy/.nvm/nvm.sh
           echo "Installing dependencies"

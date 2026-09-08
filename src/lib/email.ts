@@ -199,6 +199,29 @@ export function renderFriendApplyEmail(payload: FriendApplyPayload): string {
 }
 
 /**
+ * 渲染纯文本版本的友链申请内容（用于邮件客户端降级与反垃圾过滤器评分）
+ */
+export function renderFriendApplyText(payload: FriendApplyPayload): string {
+  const lines = [
+    `// 友链申请 · 来自「${payload.siteName}」的互换申请`,
+    '',
+    `称呼：${payload.nickname}`,
+    `站点名：${payload.siteName}`,
+    `网址：${payload.siteUrl}`,
+    `邮箱：${payload.email}`,
+    payload.avatarUrl ? `头像：${payload.avatarUrl}` : '',
+    `互换状态：${payload.hasAddedUs ? '已在对方站点添加本站' : '未确认或暂未添加'}`,
+    `提交时间：${formatEmailTime()}`,
+    '',
+    '// 站点简介：',
+    payload.description,
+    '',
+    `---\n此邮件由 ${siteConfig.title} 自动发出 · ${siteConfig.url}`,
+  ]
+  return lines.filter(Boolean).join('\n')
+}
+
+/**
  * 发送友链申请通知邮件
  * 优先调用 Resend REST API，若未配置凭证则优雅降级在控制台输出
  */
@@ -206,6 +229,7 @@ export async function sendFriendApplyEmail(payload: FriendApplyPayload): Promise
   const apiKey = process.env.RESEND_API_KEY?.trim()
   const notifyEmail = process.env.FRIEND_APPLY_NOTIFY_EMAIL?.trim()
   const html = renderFriendApplyEmail(payload)
+  const text = renderFriendApplyText(payload)
 
   // 未配置 API Key 时，打印到控制台，供本地开发或无凭证环境调试
   if (!apiKey || !notifyEmail) {
@@ -230,6 +254,7 @@ export async function sendFriendApplyEmail(payload: FriendApplyPayload): Promise
         reply_to: payload.email.trim(),
         subject: `[友链交换] 来自「${payload.siteName}」的申请`,
         html,
+        text,
       }),
     })
 
