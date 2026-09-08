@@ -1,6 +1,5 @@
+import { Hono } from 'hono'
 import { createOfflinePresence, parsePublicPresence } from '@/lib/presence'
-
-export const dynamic = 'force-dynamic'
 
 const DEFAULT_SOURCE_URL = 'http://127.0.0.1:4401/api/presence'
 const REQUEST_TIMEOUT_MS = 1_500
@@ -14,7 +13,7 @@ function sourceUrl(): string {
   return url.toString()
 }
 
-export async function GET() {
+export const presenceRoute = new Hono().get('/', async (c) => {
   const controller = new AbortController()
   const timeoutId = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS)
   let presence = createOfflinePresence()
@@ -33,7 +32,6 @@ export async function GET() {
     clearTimeout(timeoutId)
   }
 
-  const response = Response.json(presence)
-  response.headers.set('Cache-Control', 'no-store, max-age=0')
-  return response
-}
+  c.header('Cache-Control', 'no-store, max-age=0')
+  return c.json(presence)
+})

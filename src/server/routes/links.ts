@@ -1,6 +1,5 @@
-import type { NextRequest } from 'next/server'
 import type { FriendApplyPayload } from '@/lib/email'
-import { NextResponse } from 'next/server'
+import { Hono } from 'hono'
 import { sendFriendApplyEmail } from '@/lib/email'
 
 /**
@@ -56,20 +55,20 @@ function isValidEmail(emailStr: string): boolean {
   return /^[^\s@]+@[^\s@][^\s.@]*\.[^\s@]+$/.test(emailStr)
 }
 
-export async function POST(request: NextRequest) {
+export const linksRoute = new Hono().post('/apply', async (c) => {
   // 获取客户端标识
-  const forwardedFor = request.headers.get('x-forwarded-for')
+  const forwardedFor = c.req.header('x-forwarded-for')
   const clientIp = forwardedFor ? forwardedFor.split(',')[0].trim() : '127.0.0.1'
 
   if (isRateLimited(clientIp)) {
-    return NextResponse.json({ success: false, error: '发送过于频繁，请等待几分钟后再试' }, { status: 429 })
+    return c.json({ success: false, error: '发送过于频繁，请等待几分钟后再试' }, 429)
   }
 
   let body: Partial<FriendApplyPayload>
   try {
-    body = await request.json()
+    body = await c.req.json()
   } catch {
-    return NextResponse.json({ success: false, error: '请求数据格式不正确' }, { status: 400 })
+    return c.json({ success: false, error: '请求数据格式不正确' }, 400)
   }
 
   const nickname = typeof body.nickname === 'string' ? body.nickname.trim() : ''
@@ -82,30 +81,27 @@ export async function POST(request: NextRequest) {
 
   // 校验必填项与长度
   if (!nickname || nickname.length > 32) {
-    return NextResponse.json({ success: false, error: '请填写你的称呼（32 字以内）' }, { status: 400 })
+    return c.json({ success: false, error: '请填写你的称呼（32 字以内）' }, 400)
   }
 
   if (!siteName || siteName.length > 50) {
-    return NextResponse.json({ success: false, error: '请填写站点名称（50 字以内）' }, { status: 400 })
+    return c.json({ success: false, error: '请填写站点名称（50 字以内）' }, 400)
   }
 
   if (!siteUrl || !isValidUrl(siteUrl) || siteUrl.length > 200) {
-    return NextResponse.json(
-      { success: false, error: '请填写有效的站点网址（需以 http:// 或 https:// 开头）' },
-      { status: 400 },
-    )
+    return c.json({ success: false, error: '请填写有效的站点网址（需以 http:// 或 https:// 开头）' }, 400)
   }
 
   if (!email || !isValidEmail(email) || email.length > 100) {
-    return NextResponse.json({ success: false, error: '请填写有效的联系邮箱' }, { status: 400 })
+    return c.json({ success: false, error: '请填写有效的联系邮箱' }, 400)
   }
 
   if (avatarUrl && (!isValidUrl(avatarUrl) || avatarUrl.length > 300)) {
-    return NextResponse.json({ success: false, error: '头像链接格式不正确' }, { status: 400 })
+    return c.json({ success: false, error: '头像链接格式不正确' }, 400)
   }
 
   if (!description || description.length > 150) {
-    return NextResponse.json({ success: false, error: '请填写站点简介（150 字以内）' }, { status: 400 })
+    return c.json({ success: false, error: '请填写站点简介（150 字以内）' }, 400)
   }
 
   const payload: FriendApplyPayload = {
@@ -121,11 +117,11 @@ export async function POST(request: NextRequest) {
   const result = await sendFriendApplyEmail(payload)
 
   if (!result.success) {
-    return NextResponse.json({ success: false, error: result.error || '邮件投递失败，请稍后再试' }, { status: 500 })
+    return c.json({ success: false, error: result.error || '邮件投递失败，请稍后再试' }, 500)
   }
 
-  return NextResponse.json({
+  return c.json({
     success: true,
     message: result.mocked ? '申请已模拟记录（开发模式）' : '申请已送达',
   })
-}
+})
