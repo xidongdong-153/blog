@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
+import { createPortal } from 'react-dom'
 import { siteConfig } from '@/site.config'
 
 interface FriendApplyModalProps {
@@ -13,6 +14,7 @@ interface FriendApplyModalProps {
  * 紧凑出版物卡片、暗色定制细滚动条、支持手机响应式与 ESC 键关闭
  */
 export function FriendApplyModal({ isOpen, onClose }: FriendApplyModalProps) {
+  const [mounted, setMounted] = useState(false)
   const [nickname, setNickname] = useState('')
   const [siteName, setSiteName] = useState('')
   const [siteUrl, setSiteUrl] = useState('')
@@ -27,6 +29,11 @@ export function FriendApplyModal({ isOpen, onClose }: FriendApplyModalProps) {
   const [isSuccess, setIsSuccess] = useState(false)
 
   const firstInputRef = useRef<HTMLInputElement>(null)
+
+  // 确保在客户端挂载后再渲染 Portal
+  useEffect(() => {
+    setMounted(true)
+  }, [])
 
   // 监听 ESC 键关闭与锁背景滚动
   useEffect(() => {
@@ -53,7 +60,7 @@ export function FriendApplyModal({ isOpen, onClose }: FriendApplyModalProps) {
     }
   }, [isOpen, onClose])
 
-  if (!isOpen) return null
+  if (!isOpen || !mounted) return null
 
   // 复制本站信息到剪贴板
   const handleCopySiteInfo = async () => {
@@ -146,22 +153,28 @@ export function FriendApplyModal({ isOpen, onClose }: FriendApplyModalProps) {
     }
   }
 
-  return (
+  return createPortal(
     <div
       role="dialog"
       aria-modal="true"
       aria-labelledby="friend-modal-title"
-      className="fixed inset-0 z-[100] flex items-center justify-center p-3 sm:p-4"
+      onClick={(e) => {
+        if (e.target === e.currentTarget) onClose()
+      }}
+      className="fixed inset-0 z-[100] flex items-center justify-center overflow-y-auto p-3 sm:p-4"
     >
-      {/* 遮罩背景：高层级、半透漫射 */}
+      {/* 遮罩背景：高层级、半透漫射、淡入动效 */}
       <div
-        className="fixed inset-0 bg-background/80 backdrop-blur-sm transition-opacity"
+        className="fixed inset-0 bg-background/80 backdrop-blur-sm animate-[modal-fade-in_180ms_cubic-bezier(0.16,1,0.3,1)_both] motion-reduce:animate-none"
         onClick={onClose}
         aria-hidden="true"
       />
 
-      {/* 弹窗主体：紧凑出版物卡片，自适应高度 */}
-      <div className="relative z-10 flex max-h-[92vh] w-full max-w-[480px] flex-col overflow-hidden rounded-lg border border-border/60 bg-card shadow-2xl">
+      {/* 弹窗主体：紧凑出版物卡片，微缩放入场 */}
+      <div
+        onClick={(e) => e.stopPropagation()}
+        className="relative z-10 flex max-h-[92vh] w-full max-w-[480px] flex-col overflow-hidden rounded-lg border border-border/60 bg-card shadow-2xl animate-[modal-scale-in_200ms_cubic-bezier(0.16,1,0.3,1)_both] motion-reduce:animate-none"
+      >
         {/* 顶部标题栏：高度紧凑 */}
         <div className="flex items-center justify-between border-b border-border/40 px-4 py-3 sm:px-5 sm:py-3.5">
           <div className="flex flex-col gap-0.5">
@@ -180,7 +193,7 @@ export function FriendApplyModal({ isOpen, onClose }: FriendApplyModalProps) {
             type="button"
             onClick={onClose}
             aria-label="关闭弹窗"
-            className="flex h-7 w-7 items-center justify-center rounded-md border border-border/40 text-muted-foreground transition-colors hover:border-foreground/30 hover:text-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+            className="flex h-7 w-7 items-center justify-center rounded-md border border-border/40 text-muted-foreground transition-all hover:border-foreground/30 hover:text-foreground active:scale-95 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
           >
             <span className="font-mono text-xs leading-none" aria-hidden="true">
               ✕
@@ -215,7 +228,7 @@ export function FriendApplyModal({ isOpen, onClose }: FriendApplyModalProps) {
                 <button
                   type="button"
                   onClick={handleCopySiteInfo}
-                  className="shrink-0 rounded border border-border/60 bg-card px-2 py-0.5 text-[10px] text-foreground transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                  className="shrink-0 rounded border border-border/60 bg-card px-2 py-0.5 text-[10px] text-foreground transition-all hover:bg-muted active:scale-95 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
                 >
                   {copied ? '已复制' : '复制配置'}
                 </button>
@@ -244,7 +257,7 @@ export function FriendApplyModal({ isOpen, onClose }: FriendApplyModalProps) {
                     value={nickname}
                     onChange={(e) => setNickname(e.target.value)}
                     placeholder="怎么称呼你"
-                    className="rounded-md border border-border/60 bg-muted/20 px-2.5 py-1.5 text-sm sm:text-xs text-foreground placeholder:text-muted-foreground/50 transition-colors focus-visible:border-foreground/40 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                    className="rounded-md border border-border/60 bg-muted/20 px-2.5 py-1.5 text-base sm:text-xs text-foreground placeholder:text-muted-foreground/50 transition-colors focus-visible:border-foreground/40 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
                   />
                 </div>
 
@@ -261,7 +274,7 @@ export function FriendApplyModal({ isOpen, onClose }: FriendApplyModalProps) {
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     placeholder="用于接收回信"
-                    className="rounded-md border border-border/60 bg-muted/20 px-2.5 py-1.5 text-sm sm:text-xs text-foreground placeholder:text-muted-foreground/50 transition-colors focus-visible:border-foreground/40 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                    className="rounded-md border border-border/60 bg-muted/20 px-2.5 py-1.5 text-base sm:text-xs text-foreground placeholder:text-muted-foreground/50 transition-colors focus-visible:border-foreground/40 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
                   />
                 </div>
 
@@ -278,7 +291,7 @@ export function FriendApplyModal({ isOpen, onClose }: FriendApplyModalProps) {
                     value={siteName}
                     onChange={(e) => setSiteName(e.target.value)}
                     placeholder="给小站起的名字"
-                    className="rounded-md border border-border/60 bg-muted/20 px-2.5 py-1.5 text-sm sm:text-xs text-foreground placeholder:text-muted-foreground/50 transition-colors focus-visible:border-foreground/40 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                    className="rounded-md border border-border/60 bg-muted/20 px-2.5 py-1.5 text-base sm:text-xs text-foreground placeholder:text-muted-foreground/50 transition-colors focus-visible:border-foreground/40 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
                   />
                 </div>
 
@@ -295,7 +308,7 @@ export function FriendApplyModal({ isOpen, onClose }: FriendApplyModalProps) {
                     value={siteUrl}
                     onChange={(e) => setSiteUrl(e.target.value)}
                     placeholder="https://"
-                    className="rounded-md border border-border/60 bg-muted/20 px-2.5 py-1.5 text-sm sm:text-xs text-foreground placeholder:text-muted-foreground/50 transition-colors focus-visible:border-foreground/40 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                    className="rounded-md border border-border/60 bg-muted/20 px-2.5 py-1.5 text-base sm:text-xs text-foreground placeholder:text-muted-foreground/50 transition-colors focus-visible:border-foreground/40 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
                   />
                 </div>
 
@@ -311,7 +324,7 @@ export function FriendApplyModal({ isOpen, onClose }: FriendApplyModalProps) {
                     value={avatarUrl}
                     onChange={(e) => setAvatarUrl(e.target.value)}
                     placeholder="https://...（图片直链）"
-                    className="rounded-md border border-border/60 bg-muted/20 px-2.5 py-1.5 text-sm sm:text-xs text-foreground placeholder:text-muted-foreground/50 transition-colors focus-visible:border-foreground/40 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                    className="rounded-md border border-border/60 bg-muted/20 px-2.5 py-1.5 text-base sm:text-xs text-foreground placeholder:text-muted-foreground/50 transition-colors focus-visible:border-foreground/40 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
                   />
                 </div>
 
@@ -331,13 +344,13 @@ export function FriendApplyModal({ isOpen, onClose }: FriendApplyModalProps) {
                     value={description}
                     onChange={(e) => setDescription(e.target.value)}
                     placeholder="聊聊你的小站、平常写点什么..."
-                    className="resize-none rounded-md border border-border/60 bg-muted/20 px-2.5 py-1.5 text-sm sm:text-xs text-foreground placeholder:text-muted-foreground/50 transition-colors focus-visible:border-foreground/40 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                    className="resize-none rounded-md border border-border/60 bg-muted/20 px-2.5 py-1.5 text-base sm:text-xs text-foreground placeholder:text-muted-foreground/50 transition-colors focus-visible:border-foreground/40 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
                   />
                 </div>
 
                 {/* 互换确认 */}
                 <div className="sm:col-span-2 pt-0.5">
-                  <label className="flex cursor-pointer items-center gap-2">
+                  <label className="flex cursor-pointer select-none items-center gap-2">
                     <input
                       type="checkbox"
                       checked={hasAddedUs}
@@ -358,7 +371,7 @@ export function FriendApplyModal({ isOpen, onClose }: FriendApplyModalProps) {
                 type="button"
                 onClick={onClose}
                 disabled={isSubmitting}
-                className="rounded-md border border-border/40 px-3 py-1.5 font-mono text-xs text-muted-foreground transition-colors hover:border-foreground/30 hover:text-foreground disabled:opacity-50"
+                className="rounded-md border border-border/40 px-3 py-1.5 font-mono text-xs text-muted-foreground transition-all hover:border-foreground/30 hover:text-foreground active:scale-95 disabled:opacity-50"
               >
                 取消
               </button>
@@ -366,14 +379,30 @@ export function FriendApplyModal({ isOpen, onClose }: FriendApplyModalProps) {
               <button
                 type="submit"
                 disabled={isSubmitting}
-                className="inline-flex items-center gap-1.5 rounded-md border border-border/60 bg-foreground px-3.5 py-1.5 font-mono text-xs font-medium text-background transition-opacity hover:opacity-90 disabled:opacity-50"
+                className="inline-flex items-center gap-1.5 rounded-md border border-border/60 bg-foreground px-3.5 py-1.5 font-mono text-xs font-medium text-background transition-all hover:opacity-90 active:scale-[0.98] disabled:pointer-events-none disabled:opacity-50"
               >
-                {isSubmitting ? '发送中...' : '发送 ↗'}
+                {isSubmitting ? (
+                  <>
+                    <svg
+                      className="size-3.5 animate-spin"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z" />
+                    </svg>
+                    <span>发送中...</span>
+                  </>
+                ) : (
+                  <span>发送 ↗</span>
+                )}
               </button>
             </div>
           </form>
         )}
       </div>
-    </div>
+    </div>,
+    document.body,
   )
 }
