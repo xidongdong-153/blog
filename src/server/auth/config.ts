@@ -6,8 +6,8 @@ import { account, session, user, verification } from '@/server/infra/db/schema/a
 function getSocialProviders() {
   const providers: Record<string, { clientId: string; clientSecret: string }> = {}
 
-  const githubClientId = process.env.GITHUB_CLIENT_ID?.trim()
-  const githubClientSecret = process.env.GITHUB_CLIENT_SECRET?.trim()
+  const githubClientId = process.env.OAUTH_GITHUB_CLIENT_ID?.trim()
+  const githubClientSecret = process.env.OAUTH_GITHUB_CLIENT_SECRET?.trim()
   if (githubClientId && githubClientSecret) {
     providers.github = {
       clientId: githubClientId,
@@ -15,8 +15,8 @@ function getSocialProviders() {
     }
   }
 
-  const googleClientId = process.env.GOOGLE_CLIENT_ID?.trim()
-  const googleClientSecret = process.env.GOOGLE_CLIENT_SECRET?.trim()
+  const googleClientId = process.env.OAUTH_GOOGLE_CLIENT_ID?.trim()
+  const googleClientSecret = process.env.OAUTH_GOOGLE_CLIENT_SECRET?.trim()
   if (googleClientId && googleClientSecret) {
     providers.google = {
       clientId: googleClientId,

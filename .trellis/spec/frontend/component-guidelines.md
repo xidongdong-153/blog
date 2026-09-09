@@ -91,7 +91,7 @@ MDX 渲染走异步 RSC（`mdx-content.tsx` 的 `compileMDX`），不需要 clie
 
 - **认证与会话契约**：
   - 核心环境变量：`BETTER_AUTH_URL`、`BETTER_AUTH_SECRET`、`ADMIN_EMAIL`。
-  - OAuth 凭证：`GITHUB_CLIENT_ID` / `GITHUB_CLIENT_SECRET`、`GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET`；成对存在才启用对应 provider。
+  - OAuth 凭证：`OAUTH_GITHUB_CLIENT_ID` / `OAUTH_GITHUB_CLIENT_SECRET`、`OAUTH_GOOGLE_CLIENT_ID` / `OAUTH_GOOGLE_CLIENT_SECRET`；成对存在才启用对应 provider。
   - 前端通过 `/api/config/auth` 检测已启用的登录渠道，仅渲染已配置 provider 的登录按钮。
   - 未登录访客可公开读取评论列表；提交评论、回复和站长操作必须校验 session。
 - **数据与交互契约**：

@@ -9,8 +9,8 @@ export const configRoute = new Hono().get('/auth', async (c) => {
   return c.json(
     createSuccessResponse({
       providers: {
-        github: Boolean(process.env.GITHUB_CLIENT_ID?.trim() && process.env.GITHUB_CLIENT_SECRET?.trim()),
-        google: Boolean(process.env.GOOGLE_CLIENT_ID?.trim() && process.env.GOOGLE_CLIENT_SECRET?.trim()),
+        github: Boolean(process.env.OAUTH_GITHUB_CLIENT_ID?.trim() && process.env.OAUTH_GITHUB_CLIENT_SECRET?.trim()),
+        google: Boolean(process.env.OAUTH_GOOGLE_CLIENT_ID?.trim() && process.env.OAUTH_GOOGLE_CLIENT_SECRET?.trim()),
       },
       isOwner,
     }),

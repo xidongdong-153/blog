@@ -205,10 +205,10 @@ jobs:
           sync_env_var "TURSO_AUTH_TOKEN" "$turso_auth_token"
           sync_env_var "BETTER_AUTH_URL" "$better_auth_url"
           sync_env_var "BETTER_AUTH_SECRET" "$better_auth_secret"
-          sync_env_var "GITHUB_CLIENT_ID" "$oauth_github_client_id"
-          sync_env_var "GITHUB_CLIENT_SECRET" "$oauth_github_client_secret"
-          sync_env_var "GOOGLE_CLIENT_ID" "$oauth_google_client_id"
-          sync_env_var "GOOGLE_CLIENT_SECRET" "$oauth_google_client_secret"
+          sync_env_var "OAUTH_GITHUB_CLIENT_ID" "$oauth_github_client_id"
+          sync_env_var "OAUTH_GITHUB_CLIENT_SECRET" "$oauth_github_client_secret"
+          sync_env_var "OAUTH_GOOGLE_CLIENT_ID" "$oauth_google_client_id"
+          sync_env_var "OAUTH_GOOGLE_CLIENT_SECRET" "$oauth_google_client_secret"
           sync_env_var "ADMIN_EMAIL" "$admin_email"
 
           source /home/deploy/.nvm/nvm.sh
