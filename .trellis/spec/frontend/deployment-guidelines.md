@@ -5,7 +5,7 @@
 修改 CI/CD、GitHub `Deployment` Environment 或服务器发布操作时遵守本文件。正式发布由 [ci-cd.yml](../../../.github/workflows/ci-cd.yml) 完成，不使用 Vercel。
 
 - 目标为 `main` 的 Pull Request 只运行 `quality`。`main` push 的 `quality` 成功后才运行 `deploy`，不要从 Fork Pull Request 触发生产发布。
-- `quality` 依次运行 `pnpm install --frozen-lockfile`、`pnpm typecheck`、`pnpm lint`、`pnpm format:check`、`pnpm build`。
+- `quality` 依次运行 `pnpm install --frozen-lockfile`、`pnpm typecheck`、`pnpm lint`、`pnpm format:check`、`pnpm build`；`build` 只注入固定的非生产 `BETTER_AUTH_SECRET` 和 `http://localhost:4400`，不读取生产认证密钥。
 - CI 临时生成包含 `@prisma/client`、`better-sqlite3`、`esbuild` 和 `sharp` 的 `pnpm-workspace.yaml`，允许 pnpm 11 执行这些依赖的安装脚本；该文件贯穿检查步骤，job 结束时清理，不提交仓库。
 - `deploy` 使用 `Deployment` Environment，通过 SSH 执行 `bash -s -- <target-sha>`，工作目录为 `/home/deploy/code/xdd/blog`。
 - 同一分支的 workflow 串行执行，不取消正在运行的发布。只有服务器安装、构建、重启和健康检查全部通过才算发布成功。
