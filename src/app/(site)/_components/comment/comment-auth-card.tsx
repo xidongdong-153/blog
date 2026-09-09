@@ -1,5 +1,7 @@
 'use client'
 
+import { Settings } from 'lucide-react'
+import Link from 'next/link'
 import { useState } from 'react'
 import { signIn, signOut, useSession } from '@/lib/auth-client'
 import { GithubIcon, GoogleIcon } from './comment-icons'
@@ -76,9 +78,19 @@ export function CommentAuthCard({ providers, isOwner }: CommentAuthCardProps) {
           <div className="flex items-center gap-2">
             <span className="text-sm font-medium text-foreground">{user.name}</span>
             {isOwner && (
-              <span className="rounded bg-primary/10 px-1.5 py-0.5 font-mono text-[10px] font-medium text-primary">
-                作者
-              </span>
+              <div className="flex items-center gap-1.5">
+                <span className="rounded bg-primary/10 px-1.5 py-0.5 font-mono text-[10px] font-medium text-primary">
+                  作者
+                </span>
+                <Link
+                  href="/settings/ai"
+                  title="AI 摘要配置"
+                  aria-label="AI 摘要配置"
+                  className="rounded p-1 text-muted-foreground transition-colors hover:bg-muted/60 hover:text-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                >
+                  <Settings className="size-3.5" />
+                </Link>
+              </div>
             )}
           </div>
         </div>

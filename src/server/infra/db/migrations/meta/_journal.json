@@ -15,6 +15,13 @@
       "when": 1788931139136,
       "tag": "0001_smart_impossible_man",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "6",
+      "when": 1788941175846,
+      "tag": "0002_third_rictor",
+      "breakpoints": true
     }
   ]
 }

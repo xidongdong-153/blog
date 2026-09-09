@@ -48,7 +48,7 @@ URL 到代码是三层结构：
 | URL 片段               | 定义位置                                                         |
 | ---------------------- | ---------------------------------------------------------------- |
 | `/api`                 | `src/server/app.ts` 的 `basePath('/api')`                        |
-| `/system`、`/presence`、`/links`、`/config`、`/comments`、`/auth` | `src/server/routes/index.ts` 的 `.route('/<域>', <域>Route)` |
+| `/system`、`/presence`、`/links`、`/config`、`/comments`、`/auth`、`/ai` | `src/server/routes/index.ts` 的 `.route('/<域>', <域>Route)` |
 | `/health`、`/apply` 等 | 各域路由文件中的具体端点定义                                     |
 
 新增一个域路由的步骤：
@@ -57,7 +57,7 @@ URL 到代码是三层结构：
 2. 在 `src/server/routes/index.ts` 挂上：`.route('/<域>', <域>Route)`。
 3. 完整 URL 就是 `/api/<域>/<端点>`，不需要动 `app.ts`。
 
-命名规则：域名和端点全小写，端点多词用 kebab-case（现有写法是 `db-check`），URL 不用下划线、不用大写。
+命名规则：域名和端点全小写，端点多词用 kebab-case（现有写法是 `db-check`、`summary-config`），URL 不用下划线、不用大写。
 
 ## Hono 挂载与接入
 
@@ -93,12 +93,15 @@ flowchart TD
   H --> L["links 路由<br/>/links/apply"]
   H --> COM["comments 路由<br/>/comments"]
   H --> AUTH["auth 路由<br/>/auth/*"]
+  H --> AI["ai 路由<br/>/ai/summary-config"]
   S --> DB[("db 实例<br/>src/server/infra/db/client.ts")]
   COM --> DB
   AUTH --> DB
+  AI --> DB
   P --> EXT["外部活动服务<br/>PRESENCE_SOURCE_URL"]
   L --> MAIL["Resend 邮件<br/>src/lib/email.ts"]
   COM -.-> MAIL
+  AI --> AISRV["AI 模型中转服务<br/>OpenAI / Anthropic"]
 ```
 
 ## 错误响应

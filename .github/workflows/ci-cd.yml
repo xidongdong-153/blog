@@ -49,10 +49,24 @@ jobs:
       - name: Check formatting
         run: pnpm format:check
 
+      - name: Prepare test database
+        env:
+          TURSO_DATABASE_URL: file:ci.db
+          TURSO_AUTH_TOKEN: ci-local-only-token
+        run: pnpm db:migrate
+
+      - name: Test
+        env:
+          TURSO_DATABASE_URL: file:ci.db
+          TURSO_AUTH_TOKEN: ci-local-only-token
+        run: pnpm test
+
       - name: Build
         env:
           BETTER_AUTH_URL: http://localhost:4400
           BETTER_AUTH_SECRET: ci-build-only-better-auth-secret-0123456789
+          TURSO_DATABASE_URL: file:ci.db
+          TURSO_AUTH_TOKEN: ci-local-only-token
         run: pnpm build
 
       - name: Clean up pnpm build approval file
@@ -101,6 +115,7 @@ jobs:
           OAUTH_GOOGLE_CLIENT_ID: ${{ vars.OAUTH_GOOGLE_CLIENT_ID || secrets.OAUTH_GOOGLE_CLIENT_ID }}
           OAUTH_GOOGLE_CLIENT_SECRET: ${{ secrets.OAUTH_GOOGLE_CLIENT_SECRET }}
           ADMIN_EMAIL: ${{ vars.ADMIN_EMAIL || secrets.ADMIN_EMAIL }}
+          AI_CREDENTIAL_ENCRYPTION_KEY: ${{ secrets.AI_CREDENTIAL_ENCRYPTION_KEY }}
         run: |
           set -euo pipefail
           test -n "$DEPLOY_HOST"
@@ -116,7 +131,7 @@ jobs:
             -p "$DEPLOY_PORT"
           )
 
-          ssh "${ssh_args[@]}" "$DEPLOY_USER@$DEPLOY_HOST" bash -s -- "$TARGET_SHA" "${RESEND_API_KEY:-}" "${FRIEND_APPLY_NOTIFY_EMAIL:-}" "${RESEND_FROM_EMAIL:-}" "${TURSO_DATABASE_URL:-}" "${TURSO_AUTH_TOKEN:-}" "${BETTER_AUTH_URL:-}" "${BETTER_AUTH_SECRET:-}" "${OAUTH_GITHUB_CLIENT_ID:-}" "${OAUTH_GITHUB_CLIENT_SECRET:-}" "${OAUTH_GOOGLE_CLIENT_ID:-}" "${OAUTH_GOOGLE_CLIENT_SECRET:-}" "${ADMIN_EMAIL:-}" <<'REMOTE'
+          ssh "${ssh_args[@]}" "$DEPLOY_USER@$DEPLOY_HOST" bash -s -- "$TARGET_SHA" "${RESEND_API_KEY:-}" "${FRIEND_APPLY_NOTIFY_EMAIL:-}" "${RESEND_FROM_EMAIL:-}" "${TURSO_DATABASE_URL:-}" "${TURSO_AUTH_TOKEN:-}" "${BETTER_AUTH_URL:-}" "${BETTER_AUTH_SECRET:-}" "${OAUTH_GITHUB_CLIENT_ID:-}" "${OAUTH_GITHUB_CLIENT_SECRET:-}" "${OAUTH_GOOGLE_CLIENT_ID:-}" "${OAUTH_GOOGLE_CLIENT_SECRET:-}" "${ADMIN_EMAIL:-}" "${AI_CREDENTIAL_ENCRYPTION_KEY:-}" <<'REMOTE'
           set -euo pipefail
           target_sha="${1:?missing target SHA}"
           resend_api_key="${2:-}"
@@ -131,6 +146,7 @@ jobs:
           oauth_google_client_id="${11:-}"
           oauth_google_client_secret="${12:-}"
           admin_email="${13:-}"
+          ai_credential_encryption_key="${14:-}"
           app_dir=/home/deploy/code/xdd/blog
 
           cd "$app_dir"
@@ -218,10 +234,18 @@ jobs:
           sync_env_var "OAUTH_GOOGLE_CLIENT_ID" "$oauth_google_client_id"
           sync_env_var "OAUTH_GOOGLE_CLIENT_SECRET" "$oauth_google_client_secret"
           sync_env_var "ADMIN_EMAIL" "$admin_email"
+          sync_env_var "AI_CREDENTIAL_ENCRYPTION_KEY" "$ai_credential_encryption_key"
 
           source /home/deploy/.nvm/nvm.sh
+          nvm use 24.16.0 >/dev/null
+          node --version
+          pnpm --version
           echo "Installing dependencies"
           pnpm install --frozen-lockfile
+          echo "Migrating the production database"
+          pnpm db:migrate
+          echo "Verifying the production database"
+          pnpm db:verify
           echo "Building the production bundle"
           pnpm build
 

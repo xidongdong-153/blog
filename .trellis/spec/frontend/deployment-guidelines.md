@@ -5,7 +5,7 @@
 修改 CI/CD、GitHub `Deployment` Environment 或服务器发布操作时遵守本文件。正式发布由 [ci-cd.yml](../../../.github/workflows/ci-cd.yml) 完成，不使用 Vercel。
 
 - 目标为 `main` 的 Pull Request 只运行 `quality`。`main` push 的 `quality` 成功后才运行 `deploy`，不要从 Fork Pull Request 触发生产发布。
-- `quality` 依次运行 `pnpm install --frozen-lockfile`、`pnpm typecheck`、`pnpm lint`、`pnpm format:check`、`pnpm build`；`build` 只注入固定的非生产 `BETTER_AUTH_SECRET` 和 `http://localhost:4400`，不读取生产认证密钥。
+- `quality` 依次运行 `pnpm install --frozen-lockfile`、`pnpm typecheck`、`pnpm lint`、`pnpm format:check`、`pnpm db:migrate`、`pnpm test`、`pnpm build`；测试和构建使用 runner 上的 `file:ci.db` 与临时 token，不访问生产数据库；`build` 只注入固定的非生产 `BETTER_AUTH_SECRET` 和 `http://localhost:4400`，不读取生产认证密钥或 AI 凭据。
 - CI 临时生成包含 `@prisma/client`、`better-sqlite3`、`esbuild` 和 `sharp` 的 `pnpm-workspace.yaml`，允许 pnpm 11 执行这些依赖的安装脚本；该文件贯穿检查步骤，job 结束时清理，不提交仓库。
 - `deploy` 使用 `Deployment` Environment，通过 SSH 执行 `bash -s -- <target-sha>`，工作目录为 `/home/deploy/code/xdd/blog`。
 - 同一分支的 workflow 串行执行，不取消正在运行的发布。只有服务器安装、构建、重启和健康检查全部通过才算发布成功。
@@ -24,6 +24,8 @@
 | Variable | `DEPLOY_USER`        | SSH 用户，现有维护约定为 `deploy`                      |
 | Secret   | `DEPLOY_SSH_KEY`     | 专用于 Actions 登录服务器的 Ed25519 私钥               |
 | Secret   | `DEPLOY_KNOWN_HOSTS` | 已人工核对指纹的服务器 `known_hosts` 完整行            |
+
+应用配置中的 `AI_CREDENTIAL_ENCRYPTION_KEY` 使用 `Deployment` Environment Secret 管理，值必须是 32 字节 Base64。workflow 只在该 Secret 非空时同步到服务器 `.env.local`；未配置时应用仍可启动，但 AI 凭据保存、测试和解密不可用。
 
 `DEPLOY_SSH_KEY` 对应公钥放在 `/home/deploy/.ssh/authorized_keys`，不能复用服务器访问 GitHub 的私钥。服务器用自己的 GitHub 拉取权限；Actions 不读取、上传或打印服务器 `.env.local`。
 
@@ -46,7 +48,7 @@ allowBuilds:
 
 - 该文件是服务器专用的 pnpm 构建脚本白名单；workflow 会把旧的 `sharp`、`sharp + esbuild` 或上一版错误生成的配置更新为上面的内容，不允许其他未跟踪文件留在工作区。
 - 远程先检查工作区和 `.env.local`，再 `git switch main`、`git fetch --prune origin main`。`origin/main` 必须等于本次 `github.sha`，服务器当前 `main` 必须是其祖先，禁止未推送提交或历史分叉。
-- 通过检查后才执行 `git merge --ff-only origin/main`，加载 `/home/deploy/.nvm/nvm.sh`，安装依赖并构建；只有成功后才 `sudo -n systemctl restart xdd-blog.service`。
+- 通过检查后才执行 `git merge --ff-only origin/main`，加载 `/home/deploy/.nvm/nvm.sh` 并切换到 Node.js `24.16.0`，安装依赖、执行 `pnpm db:migrate` 和 `pnpm db:verify`，再构建；只有成功后才 `sudo -n systemctl restart xdd-blog.service`。
 - 重启后检查 systemd active，再对 `http://127.0.0.1:4400/` 最多请求 15 次，单次 `curl --max-time 5`，失败轮次等待 1 秒，要求 HTTP `200`。这是重试次数限制，不是总计 15 秒的 deadline。
 
 ## 首次发布
@@ -108,7 +110,10 @@ if ! git merge-base --is-ancestor "$current_sha" origin/main; then
 fi
 git merge --ff-only origin/main
 source /home/deploy/.nvm/nvm.sh
+nvm use 24.16.0 >/dev/null
 pnpm install --frozen-lockfile
+pnpm db:migrate
+pnpm db:verify
 pnpm build
 sudo -n systemctl restart xdd-blog.service
 systemctl is-active --quiet xdd-blog.service
@@ -170,7 +175,7 @@ curl -I https://blog.xdd.ink/
 
 ## 修改部署逻辑后的验证
 
-- 本地依次运行 `pnpm typecheck`、`pnpm lint`、`pnpm format:check`、`pnpm build`，均要求退出码 `0`。
+- 本地依次运行 `pnpm typecheck`、`pnpm lint`、`pnpm format:check`、`pnpm db:check`、`pnpm test`、`pnpm build`，均要求退出码 `0`。
 - 用 Prettier 检查 workflow 和相关文档；Trellis 文档显式检查方法见[质量规范](./quality-guidelines.md)。
 - 用 YAML 解析器检查 workflow 包含 `quality`、`deploy`、`needs: quality` 和 `Deployment` Environment；每个 `run` 块只做 `bash -n` 语法检查，不把检查变成真实部署。
 - 获得服务器检查授权后，只读确认 Git 远端、工作区、Node/pnpm、环境文件是否存在且被忽略、sudo 权限、systemd 和本机 HTTP，不读取密钥或 `.env.local` 内容。

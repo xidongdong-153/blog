@@ -1,15 +1,18 @@
+import * as aiSchema from './ai'
 import * as authSchema from './auth'
 import * as commentsSchema from './comments'
 import * as linksSchema from './links'
 import * as systemSchema from './system'
 
 export const schema = {
+  ...aiSchema,
   ...authSchema,
   ...commentsSchema,
   ...linksSchema,
   ...systemSchema,
 }
 
+export * from './ai'
 export * from './auth'
 export * from './comments'
 export * from './links'

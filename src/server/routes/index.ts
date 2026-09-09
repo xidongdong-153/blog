@@ -1,4 +1,5 @@
 import { Hono } from 'hono'
+import { aiRoute } from './ai'
 import { authRoute } from './auth'
 import { commentsRoute } from './comments'
 import { configRoute } from './config'
@@ -13,3 +14,4 @@ export const apiRoutes = new Hono()
   .route('/config', configRoute)
   .route('/comments', commentsRoute)
   .route('/auth', authRoute)
+  .route('/ai', aiRoute)

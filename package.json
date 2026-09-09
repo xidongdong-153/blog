@@ -5,6 +5,9 @@
   "imports": {
     "@/*": "./src/*"
   },
+  "engines": {
+    "node": ">=24.16.0"
+  },
   "scripts": {
     "dev": "next dev -p 4400",
     "build": "next build",
@@ -14,7 +17,7 @@
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "typecheck": "next typegen && tsc --noEmit",
-    "test": "node --loader ./scripts/test-loader.mjs --test src/lib/presence.test.ts src/server/auth/auth.test.ts src/server/services/comments.test.ts src/server/routes/comments.test.ts",
+    "test": "node --loader ./scripts/test-loader.mjs --test --test-concurrency=1 src/lib/presence.test.ts src/server/auth/auth.test.ts src/server/services/comments.test.ts src/server/routes/comments.test.ts src/server/infra/ai/credential-crypto.test.ts src/server/infra/ai/summary-model.test.ts src/server/services/ai-summary-config.test.ts src/server/routes/ai.test.ts",
     "db:verify": "node --env-file-if-exists=.env.local scripts/verify-db.mts",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
@@ -22,7 +25,10 @@
     "db:studio": "drizzle-kit studio"
   },
   "dependencies": {
+    "@ai-sdk/anthropic": "4.0.50",
+    "@ai-sdk/openai": "4.0.62",
     "@libsql/client": "^0.18.0",
+    "ai": "7.0.94",
     "better-auth": "1.6.16",
     "drizzle-orm": "^0.45.2",
     "github-slugger": "^2.0.0",
@@ -43,7 +49,8 @@
     "remark-cjk-friendly": "^2.3.1",
     "remark-gfm": "^4.0.1",
     "remark-math": "^6.0.0",
-    "shiki": "^4.4.3"
+    "shiki": "^4.4.3",
+    "zod": "3.25.76"
   },
   "devDependencies": {
     "@antfu/eslint-config": "^9.0.0",

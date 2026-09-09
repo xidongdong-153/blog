@@ -22,5 +22,6 @@
 | OG 图自动生成                      | 未开始                 | 计划 `src/app/(site)/blog/[slug]/opengraph-image.tsx`，用 `next/og`            |
 | 代码块高亮与复制                   | 已实现                 | `src/app/(site)/_components/blog/mdx-content.tsx`                              |
 | Mac 实时活动（独立采集与首页展示） | 已实现                 | `src/lib/presence.ts`、`src/app/api/presence/`、`$HOME/.hammerspoon/presence/` |
+| AI 摘要模型配置                    | 已实现                 | `src/app/(site)/settings/ai/`、`src/server/routes/ai.ts`、`src/server/services/ai-summary-config.ts` |
 
 评论配置与状态见[组件规范](./component-guidelines.md)；活动服务配置及验证边界见[活动规范](./presence-guidelines.md)。已实现不代表外部服务当前在线。

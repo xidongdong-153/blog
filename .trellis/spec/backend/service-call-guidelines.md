@@ -59,8 +59,15 @@ flowchart TD
 - `RESEND_API_KEY` 或 `FRIEND_APPLY_NOTIFY_EMAIL` 任一未配置就自动降级，本地开发不需要真实密钥。
 - 调用方 `src/app/api/links/apply/route.ts` 拿 `result.mocked` 区分提示文案（「申请已模拟记录」和「申请已送达」）。
 
+### AI 摘要模型调用（`src/server/infra/ai/summary-model.ts`）
+
+- 协议与地址：支持 `openai-completions`、`openai-responses`、`anthropic-messages`；Base URL 必须经过安全校验（禁止包含凭据、query、hash，生产环境拒绝私网与云 metadata）。
+- 受限 fetch：统一使用 `redirect: 'manual'` 拒绝跟随重定向，防止 SSRF 漏洞。
+- 超时与重试：非流式连接测试与生成设置 `timeout: { totalMs: 20_000 }`，`maxRetries: 0`，关闭 telemetry。
+- 错误边界：统一归类为安全类型错误（`AUTH_FAILED`、`UPSTREAM_TIMEOUT`、`UPSTREAM_UNAVAILABLE`、`UPSTREAM_ERROR`、`UPSTREAM_INVALID_RESPONSE`），绝不向下游泄漏 API key、Prompt 或原始上游响应内容。
+
 外部调用公共规则：
 
-- 超时必设，用 `AbortController`，不让请求挂着。
-- 上游失败时的行为先想清楚：静默回退（presence）还是把失败报给用户（邮件），两种都合法，但不能不处理。
-- 密钥和上游地址只从环境变量来，占位与注释维护在 `.env.example`。
+- 超时必设，用 `AbortController` 或框架内置超时配置，不让请求挂着。
+- 上游失败时的行为先想清楚：静默回退（presence）还是把失败报给用户（邮件、AI 连通性测试），两种都合法，但不能不处理。
+- 密钥和上游地址只从环境变量或安全凭据库来，占位与注释维护在 `.env.example`。
