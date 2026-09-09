@@ -91,6 +91,13 @@ jobs:
           RESEND_FROM_EMAIL: ${{ vars.RESEND_FROM_EMAIL || secrets.RESEND_FROM_EMAIL }}
           TURSO_DATABASE_URL: ${{ vars.TURSO_DATABASE_URL || secrets.TURSO_DATABASE_URL }}
           TURSO_AUTH_TOKEN: ${{ secrets.TURSO_AUTH_TOKEN }}
+          BETTER_AUTH_URL: ${{ vars.BETTER_AUTH_URL || secrets.BETTER_AUTH_URL }}
+          BETTER_AUTH_SECRET: ${{ secrets.BETTER_AUTH_SECRET }}
+          GITHUB_CLIENT_ID: ${{ vars.GITHUB_CLIENT_ID || secrets.GITHUB_CLIENT_ID }}
+          GITHUB_CLIENT_SECRET: ${{ secrets.GITHUB_CLIENT_SECRET }}
+          GOOGLE_CLIENT_ID: ${{ vars.GOOGLE_CLIENT_ID || secrets.GOOGLE_CLIENT_ID }}
+          GOOGLE_CLIENT_SECRET: ${{ secrets.GOOGLE_CLIENT_SECRET }}
+          ADMIN_EMAIL: ${{ vars.ADMIN_EMAIL || secrets.ADMIN_EMAIL }}
         run: |
           set -euo pipefail
           test -n "$DEPLOY_HOST"
@@ -106,7 +113,7 @@ jobs:
             -p "$DEPLOY_PORT"
           )
 
-          ssh "${ssh_args[@]}" "$DEPLOY_USER@$DEPLOY_HOST" bash -s -- "$TARGET_SHA" "${RESEND_API_KEY:-}" "${FRIEND_APPLY_NOTIFY_EMAIL:-}" "${RESEND_FROM_EMAIL:-}" "${TURSO_DATABASE_URL:-}" "${TURSO_AUTH_TOKEN:-}" <<'REMOTE'
+          ssh "${ssh_args[@]}" "$DEPLOY_USER@$DEPLOY_HOST" bash -s -- "$TARGET_SHA" "${RESEND_API_KEY:-}" "${FRIEND_APPLY_NOTIFY_EMAIL:-}" "${RESEND_FROM_EMAIL:-}" "${TURSO_DATABASE_URL:-}" "${TURSO_AUTH_TOKEN:-}" "${BETTER_AUTH_URL:-}" "${BETTER_AUTH_SECRET:-}" "${GITHUB_CLIENT_ID:-}" "${GITHUB_CLIENT_SECRET:-}" "${GOOGLE_CLIENT_ID:-}" "${GOOGLE_CLIENT_SECRET:-}" "${ADMIN_EMAIL:-}" <<'REMOTE'
           set -euo pipefail
           target_sha="${1:?missing target SHA}"
           resend_api_key="${2:-}"
@@ -114,6 +121,13 @@ jobs:
           resend_from_email="${4:-}"
           turso_database_url="${5:-}"
           turso_auth_token="${6:-}"
+          better_auth_url="${7:-}"
+          better_auth_secret="${8:-}"
+          github_client_id="${9:-}"
+          github_client_secret="${10:-}"
+          google_client_id="${11:-}"
+          google_client_secret="${12:-}"
+          admin_email="${13:-}"
           app_dir=/home/deploy/code/xdd/blog
 
           cd "$app_dir"
@@ -189,6 +203,13 @@ jobs:
           sync_env_var "RESEND_FROM_EMAIL" "$resend_from_email"
           sync_env_var "TURSO_DATABASE_URL" "$turso_database_url"
           sync_env_var "TURSO_AUTH_TOKEN" "$turso_auth_token"
+          sync_env_var "BETTER_AUTH_URL" "$better_auth_url"
+          sync_env_var "BETTER_AUTH_SECRET" "$better_auth_secret"
+          sync_env_var "GITHUB_CLIENT_ID" "$github_client_id"
+          sync_env_var "GITHUB_CLIENT_SECRET" "$github_client_secret"
+          sync_env_var "GOOGLE_CLIENT_ID" "$google_client_id"
+          sync_env_var "GOOGLE_CLIENT_SECRET" "$google_client_secret"
+          sync_env_var "ADMIN_EMAIL" "$admin_email"
 
           source /home/deploy/.nvm/nvm.sh
           echo "Installing dependencies"
