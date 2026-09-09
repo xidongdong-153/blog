@@ -43,6 +43,8 @@ pnpm db:verify     # 改了连接配置或执行迁移后跑
 | system 域路由 | `src/server/routes/system.ts`         |
 | presence 路由 | `src/server/routes/presence.ts`       |
 | links 域路由  | `src/server/routes/links.ts`          |
+| comments 路由 | `src/server/routes/comments.ts`       |
+| auth 配置     | `src/server/auth/config.ts`           |
 | 数据库实例    | `src/server/infra/db/client.ts`       |
 | 表定义聚合    | `src/server/infra/db/schema/index.ts` |
 | 响应封装      | `src/server/shared/response.ts`       |

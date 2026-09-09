@@ -10,7 +10,7 @@
 - `src/app/(site)/_components/site/site-header.tsx`（滚动感应与移动端菜单展开）
 - `src/app/(site)/_components/blog/toc.tsx`（TOC 目录展开折叠、点击互斥锁、侧栏自滚动与 RAF 进度更新）
 - `src/app/(site)/_components/blog/floating-action-group.tsx`（移动端抽屉唤出与返回顶部百分比计算）
-- `src/app/(site)/_components/comment/giscus-comments.tsx`（Giscus 客户端脚本挂载、主题 DOM 监听与 postMessage 免重载变色）
+- `src/app/(site)/_components/comment/comment-section.tsx`（社交登录、评论树读取、平铺回复与前台管理）
 - `src/app/(site)/_components/home/presence.tsx`（活动接口轮询、在线状态和后台工具展开）
 
 MDX 渲染走异步 RSC（`mdx-content.tsx` 的 `compileMDX`），不需要 client。高频滚动联动场景使用 `requestAnimationFrame` 调度，直接更新对应节点的样式（如 TOC 进度条、SiteHeader 连续水膜插值），避免高频触发 React 整体组件树重新渲染。SiteHeader 不使用布尔阈值硬切与布局重排（如动态 margin），改用 0~80px 连续进度驱动独立背景水膜层透明度、渐进遮罩与微缩放；显隐判断加入滚动死区累积位移（向下 12px、向上 8px 缓冲及顶部 200px 常驻安全区），彻底避免慢拖滚动条时的方向震荡；显隐动画使用可中断的纯 GPU Transition（下滑 160ms ease-out 平滑微缩淡出，上滑 240ms 阻尼曲线聚显并带表面张力平息静止）。
@@ -87,19 +87,22 @@ MDX 渲染走异步 RSC（`mdx-content.tsx` 的 `compileMDX`），不需要 clie
 
 ## 评论组件
 
-文章详情页挂载基于 GitHub Discussions 的 Giscus 评论组件（`src/app/(site)/_components/comment/giscus-comments.tsx`）：
+文章详情页挂载自建 Better Auth 社交评论组件（`src/app/(site)/_components/comment/comment-section.tsx`）：
 
-- **配置契约**：
-  - 核心环境变量：`NEXT_PUBLIC_GISCUS_REPO`、`NEXT_PUBLIC_GISCUS_REPO_ID`、`NEXT_PUBLIC_GISCUS_CATEGORY_ID`。
-  - 可选环境变量：`NEXT_PUBLIC_GISCUS_CATEGORY`（默认 `General`）、`NEXT_PUBLIC_GISCUS_MAPPING`（默认 `pathname`）、`NEXT_PUBLIC_GISCUS_REACTIONS_ENABLED`（默认 `1`）、`NEXT_PUBLIC_GISCUS_INPUT_POSITION`（默认 `top`）、`NEXT_PUBLIC_GISCUS_LANG`（默认 `zh-CN`）。
-  - 变量模板放置在根目录 `.env.example`，在 `.gitignore` 中配置 `!.env.example` 允许提交。
-- **容错降级**：
-  - 未配置核心环境变量时，渲染带有配置说明的虚线卡片，不执行外部脚本注入，不抛出异常或白屏。
-- **主题联动与自定义样式**：
-  - 初始化与运行时通过 `MutationObserver` 监听 `html` 的 `class` 与 `data-theme` 属性，发生变化时通过 `postMessage({ giscus: { setConfig: { theme } } }, 'https://giscus.app')` 动态通知 iframe 更新样式。
-  - 生产环境使用 `public/themes/giscus-light.css`（暖纸白体系）与 `public/themes/giscus-dark.css`（深石板炭黑体系），以绝对 URL 传递；圆角统一收敛为 `rounded-lg`（`8px`）。
-  - `next.config.ts` 必须为 `/themes/:path*` 配置 `Access-Control-Allow-Origin: *` 响应头，满足 Giscus `crossorigin="anonymous"` 跨域样式加载契约。
-  - 本地环境（`localhost` 或 HTTP）安全回退到 Giscus 内置 `light` / `dark` 主题，防止被浏览器的混合内容（Mixed Content）阻断。
+- **认证与会话契约**：
+  - 核心环境变量：`BETTER_AUTH_URL`、`BETTER_AUTH_SECRET`、`ADMIN_EMAIL`。
+  - OAuth 凭证：`GITHUB_CLIENT_ID` / `GITHUB_CLIENT_SECRET`、`GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET`；成对存在才启用对应 provider。
+  - 前端通过 `/api/config/auth` 检测已启用的登录渠道，仅渲染已配置 provider 的登录按钮。
+  - 未登录访客可公开读取评论列表；提交评论、回复和站长操作必须校验 session。
+- **数据与交互契约**：
+  - 内容关联：通过文章 `slug` 由服务端校验文章并解析实际 `commentKey`（改名文章在 frontmatter 保留旧 `commentKey` 承接历史评论）。
+  - 层级结构：顶级评论与平铺单层回复；回复回复时通过 `replyToId` 提示被回复人，不产生多级缩进。
+  - 排序规则：默认置顶优先且时间倒序，最新模式纯倒序，最早模式正序；讨论下的回复始终按时间正序。
+  - 容错与限制：评论去除首尾空白后限制 1 至 1000 字；支持软删除占位。
+- **客户端依赖边界**：评论等 client component 不直接 import `src/lib/content.ts`，因为该模块包含 `node:fs` 内容读取逻辑，会被 Turbopack 尝试打进浏览器包。客户端需要日期格式化时使用无 Node 依赖的 `src/lib/date.ts`；内容层从该文件 re-export `formatDate`，服务端页面仍可从 `src/lib/content.ts` 引用。
+- **邮件提醒与安全管理**：
+  - 新评论触发 Resend 邮件投递至 `ADMIN_EMAIL`，包含 7 天有效期的一次性删除链接。
+  - 确认页（`/comments/delete`）GET 只读，POST 经 SHA-256 哈希比对后执行软删除并销毁凭证。
 
 ## 占位页
 

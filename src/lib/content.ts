@@ -27,6 +27,8 @@ export const BLOG_SORT_LABELS: Record<BlogSortOrder, string> = {
  */
 export interface BlogPost {
   slug: string
+  /** 评论关联键，未配置时默认使用 slug；文章改名时保留旧 commentKey 可承接历史评论 */
+  commentKey?: string
   title: string
   description: string
   category: BlogCategory
@@ -143,6 +145,8 @@ export function getAllBlogPosts(): BlogPost[] {
     const { data, content } = readMdxFile(filePath)
     posts.push({
       slug: entry.name,
+      commentKey:
+        typeof data.commentKey === 'string' && data.commentKey.trim() !== '' ? data.commentKey.trim() : undefined,
       title: requireString(data, 'title', filePath),
       description: typeof data.description === 'string' ? data.description : '',
       category: requireCategory(data, filePath),
@@ -157,6 +161,11 @@ export function getAllBlogPosts(): BlogPost[] {
   }
 
   return posts.sort((a, b) => b.date.localeCompare(a.date))
+}
+
+/** 获取文章实际的评论关联标识（有 commentKey 则取 commentKey，否则取 slug）。 */
+export function resolvePostCommentKey(post: BlogPost): string {
+  return post.commentKey || post.slug
 }
 
 /** 读取全部笔记，按日期倒序。 */
@@ -281,15 +290,7 @@ export function extractHeadings(content: string): Heading[] {
   return headings
 }
 
-/** 日期显示，全站统一格式。 */
-export function formatDate(iso: string): string {
-  return new Intl.DateTimeFormat('zh-CN', {
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit',
-    timeZone: 'UTC',
-  }).format(new Date(iso))
-}
+export { formatDate } from './date'
 
 /** 首页最近写作时间线日期格式，输出 MM / DD（如 07 / 25）。 */
 export function formatTimelineDate(iso: string): string {

@@ -1,0 +1,3 @@
+{"file": ".trellis/spec/frontend/quality-guidelines.md", "reason": "执行项目质量门和页面手动检查"}
+{"file": ".trellis/spec/backend/api-design-guidelines.md", "reason": "核对认证和评论接口语义、状态码与响应边界"}
+{"file": ".trellis/spec/frontend/component-guidelines.md", "reason": "核对评论组件结构、交互状态和响应式样式"}

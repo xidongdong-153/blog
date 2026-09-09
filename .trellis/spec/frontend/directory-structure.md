@@ -38,7 +38,7 @@ content/notes/               笔记，一条一个 .md
 | `home/`        | 首页简历与信息流展示 | `hero.tsx`、`presence.tsx`、`section.tsx`、`writing-timeline.tsx`、`skill-list.tsx`、`site-stats.tsx` |
 | `blog/`        | 文章相关             | `post-card.tsx`、`mdx-content.tsx`、`toc.tsx`                                                         |
 | `notes/`       | 笔记相关             | `note-card.tsx`                                                                                       |
-| `comment/`     | 评论                 | `giscus-comments.tsx`                                                                                 |
+| `comment/`     | 评论                 | `comment-section.tsx`、`comment-composer.tsx`、`comment-item.tsx`、`comment-auth-card.tsx`、`comment-icons.tsx` |
 | `placeholder/` | 占位页通用内容       | `empty-state.tsx`                                                                                     |
 
 新增分组需要有新功能域才建，不要按组件类型（`ui/`、`common/`）分组。

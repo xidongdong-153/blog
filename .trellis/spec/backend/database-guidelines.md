@@ -81,5 +81,7 @@ pnpm db:studio     # 打开 drizzle-kit studio，本地默认连 file:local.db
 
 - `system_health_checks` 表已在 `schema/system.ts` 定义，给健康检查历史记录预留。
 - `site_friend_links` 表已在 `schema/links.ts` 定义并接入 `schema/index.ts`，用于友链数据持久化、待审记录与一次性审核令牌流转；前台友链页（`/links`）与审批接口读写此表。
+- `user`、`session`、`account`、`verification` 表已在 `schema/auth.ts` 定义并接入 `schema/index.ts`，承载 Better Auth 账号认证与会话持久化。
+- `site_comments` 表已在 `schema/comments.ts` 定义并接入 `schema/index.ts`，承载文章评论树、平铺回复、置顶、软删除和邮件删除凭证哈希。
 - `drizzle.config.ts` 已支持检测并自动载入 `.env.local`，执行 `pnpm db:*` 命令时自动连通线上 Turso 或本地文件库。
 - `src/server/infra/db/migrations/` 已生成迁移并应用至数据库。

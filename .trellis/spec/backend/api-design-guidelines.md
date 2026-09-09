@@ -48,7 +48,7 @@ URL 到代码是三层结构：
 | URL 片段               | 定义位置                                                         |
 | ---------------------- | ---------------------------------------------------------------- |
 | `/api`                 | `src/server/app.ts` 的 `basePath('/api')`                        |
-| `/system`、`/presence`、`/links` | `src/server/routes/index.ts` 的 `.route('/<域>', <域>Route)` |
+| `/system`、`/presence`、`/links`、`/config`、`/comments`、`/auth` | `src/server/routes/index.ts` 的 `.route('/<域>', <域>Route)` |
 | `/health`、`/apply` 等 | 各域路由文件中的具体端点定义                                     |
 
 新增一个域路由的步骤：
@@ -91,9 +91,14 @@ flowchart TD
   H --> S["system 路由<br/>/health /db-check"]
   H --> P["presence 路由<br/>/presence"]
   H --> L["links 路由<br/>/links/apply"]
+  H --> COM["comments 路由<br/>/comments"]
+  H --> AUTH["auth 路由<br/>/auth/*"]
   S --> DB[("db 实例<br/>src/server/infra/db/client.ts")]
+  COM --> DB
+  AUTH --> DB
   P --> EXT["外部活动服务<br/>PRESENCE_SOURCE_URL"]
   L --> MAIL["Resend 邮件<br/>src/lib/email.ts"]
+  COM -.-> MAIL
 ```
 
 ## 错误响应

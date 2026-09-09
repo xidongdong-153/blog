@@ -8,6 +8,13 @@
       "when": 1788860936387,
       "tag": "0000_new_switch",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "6",
+      "when": 1788931139136,
+      "tag": "0001_smart_impossible_man",
+      "breakpoints": true
     }
   ]
 }

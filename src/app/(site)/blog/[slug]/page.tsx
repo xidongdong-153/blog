@@ -13,7 +13,7 @@ import { CopyrightCard } from '../../_components/blog/copyright-card'
 import { FloatingActionGroup } from '../../_components/blog/floating-action-group'
 import { MdxContent } from '../../_components/blog/mdx-content'
 import { TableOfContents } from '../../_components/blog/toc'
-import { GiscusComments } from '../../_components/comment/giscus-comments'
+import { CommentSection } from '../../_components/comment/comment-section'
 
 interface BlogPostPageProps {
   params: Promise<{ slug: string }>
@@ -101,7 +101,7 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
 
           {/* 评论 */}
           <div className="mt-8">
-            <GiscusComments />
+            <CommentSection slug={post.slug} />
           </div>
         </article>
 

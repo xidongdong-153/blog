@@ -16,11 +16,11 @@
 | 项目 / 友链 / 关于 / 联系          | 已实现                 | `src/app/(site)/` 对应目录                                                     |
 | 友链申请与邮件一键审批             | 已实现                 | `src/app/(site)/links/`、`src/server/routes/links.ts`、`src/lib/email.ts`      |
 | 站内搜索                           | 占位页，方案见页面注释 | `src/app/(site)/search/page.tsx`                                               |
-| Giscus 评论                        | 已实现                 | `src/app/(site)/_components/comment/giscus-comments.tsx`                       |
+| Better Auth 社交评论               | 已实现                 | `src/app/(site)/_components/comment/`、`src/server/routes/comments.ts`、`src/server/services/comments.ts` |
 | RSS                                | 已实现                 | `src/app/rss.xml/route.ts`                                                     |
 | sitemap / robots                   | 已实现                 | `src/app/sitemap.ts`、`src/app/robots.ts`                                      |
 | OG 图自动生成                      | 未开始                 | 计划 `src/app/(site)/blog/[slug]/opengraph-image.tsx`，用 `next/og`            |
 | 代码块高亮与复制                   | 已实现                 | `src/app/(site)/_components/blog/mdx-content.tsx`                              |
 | Mac 实时活动（独立采集与首页展示） | 已实现                 | `src/lib/presence.ts`、`src/app/api/presence/`、`$HOME/.hammerspoon/presence/` |
 
-Giscus 的环境变量和未配置时的展示见[组件规范](./component-guidelines.md)；活动服务配置及验证边界见[活动规范](./presence-guidelines.md)。已实现不代表外部服务当前在线。
+评论配置与状态见[组件规范](./component-guidelines.md)；活动服务配置及验证边界见[活动规范](./presence-guidelines.md)。已实现不代表外部服务当前在线。

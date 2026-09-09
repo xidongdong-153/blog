@@ -2,6 +2,9 @@
   "name": "blog",
   "version": "0.1.0",
   "private": true,
+  "imports": {
+    "@/*": "./src/*"
+  },
   "scripts": {
     "dev": "next dev -p 4400",
     "build": "next build",
@@ -11,6 +14,7 @@
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "typecheck": "next typegen && tsc --noEmit",
+    "test": "node --loader ./scripts/test-loader.mjs --test src/lib/presence.test.ts src/server/auth/auth.test.ts src/server/services/comments.test.ts src/server/routes/comments.test.ts",
     "db:verify": "node --env-file-if-exists=.env.local scripts/verify-db.mts",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
@@ -19,11 +23,13 @@
   },
   "dependencies": {
     "@libsql/client": "^0.18.0",
+    "better-auth": "1.6.16",
     "drizzle-orm": "^0.45.2",
     "github-slugger": "^2.0.0",
     "gray-matter": "^4.0.3",
     "hono": "^4.13.7",
     "katex": "^0.18.5",
+    "lucide-react": "^1.43.0",
     "next": "16.2.4",
     "next-mdx-remote": "^6.0.0",
     "ogl": "^1.0.11",
@@ -41,6 +47,7 @@
   },
   "devDependencies": {
     "@antfu/eslint-config": "^9.0.0",
+    "@better-auth/cli": "1.4.21",
     "@next/eslint-plugin-next": "16.2.4",
     "@tailwindcss/postcss": "^4.2.2",
     "@tailwindcss/typography": "^0.5.16",
