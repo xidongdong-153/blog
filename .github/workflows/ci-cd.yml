@@ -138,10 +138,12 @@ jobs:
           worktree_status="$(git status --porcelain --untracked-files=all)"
           old_pnpm_config=$'allowBuilds:\n  sharp: true\n'
           legacy_pnpm_config=$'allowBuilds:\n  sharp: true\n  esbuild: true\n'
-          expected_pnpm_config=$'allowBuilds:\n  '\''@prisma/client'\'': true\n  better-sqlite3: true\n  esbuild: true\n  sharp: true\n'
+          broken_pnpm_config=$'allowBuilds:\n  \x27@prisma/client\x27: true\\n  better-sqlite3: true\\n  esbuild: true\\n  sharp: true\\n'
+          expected_pnpm_config=$'allowBuilds:\n  \x27@prisma/client\x27: true\n  better-sqlite3: true\n  esbuild: true\n  sharp: true\n'
           if [[ -f pnpm-workspace.yaml ]] &&
             { cmp -s pnpm-workspace.yaml <(printf '%s' "$old_pnpm_config") ||
-              cmp -s pnpm-workspace.yaml <(printf '%s' "$legacy_pnpm_config"); }; then
+              cmp -s pnpm-workspace.yaml <(printf '%s' "$legacy_pnpm_config") ||
+              cmp -s pnpm-workspace.yaml <(printf '%s' "$broken_pnpm_config"); }; then
             printf '%s' "$expected_pnpm_config" > pnpm-workspace.yaml
           fi
           pnpm_config_status="$(git status --porcelain --untracked-files=all --ignored -- pnpm-workspace.yaml)"

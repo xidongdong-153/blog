@@ -44,7 +44,7 @@ allowBuilds:
   sharp: true
 ```
 
-- 该文件是服务器专用的 pnpm 构建脚本白名单；workflow 会把旧的 `sharp` 或 `sharp + esbuild` 配置更新为上面的内容，不允许其他未跟踪文件留在工作区。
+- 该文件是服务器专用的 pnpm 构建脚本白名单；workflow 会把旧的 `sharp`、`sharp + esbuild` 或上一版错误生成的配置更新为上面的内容，不允许其他未跟踪文件留在工作区。
 - 远程先检查工作区和 `.env.local`，再 `git switch main`、`git fetch --prune origin main`。`origin/main` 必须等于本次 `github.sha`，服务器当前 `main` 必须是其祖先，禁止未推送提交或历史分叉。
 - 通过检查后才执行 `git merge --ff-only origin/main`，加载 `/home/deploy/.nvm/nvm.sh`，安装依赖并构建；只有成功后才 `sudo -n systemctl restart xdd-blog.service`。
 - 重启后检查 systemd active，再对 `http://127.0.0.1:4400/` 最多请求 15 次，单次 `curl --max-time 5`，失败轮次等待 1 秒，要求 HTTP `200`。这是重试次数限制，不是总计 15 秒的 deadline。
@@ -71,7 +71,7 @@ ssh "deploy@$DEPLOY_HOST" 'bash -s' <<'REMOTE'
 set -euo pipefail
 cd /home/deploy/code/xdd/blog
 worktree_status="$(git status --porcelain --untracked-files=all)"
-expected_pnpm_config=$'allowBuilds:\n  '\''@prisma/client'\'': true\n  better-sqlite3: true\n  esbuild: true\n  sharp: true\n'
+expected_pnpm_config=$'allowBuilds:\n  \x27@prisma/client\x27: true\n  better-sqlite3: true\n  esbuild: true\n  sharp: true\n'
 pnpm_config_status="$(git status --porcelain --untracked-files=all --ignored -- pnpm-workspace.yaml)"
 if git ls-files --error-unmatch -- pnpm-workspace.yaml >/dev/null 2>&1 ||
   [[ "$pnpm_config_status" != '' && "$pnpm_config_status" != '?? pnpm-workspace.yaml' ]]; then
