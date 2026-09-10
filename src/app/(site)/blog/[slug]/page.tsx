@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import Image from 'next/image'
 import { notFound } from 'next/navigation'
+import { computeArticleContentHash } from '@/lib/ai-summary'
 import {
   BLOG_CATEGORY_LABELS,
   calculateReadingTime,
@@ -9,6 +10,8 @@ import {
   getAllBlogPosts,
   getBlogPost,
 } from '@/lib/content'
+import { getArticleSummaryBySlug } from '@/server/services/ai-summary'
+import { AiSummary } from '../../_components/blog/ai-summary'
 import { CopyrightCard } from '../../_components/blog/copyright-card'
 import { FloatingActionGroup } from '../../_components/blog/floating-action-group'
 import { MdxContent } from '../../_components/blog/mdx-content'
@@ -45,6 +48,19 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
 
   const headings = extractHeadings(post.content)
   const readingTime = calculateReadingTime(post.content)
+
+  let summary: string | null = null
+  if (!post.disableAiSummary) {
+    try {
+      const currentHash = computeArticleContentHash(post.content)
+      const record = await getArticleSummaryBySlug(post.slug)
+      if (record && record.contentHash === currentHash && record.summary.trim()) {
+        summary = record.summary.trim()
+      }
+    } catch {
+      summary = null
+    }
+  }
 
   return (
     <>
@@ -88,6 +104,13 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
             </h1>
             {post.description && <p className="leading-relaxed text-muted-foreground">{post.description}</p>}
           </div>
+
+          {/* AI 摘要 */}
+          {summary && (
+            <div className="mt-6">
+              <AiSummary summary={summary} />
+            </div>
+          )}
 
           {/* 正文 */}
           <div className="mt-8">

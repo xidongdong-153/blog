@@ -246,6 +246,8 @@ jobs:
           pnpm db:migrate
           echo "Verifying the production database"
           pnpm db:verify
+          echo "Syncing AI article summaries"
+          pnpm summary:sync
           echo "Building the production bundle"
           pnpm build
 

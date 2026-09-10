@@ -48,7 +48,7 @@ allowBuilds:
 
 - 该文件是服务器专用的 pnpm 构建脚本白名单；workflow 会把旧的 `sharp`、`sharp + esbuild` 或上一版错误生成的配置更新为上面的内容，不允许其他未跟踪文件留在工作区。
 - 远程先检查工作区和 `.env.local`，再 `git switch main`、`git fetch --prune origin main`。`origin/main` 必须等于本次 `github.sha`，服务器当前 `main` 必须是其祖先，禁止未推送提交或历史分叉。
-- 通过检查后才执行 `git merge --ff-only origin/main`，加载 `/home/deploy/.nvm/nvm.sh` 并切换到 Node.js `24.16.0`，安装依赖、执行 `pnpm db:migrate` 和 `pnpm db:verify`，再构建；只有成功后才 `sudo -n systemctl restart xdd-blog.service`。
+- 通过检查后才执行 `git merge --ff-only origin/main`，加载 `/home/deploy/.nvm/nvm.sh` 并切换到 Node.js `24.16.0`，安装依赖、执行 `pnpm db:migrate`、`pnpm db:verify` 与 `pnpm summary:sync`，再构建；只有成功后才 `sudo -n systemctl restart xdd-blog.service`。
 - 重启后检查 systemd active，再对 `http://127.0.0.1:4400/` 最多请求 15 次，单次 `curl --max-time 5`，失败轮次等待 1 秒，要求 HTTP `200`。这是重试次数限制，不是总计 15 秒的 deadline。
 
 ## 首次发布
@@ -114,6 +114,7 @@ nvm use 24.16.0 >/dev/null
 pnpm install --frozen-lockfile
 pnpm db:migrate
 pnpm db:verify
+pnpm summary:sync
 pnpm build
 sudo -n systemctl restart xdd-blog.service
 systemctl is-active --quiet xdd-blog.service

@@ -18,3 +18,16 @@ export const aiSummaryConfig = sqliteTable('site_ai_summary_config', {
 
 export type AiSummaryConfigRecord = typeof aiSummaryConfig.$inferSelect
 export type NewAiSummaryConfigRecord = typeof aiSummaryConfig.$inferInsert
+
+export const articleSummaries = sqliteTable('site_article_summaries', {
+  slug: text('slug').primaryKey(),
+  contentHash: text('content_hash').notNull(),
+  summary: text('summary').notNull(),
+  protocol: text('protocol').notNull(),
+  model: text('model_id').notNull(),
+  createdAt: integer('created_at', { mode: 'timestamp_ms' }).notNull(),
+  updatedAt: integer('updated_at', { mode: 'timestamp_ms' }).notNull(),
+})
+
+export type ArticleSummaryRecord = typeof articleSummaries.$inferSelect
+export type NewArticleSummaryRecord = typeof articleSummaries.$inferInsert

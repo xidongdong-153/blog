@@ -1,0 +1,4 @@
+{"file": ".trellis/spec/frontend/deployment-guidelines.md", "reason": "生产部署脚本、migration 与 build 顺序"}
+{"file": ".trellis/spec/frontend/content-guidelines.md", "reason": "文章 frontmatter、内容读取和哈希输入约定"}
+{"file": ".trellis/tasks/archive/2026-09/09-09-ai-summary-settings/research/three-protocol-ai-sdk.md", "reason": "摘要生成复用的三协议 AI SDK 适配结论"}
+{"file": ".trellis/spec/backend/database-guidelines.md", "reason": "摘要缓存表、迁移和 summary:sync 的数据库契约"}

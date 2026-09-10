@@ -84,5 +84,69 @@ pnpm db:studio     # 打开 drizzle-kit studio，本地默认连 file:local.db
 - `user`、`session`、`account`、`verification` 表已在 `schema/auth.ts` 定义并接入 `schema/index.ts`，承载 Better Auth 账号认证与会话持久化。
 - `site_comments` 表已在 `schema/comments.ts` 定义并接入 `schema/index.ts`，承载文章评论树、平铺回复、置顶、软删除和邮件删除凭证哈希。
 - `site_ai_summary_config` 表已在 `schema/ai.ts` 定义并接入 `schema/index.ts`，主键固定为 `default`，承载 AI 摘要模型的协议、Base URL、模型 ID、AES-256-GCM 凭据密文、随机 IV、认证 Tag、脱敏掩码、状态与并发版本 revision。
+- `site_article_summaries` 表已在 `schema/ai.ts` 定义并接入 `schema/index.ts`，主键为文章 slug，记录正文 SHA-256 哈希、AI 摘要纯文本、生成时协议与模型及时间戳；用于构建前同步缓存并在文章详情页按哈希校验读取。
 - `drizzle.config.ts` 已支持检测并自动载入 `.env.local`，执行 `pnpm db:*` 命令时自动连通线上 Turso 或本地文件库。
 - `src/server/infra/db/migrations/` 已生成迁移并应用至数据库。
+
+## AI 摘要同步契约
+
+### 1. Scope / Trigger
+
+- 触发范围：文章正文变化、生产部署前同步、摘要缓存表结构变更。
+- 代码边界：`src/lib/ai-summary.ts` 只负责正文哈希；`src/server/services/ai-summary.ts` 负责配置读取、模型调用、缓存读写和逐篇同步；`scripts/sync-summaries.ts` 是部署命令入口；文章页只读取缓存。
+- 不在页面请求期间调用模型，也不把摘要写回 MDX。
+
+### 2. Signatures
+
+```typescript
+computeArticleContentHash(content: string): string
+getArticleSummaryBySlug(slug: string, database?: AppDatabase): Promise<ArticleSummaryRecord | null>
+syncAllArticleSummaries(options?: SyncSummariesOptions): Promise<SyncSummariesResult>
+```
+
+```text
+pnpm summary:sync
+```
+
+`SyncSummariesResult` 必须包含 `total`、`generated`、`skipped`、`disabled`、`failed` 五个计数。
+
+### 3. Contracts
+
+- `site_article_summaries` 以 `slug` 为主键，保存 `content_hash`、纯文本 `summary`、生成时的 `protocol`、`model_id`、`created_at` 和 `updated_at`。
+- 正文哈希只取 `BlogPost.content` 的 UTF-8 字节，frontmatter 变化不触发重新生成。
+- 只有 `site_ai_summary_config.status = ready` 且凭据可用时才调用模型；三种协议分别使用 Chat Completions、Responses 和 Anthropic Messages provider。
+- `TURSO_DATABASE_URL`、`TURSO_AUTH_TOKEN` 和 `AI_CREDENTIAL_ENCRYPTION_KEY` 由服务端读取。日志不得输出正文、摘要全文、API Key 或上游响应体。
+- `pnpm summary:sync` 只由生产部署脚本在 `pnpm db:migrate`、`pnpm db:verify` 之后和 `pnpm build` 之前调用；通用 `pnpm build` 不依赖模型凭据。
+
+### 4. Validation & Error Matrix
+
+| 条件 | 处理 |
+| --- | --- |
+| `disableAiSummary` 严格为 `true` | 不读模型、不写新摘要，计入 `disabled`；页面不渲染 |
+| 缓存 `content_hash` 等于当前正文哈希 | 不调用模型，计入 `skipped` |
+| 没有 ready 配置或主密钥不可用 | 不调用模型，安全记录跳过并以 0 退出 |
+| 模型返回空文本、非 `stop` 或 Markdown | 不写库，保留旧记录并计入 `failed` |
+| 单篇模型或数据库错误 | 记录安全错误，继续处理下一篇，命令以 0 退出 |
+| 页面查询失败或哈希不匹配 | 不渲染摘要，继续渲染文章正文 |
+
+### 5. Good / Base / Bad Cases
+
+- Good：正文未变时命中缓存；正文变化时成功生成后才执行 upsert。
+- Base：首次部署没有 ready 配置，命令只输出计数并继续构建。
+- Bad：模型失败前删除旧记录，或在页面组件中直接调用模型；这会破坏旧摘要和离线构建。
+
+### 6. Tests Required
+
+- 哈希测试断言相同正文结果稳定、正文字符变化结果不同、frontmatter 不参与计算。
+- 服务测试断言缓存 upsert、三种协议请求路径、空文本和截断拒绝、旧摘要不被覆盖、关闭开关和哈希命中不调用模型。
+- 部署检查依次运行 `pnpm typecheck`、`pnpm lint`、`pnpm format:check`、`pnpm db:check`、`pnpm db:verify`、`pnpm test` 和 `pnpm build`。
+
+### 7. Wrong vs Correct
+
+错误：文章页在渲染期间调用 `generateSummaryForPost`。
+
+正确：文章页调用 `getArticleSummaryBySlug`，计算当前正文哈希，只在哈希相等时展示缓存文本。
+
+错误：把 `pnpm summary:sync` 放进通用 `pnpm build`。
+
+正确：只在生产部署脚本中显式执行同步，迁移和同步完成后再构建。

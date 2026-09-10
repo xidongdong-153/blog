@@ -43,6 +43,8 @@ export interface BlogPost {
   tags: string[]
   /** true 时列表页不显示 */
   draft: boolean
+  /** 严格为 true 时不生成也不展示 AI 摘要 */
+  disableAiSummary: boolean
   /** MDX 原文，不含 frontmatter */
   content: string
 }
@@ -156,6 +158,7 @@ export function getAllBlogPosts(): BlogPost[] {
       heroColor: typeof data.heroColor === 'string' && data.heroColor.trim() !== '' ? data.heroColor.trim() : undefined,
       tags: readTags(data),
       draft: data.draft === true,
+      disableAiSummary: data.disableAiSummary === true,
       content,
     })
   }

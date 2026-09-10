@@ -27,6 +27,7 @@ content/notes/
 | `updatedDate` | 否   | ISO 更新日期；有值时详情显示更新日期，未填写时为空字符串                                         |
 | `heroImage`   | 否   | `public/` 下图片的站点路径，如 `/images/blog/hero.jpg`；未填写时为空字符串                       |
 | `heroColor`   | 否   | 文章高光色，如 `"#659EB9"` 或 `"hsl(195 85% 65%)"`；非空字符串会去掉首尾空白，否则为 `undefined` |
+| `disableAiSummary` | 否 | 只有布尔值 `true` 时关闭该文章的 AI 摘要生成与展示，哈希变化不触发模型调用                       |
 
 ## 笔记字段
 

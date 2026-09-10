@@ -1,0 +1,4 @@
+{"file": ".trellis/spec/frontend/deployment-guidelines.md", "reason": "核对摘要失败不阻断部署和命令顺序"}
+{"file": ".trellis/spec/frontend/content-guidelines.md", "reason": "核对正文哈希、关闭开关和文章读取边界"}
+{"file": ".trellis/spec/frontend/quality-guidelines.md", "reason": "执行页面、测试和项目质量门"}
+{"file": ".trellis/spec/backend/database-guidelines.md", "reason": "复核摘要缓存表、迁移和 summary:sync 的数据库契约"}
