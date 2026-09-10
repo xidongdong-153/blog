@@ -17,7 +17,7 @@
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "typecheck": "next typegen && tsc --noEmit",
-    "test": "node --loader ./scripts/test-loader.mjs --test --test-concurrency=1 src/lib/presence.test.ts src/server/auth/auth.test.ts src/server/services/comments.test.ts src/server/routes/comments.test.ts src/server/infra/ai/credential-crypto.test.ts src/server/infra/ai/summary-model.test.ts src/server/services/ai-summary-config.test.ts src/server/routes/ai.test.ts src/lib/ai-summary.test.ts src/server/services/ai-summary.test.ts",
+    "test": "node --loader ./scripts/test-loader.mjs --test --test-concurrency=1 src/lib/presence.test.ts src/server/modules/presence/presence.test.ts src/server/modules/system/system.test.ts src/server/modules/auth/auth.test.ts src/server/modules/comments/comments.service.test.ts src/server/modules/comments/comments.route.test.ts src/server/modules/links/links.service.test.ts src/server/modules/links/links.route.test.ts src/server/infra/ai/credential-crypto.test.ts src/server/infra/ai/summary-model.test.ts src/server/modules/ai/summary-config.service.test.ts src/server/modules/ai/summary-config.route.test.ts src/lib/ai-summary.test.ts src/server/modules/ai/summary.service.test.ts",
     "summary:sync": "node --env-file-if-exists=.env.local --loader ./scripts/test-loader.mjs scripts/sync-summaries.ts",
     "db:verify": "node --env-file-if-exists=.env.local scripts/verify-db.mts",
     "db:generate": "drizzle-kit generate",

@@ -1,7 +1,8 @@
 import type { Context } from 'hono'
-import type { CommentSortOrder } from '@/server/services/comments'
+import type { CommentSortOrder } from './comments.types'
 import { Hono } from 'hono'
-import { getSession, isSiteAdmin } from '@/server/auth/session'
+import { getSession, isSiteAdmin } from '@/server/modules/auth/auth.service'
+import { createFailureResponse, createSuccessResponse } from '@/server/shared/response'
 import {
   CommentServiceError,
   confirmDeleteCommentByToken,
@@ -10,8 +11,7 @@ import {
   getCommentsBySlug,
   softDeleteCommentByOwner,
   togglePinComment,
-} from '@/server/services/comments'
-import { createFailureResponse, createSuccessResponse } from '@/server/shared/response'
+} from './comments.service'
 
 export const commentsRoute = new Hono()
 

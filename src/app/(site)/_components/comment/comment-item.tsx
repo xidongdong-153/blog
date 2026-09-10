@@ -1,6 +1,6 @@
 'use client'
 
-import type { CommentAuthor, CommentItemView, CommentReplyView } from '@/server/services/comments'
+import type { CommentAuthor, CommentItemView, CommentReplyView } from '@/server/modules/comments/comments.types'
 import { Pin, Reply, Trash2 } from 'lucide-react'
 import { useState } from 'react'
 import { formatDate } from '@/lib/date'

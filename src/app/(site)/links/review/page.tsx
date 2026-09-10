@@ -1,10 +1,8 @@
 /* eslint-disable next/no-img-element */
 import type { Metadata } from 'next'
-import { eq } from 'drizzle-orm'
 import Link from 'next/link'
 import { ReviewActionPanel } from '@/app/(site)/_components/links/review-action-panel'
-import { db } from '@/server/infra/db/client'
-import { friendLinks } from '@/server/infra/db/schema'
+import { getFriendReviewDetail, LinksServiceError } from '@/server/modules/links/links.service'
 
 export const metadata: Metadata = {
   title: '友链申请审批',
@@ -42,14 +40,30 @@ export default async function FriendReviewPage({ searchParams }: ReviewPageProps
 
   let record
   try {
-    record = await db.query.friendLinks.findFirst({
-      where: eq(friendLinks.reviewToken, token),
-    })
+    record = await getFriendReviewDetail(token)
   } catch (err) {
-    console.error('[FriendReviewPage] 查询数据库异常:', err)
-  }
+    if (err instanceof LinksServiceError && err.statusCode === 410) {
+      return (
+        <div className="mx-auto flex w-full max-w-2xl flex-col gap-6 py-8">
+          <div className="flex flex-col gap-2 border-b border-border/40 pb-4">
+            <div className="font-mono text-xs tracking-wider text-muted-foreground">// 链接已失效</div>
+            <h1 className="font-serif text-2xl font-medium text-foreground">审批链接已过期</h1>
+          </div>
+          <p className="text-sm text-muted-foreground">
+            该申请审批链接已超过 7 天有效期。若需上线请在控制台或数据库直接处理。
+          </p>
+          <div>
+            <Link
+              href="/links"
+              className="inline-flex items-center gap-1 rounded-md border border-border/70 px-4 py-2 font-mono text-xs text-muted-foreground hover:bg-muted/40 hover:text-foreground"
+            >
+              前往友链页
+            </Link>
+          </div>
+        </div>
+      )
+    }
 
-  if (!record) {
     return (
       <div className="mx-auto flex w-full max-w-2xl flex-col gap-6 py-8">
         <div className="flex flex-col gap-2 border-b border-border/40 pb-4">
@@ -57,29 +71,6 @@ export default async function FriendReviewPage({ searchParams }: ReviewPageProps
           <h1 className="font-serif text-2xl font-medium text-foreground">审批链接无效</h1>
         </div>
         <p className="text-sm text-muted-foreground">该友链申请已被处理、已拒绝，或者该链接已过期失效。</p>
-        <div>
-          <Link
-            href="/links"
-            className="inline-flex items-center gap-1 rounded-md border border-border/70 px-4 py-2 font-mono text-xs text-muted-foreground hover:bg-muted/40 hover:text-foreground"
-          >
-            前往友链页
-          </Link>
-        </div>
-      </div>
-    )
-  }
-
-  const isExpired = record.tokenExpiresAt && record.tokenExpiresAt.getTime() < Date.now()
-  if (isExpired) {
-    return (
-      <div className="mx-auto flex w-full max-w-2xl flex-col gap-6 py-8">
-        <div className="flex flex-col gap-2 border-b border-border/40 pb-4">
-          <div className="font-mono text-xs tracking-wider text-muted-foreground">// 链接已失效</div>
-          <h1 className="font-serif text-2xl font-medium text-foreground">审批链接已过期</h1>
-        </div>
-        <p className="text-sm text-muted-foreground">
-          该申请审批链接已超过 7 天有效期。若需上线请在控制台或数据库直接处理。
-        </p>
         <div>
           <Link
             href="/links"
@@ -128,23 +119,23 @@ export default async function FriendReviewPage({ searchParams }: ReviewPageProps
             {record.avatarUrl ? (
               <img
                 src={record.avatarUrl}
-                alt={record.name}
+                alt={record.siteName}
                 className="h-10 w-10 rounded-md border border-border/60 object-cover"
               />
             ) : (
               <div className="flex h-10 w-10 items-center justify-center rounded-md border border-border/60 bg-muted/40 font-mono text-sm font-semibold text-muted-foreground">
-                {record.name.slice(0, 1).toUpperCase()}
+                {record.siteName.slice(0, 1).toUpperCase()}
               </div>
             )}
             <div>
-              <h2 className="font-serif text-xl font-medium text-foreground">{record.name}</h2>
+              <h2 className="font-serif text-xl font-medium text-foreground">{record.siteName}</h2>
               <a
-                href={record.url}
+                href={record.siteUrl}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="font-mono text-xs text-muted-foreground underline hover:text-foreground"
               >
-                {record.url} ↗
+                {record.siteUrl} ↗
               </a>
             </div>
           </div>
@@ -159,14 +150,14 @@ export default async function FriendReviewPage({ searchParams }: ReviewPageProps
             <p className="mt-1 text-foreground leading-relaxed">{record.description}</p>
           </div>
           <div className="mt-2 grid grid-cols-2 gap-2 border-t border-border/20 pt-3 font-mono text-xs text-muted-foreground">
-            <div>申请人：{record.ownerName}</div>
+            <div>申请人：{record.nickname}</div>
             <div>邮箱：{record.email}</div>
           </div>
         </div>
       </div>
 
       {/* 操作面板 (Client Component) */}
-      <ReviewActionPanel token={token} initialAction={action} siteName={record.name} />
+      <ReviewActionPanel token={token} initialAction={action} siteName={record.siteName} />
     </div>
   )
 }

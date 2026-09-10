@@ -1,6 +1,6 @@
 'use client'
 
-import type { CommentItemView, CommentSortOrder } from '@/server/services/comments'
+import type { CommentItemView, CommentSortOrder } from '@/server/modules/comments/comments.types'
 import { useCallback, useEffect, useState } from 'react'
 import { useSession } from '@/lib/auth-client'
 import { CommentAuthCard } from './comment-auth-card'

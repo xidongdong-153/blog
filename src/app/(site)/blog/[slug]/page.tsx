@@ -10,7 +10,7 @@ import {
   getAllBlogPosts,
   getBlogPost,
 } from '@/lib/content'
-import { getArticleSummaryBySlug } from '@/server/services/ai-summary'
+import { getArticleSummaryBySlug } from '@/server/modules/ai/summary.service'
 import { AiSummary } from '../../_components/blog/ai-summary'
 import { CopyrightCard } from '../../_components/blog/copyright-card'
 import { FloatingActionGroup } from '../../_components/blog/floating-action-group'

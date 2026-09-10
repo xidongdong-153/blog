@@ -1,6 +1,6 @@
 # blog
 
-Next.js 16 + React 19 + TypeScript 个人博客，文章和笔记用 MDX 文件管理，不依赖数据库。合并到 `main` 后由 GitHub Actions 检查并发布到自有服务器；首页实时活动读取独立 Mac Presence Service。
+Next.js 16 + React 19 + TypeScript 个人博客，文章和笔记用 MDX 文件管理，动态功能（评论、友链、AI 摘要、账号认证）使用 libSQL/Turso 数据库（本地开发自动回退 SQLite 文件）。合并到 `main` 后由 GitHub Actions 检查并发布到自有服务器；首页实时活动读取独立 Mac Presence Service。
 
 ## 本地启动
 
@@ -28,8 +28,8 @@ pnpm dev
 pnpm typecheck
 pnpm lint
 pnpm format:check
+pnpm test
 pnpm build
-node --experimental-strip-types --test src/lib/presence.test.ts
 ```
 
 ## 维护文档

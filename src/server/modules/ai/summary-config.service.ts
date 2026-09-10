@@ -1,47 +1,34 @@
-import type { SummaryModelFactoryConfig, SummaryProtocol, UpstreamModelItem } from '@/server/infra/ai/summary-model'
+import type { AiSummaryConfigDto, GetAvailableSummaryModelsInput, SaveAiSummaryConfigInput } from './ai.types'
+import type { SummaryModelFactoryConfig } from '@/server/infra/ai/summary-model'
+import type { SummaryProtocol, UpstreamModelItem } from '@/server/infra/ai/types'
+import type { AppDatabase } from '@/server/infra/db/client'
 import { and, eq } from 'drizzle-orm'
-import { db as defaultDb } from '@/server/infra/db/client'
-import { aiSummaryConfig } from '@/server/infra/db/schema/ai'
 import {
   CredentialCryptoError,
   decryptCredential,
   encryptCredential,
   isMasterKeyConfigured,
-} from '../infra/ai/credential-crypto'
+} from '@/server/infra/ai/credential-crypto'
 import {
   fetchUpstreamModels,
-  isSupportedProtocol,
+  SummaryModelError,
   testSummaryModelConnection,
   validateAiBaseUrlAsync,
-} from '../infra/ai/summary-model'
+} from '@/server/infra/ai/summary-model'
+import { isSupportedProtocol } from '@/server/infra/ai/types'
+import { db as defaultDb } from '@/server/infra/db/client'
+import { aiSummaryConfig } from '@/server/infra/db/schema/ai'
 
 export const AI_CONFIG_ID = 'default'
 
-export type AiSummaryConfigStatus = 'needs_check' | 'ready'
-
-export interface AiSummaryConfigDto {
-  id: string
-  protocol: SummaryProtocol
-  baseUrl: string
-  modelId: string
-  hasCredential: boolean
-  credentialMask: string | null
-  status: AiSummaryConfigStatus
-  revision: number
-  checkedAt: number | null
-  updatedAt: number
-  masterKeyAvailable: boolean
-}
-
-export interface SaveAiSummaryConfigInput {
-  protocol: SummaryProtocol
-  baseUrl: string
-  modelId: string
-  apiKey?: string
-}
-
 export type AiConfigErrorCode =
-  'CONFIG_NOT_FOUND' | 'INVALID_INPUT' | 'NO_CREDENTIAL' | 'REVISION_CONFLICT' | 'CRYPTO_ERROR' | 'CHECK_FAILED'
+  | 'CONFIG_NOT_FOUND'
+  | 'INVALID_INPUT'
+  | 'NO_CREDENTIAL'
+  | 'REVISION_CONFLICT'
+  | 'CRYPTO_ERROR'
+  | 'CHECK_FAILED'
+  | 'UPSTREAM_ERROR'
 
 export class AiSummaryConfigError extends Error {
   readonly code: AiConfigErrorCode
@@ -55,21 +42,55 @@ export class AiSummaryConfigError extends Error {
   }
 }
 
+export interface ReadySummaryConfig {
+  protocol: SummaryProtocol
+  baseUrl: string
+  modelId: string
+  apiKey: string
+}
+
+/**
+ * 检查当前环境变量中主密钥是否已配置
+ */
+export function isAiMasterKeyAvailable(): boolean {
+  return isMasterKeyConfigured()
+}
+
 /**
  * 将数据库实体转为脱敏的安全 DTO，绝不泄露密文、IV、AuthTag 或明文 Key。
  */
 function toDto(
-  record: typeof aiSummaryConfig.$inferSelect,
-  masterKeyAvailable = isMasterKeyConfigured(),
+  record?: typeof aiSummaryConfig.$inferSelect,
+  options?: { masterKeyOverride?: string },
 ): AiSummaryConfigDto {
+  const masterKeyAvailable = options?.masterKeyOverride
+    ? options.masterKeyOverride.length === 64
+    : isMasterKeyConfigured()
+
+  if (!record) {
+    return {
+      id: AI_CONFIG_ID,
+      protocol: 'openai-completions',
+      baseUrl: '',
+      modelId: '',
+      hasCredential: false,
+      credentialMask: null,
+      status: 'needs_check',
+      revision: 0,
+      checkedAt: null,
+      updatedAt: 0,
+      masterKeyAvailable,
+    }
+  }
+
   return {
     id: record.id,
     protocol: record.protocol as SummaryProtocol,
     baseUrl: record.baseUrl,
     modelId: record.modelId,
     hasCredential: Boolean(record.credentialCiphertext && record.credentialIv && record.credentialAuthTag),
-    credentialMask: record.credentialMask ?? null,
-    status: record.status as AiSummaryConfigStatus,
+    credentialMask: record.credentialMask,
+    status: record.status as 'needs_check' | 'ready',
     revision: record.revision,
     checkedAt: record.checkedAt ? record.checkedAt.getTime() : null,
     updatedAt: record.updatedAt.getTime(),
@@ -78,42 +99,53 @@ function toDto(
 }
 
 /**
- * 读取当前单条 AI 摘要模型配置及脱敏 DTO。若不存在返回 null。
+ * 获取当前 AI 摘要模型配置及脱敏后的状态。
  */
-export async function getAiSummaryConfig(database = defaultDb): Promise<AiSummaryConfigDto | null> {
+export async function getAiSummaryConfig(options?: {
+  database?: typeof defaultDb
+  masterKeyOverride?: string
+}): Promise<AiSummaryConfigDto | null> {
+  const database = options?.database ?? defaultDb
   const records = await database.select().from(aiSummaryConfig).where(eq(aiSummaryConfig.id, AI_CONFIG_ID)).limit(1)
 
   if (records.length === 0) {
     return null
   }
 
-  return toDto(records[0])
+  return toDto(records[0], options)
 }
 
 /**
- * 保存 AI 摘要模型配置。
- * - 若提供非空 apiKey，则加密并更新凭据。
- * - 若 apiKey 为空或未传，则保留现有凭据。
- * - 每次保存强制将状态重置为 needs_check，递增 revision，清空 checkedAt。
+ * 保存或更新 AI 摘要配置。
  */
 export async function saveAiSummaryConfig(
   input: SaveAiSummaryConfigInput,
-  options?: { database?: typeof defaultDb; masterKeyOverride?: string },
+  options?: {
+    database?: typeof defaultDb
+    masterKeyOverride?: string
+  },
 ): Promise<AiSummaryConfigDto> {
   const database = options?.database ?? defaultDb
 
   if (!input.protocol || !isSupportedProtocol(input.protocol)) {
-    throw new AiSummaryConfigError('INVALID_INPUT', `不支持的协议: ${String(input.protocol)}`, 400)
+    throw new AiSummaryConfigError('INVALID_INPUT', `不支持的协议类型: ${input.protocol}`, 400)
   }
 
-  const validatedBaseUrl = await validateAiBaseUrlAsync(input.baseUrl)
+  let validatedBaseUrl: string
+  try {
+    validatedBaseUrl = await validateAiBaseUrlAsync(input.baseUrl)
+  } catch (err) {
+    if (err instanceof SummaryModelError) {
+      throw new AiSummaryConfigError('INVALID_INPUT', err.message, err.statusCode)
+    }
+    throw err
+  }
 
-  const trimmedModelId = input.modelId?.trim()
+  const trimmedModelId = input.modelId.trim()
   if (!trimmedModelId) {
     throw new AiSummaryConfigError('INVALID_INPUT', '模型 ID 不能为空', 400)
   }
 
-  // 查询现有记录
   const existingRecords = await database
     .select()
     .from(aiSummaryConfig)
@@ -121,15 +153,14 @@ export async function saveAiSummaryConfig(
     .limit(1)
   const existing = existingRecords[0]
 
-  let ciphertext = existing?.credentialCiphertext ?? null
-  let iv = existing?.credentialIv ?? null
-  let authTag = existing?.credentialAuthTag ?? null
-  let mask = existing?.credentialMask ?? null
+  let ciphertext: string | null = null
+  let iv: string | null = null
+  let authTag: string | null = null
+  let mask: string | null = null
 
-  const trimmedKey = input.apiKey?.trim()
-  if (trimmedKey) {
+  if (input.apiKey && input.apiKey.trim().length > 0) {
     try {
-      const encrypted = encryptCredential(trimmedKey, options?.masterKeyOverride)
+      const encrypted = encryptCredential(input.apiKey.trim(), options?.masterKeyOverride)
       ciphertext = encrypted.ciphertext
       iv = encrypted.iv
       authTag = encrypted.authTag
@@ -140,12 +171,17 @@ export async function saveAiSummaryConfig(
       }
       throw err
     }
+  } else if (existing) {
+    ciphertext = existing.credentialCiphertext
+    iv = existing.credentialIv
+    authTag = existing.credentialAuthTag
+    mask = existing.credentialMask
   }
 
   const now = new Date()
-  const nextRevision = existing ? existing.revision + 1 : 1
 
   if (existing) {
+    const nextRevision = existing.revision + 1
     await database
       .update(aiSummaryConfig)
       .set({
@@ -185,12 +221,11 @@ export async function saveAiSummaryConfig(
     .from(aiSummaryConfig)
     .where(eq(aiSummaryConfig.id, AI_CONFIG_ID))
     .limit(1)
-  return toDto(updatedRecords[0])
+  return toDto(updatedRecords[0], options)
 }
 
 /**
  * 显式清除当前配置的 API Key 凭据。
- * 清除后凭据密文与掩码为 null，状态重置为 needs_check，递增 revision。
  */
 export async function clearAiSummaryCredential(options?: { database?: typeof defaultDb }): Promise<AiSummaryConfigDto> {
   const database = options?.database ?? defaultDb
@@ -233,8 +268,6 @@ export async function clearAiSummaryCredential(options?: { database?: typeof def
 
 /**
  * 对当前保存的配置发起连接测试。
- * 测试成功后，若版本未发生变化，则原子化更新为 ready 状态；
- * 若测试期间配置已被修改，更新条件不匹配，拒绝标记为 ready。
  */
 export async function checkAndEnableAiSummaryConfig(options?: {
   database?: typeof defaultDb
@@ -288,9 +321,16 @@ export async function checkAndEnableAiSummaryConfig(options?: {
     fetch: options?.fetch,
   }
 
-  await testSummaryModelConnection(factoryConfig, {
-    timeoutMs: options?.timeoutMs ?? 20_000,
-  })
+  try {
+    await testSummaryModelConnection(factoryConfig, {
+      timeoutMs: options?.timeoutMs ?? 20_000,
+    })
+  } catch (err) {
+    if (err instanceof SummaryModelError) {
+      throw new AiSummaryConfigError('CHECK_FAILED', err.message, err.statusCode)
+    }
+    throw err
+  }
 
   // 测试成功，带 revision 条件更新为 ready
   const now = new Date()
@@ -317,18 +357,11 @@ export async function checkAndEnableAiSummaryConfig(options?: {
     .from(aiSummaryConfig)
     .where(eq(aiSummaryConfig.id, AI_CONFIG_ID))
     .limit(1)
-  return toDto(updatedRecords[0])
-}
-
-export interface GetAvailableSummaryModelsInput {
-  baseUrl?: string
-  apiKey?: string
+  return toDto(updatedRecords[0], options)
 }
 
 /**
  * 获取可用的模型列表。
- * - 优先使用入参中的 baseUrl 与 apiKey。
- * - 若未提供，回退读取数据库中已保存的 baseUrl 与解密已有凭据。
  */
 export async function getAvailableSummaryModels(
   input?: GetAvailableSummaryModelsInput,
@@ -376,10 +409,57 @@ export async function getAvailableSummaryModels(
     }
   }
 
-  return fetchUpstreamModels({
-    baseUrl: effectiveBaseUrl,
-    apiKey: effectiveApiKey,
-    fetch: options?.fetch,
-    timeoutMs: options?.timeoutMs,
-  })
+  try {
+    return await fetchUpstreamModels({
+      baseUrl: effectiveBaseUrl,
+      apiKey: effectiveApiKey,
+      fetch: options?.fetch,
+      timeoutMs: options?.timeoutMs,
+    })
+  } catch (err) {
+    if (err instanceof SummaryModelError) {
+      throw new AiSummaryConfigError('UPSTREAM_ERROR', err.message, err.statusCode)
+    }
+    throw err
+  }
+}
+
+/**
+ * 读取当前 ready 且有效解密的模型摘要配置。
+ * 若配置不存在、未准备就绪、凭据缺失或主密钥无法解密，则安全返回 null。
+ */
+export async function getReadySummaryConfig(
+  database: AppDatabase = defaultDb,
+  options?: { masterKeyOverride?: string },
+): Promise<ReadySummaryConfig | null> {
+  const records = await database.select().from(aiSummaryConfig).where(eq(aiSummaryConfig.id, AI_CONFIG_ID)).limit(1)
+  const config = records[0]
+
+  if (!config || config.status !== 'ready') {
+    return null
+  }
+
+  if (!config.credentialCiphertext || !config.credentialIv || !config.credentialAuthTag) {
+    return null
+  }
+
+  try {
+    const apiKey = decryptCredential(
+      {
+        ciphertext: config.credentialCiphertext,
+        iv: config.credentialIv,
+        authTag: config.credentialAuthTag,
+      },
+      options?.masterKeyOverride,
+    )
+
+    return {
+      protocol: config.protocol as SummaryProtocol,
+      baseUrl: config.baseUrl,
+      modelId: config.modelId,
+      apiKey,
+    }
+  } catch {
+    return null
+  }
 }

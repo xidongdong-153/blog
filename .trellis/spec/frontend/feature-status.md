@@ -14,16 +14,16 @@
 | 三态主题切换（明 / 系统 / 暗） | 已实现                 | `src/app/(site)/_components/site/theme-toggle.tsx`（页脚工具条）               |
 | sticky 胶囊页头                    | 已实现                 | `src/app/(site)/_components/site/site-header.tsx`                              |
 | 项目 / 友链 / 关于 / 联系          | 已实现                 | `src/app/(site)/` 对应目录                                                     |
-| 友链申请与邮件一键审批             | 已实现                 | `src/app/(site)/links/`、`src/server/routes/links.ts`、`src/lib/email.ts`      |
+| 友链申请与邮件一键审批             | 已实现                 | `src/app/(site)/links/`、`src/server/modules/links/`、`src/server/infra/email.ts` |
 | 站内搜索                           | 占位页，方案见页面注释 | `src/app/(site)/search/page.tsx`                                               |
-| Better Auth 社交评论               | 已实现                 | `src/app/(site)/_components/comment/`、`src/server/routes/comments.ts`、`src/server/services/comments.ts` |
+| Better Auth 社交评论               | 已实现                 | `src/app/(site)/_components/comment/`、`src/server/modules/comments/`、`src/server/modules/auth/` |
 | RSS                                | 已实现                 | `src/app/rss.xml/route.ts`                                                     |
 | sitemap / robots                   | 已实现                 | `src/app/sitemap.ts`、`src/app/robots.ts`                                      |
 | OG 图自动生成                      | 未开始                 | 计划 `src/app/(site)/blog/[slug]/opengraph-image.tsx`，用 `next/og`            |
 | 代码块高亮与复制                   | 已实现                 | `src/app/(site)/_components/blog/mdx-content.tsx`                              |
-| Mac 实时活动（独立采集与首页展示） | 已实现                 | `src/lib/presence.ts`、`src/app/api/presence/`、`$HOME/.hammerspoon/presence/` |
-| AI 摘要模型配置                    | 已实现                 | `src/app/(site)/settings/ai/`、`src/server/routes/ai.ts`、`src/server/services/ai-summary-config.ts` |
-| AI 摘要同步与展示                  | 已实现                 | `scripts/sync-summaries.ts`、`src/server/services/ai-summary.ts`、`src/app/(site)/_components/blog/ai-summary.tsx`、`src/app/(site)/blog/[slug]/page.tsx` |
+| Mac 实时活动（独立采集与首页展示） | 已实现                 | `src/lib/presence.ts`、`src/server/modules/presence/`、`$HOME/.hammerspoon/presence/` |
+| AI 摘要模型配置                    | 已实现                 | `src/app/(site)/settings/ai/`、`src/server/modules/ai/`                        |
+| AI 摘要同步与展示                  | 已实现                 | `scripts/sync-summaries.ts`、`src/server/modules/ai/summary.service.ts`、`src/app/(site)/_components/blog/ai-summary.tsx`、`src/app/(site)/blog/[slug]/page.tsx` |
 | 顶栏站长登录入口与弹窗             | 已实现                 | `src/app/(site)/_components/site/site-header.tsx`、`src/app/(site)/_components/site/header-auth.tsx`、`src/app/(site)/_components/site/auth-modal.tsx` |
 
 评论配置与状态见[组件规范](./component-guidelines.md)；活动服务配置及验证边界见[活动规范](./presence-guidelines.md)。已实现不代表外部服务当前在线。

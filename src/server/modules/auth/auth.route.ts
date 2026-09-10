@@ -1,5 +1,5 @@
 import { Hono } from 'hono'
-import { auth } from '@/server/auth/config'
+import { auth } from './auth.config'
 
 export const authRoute = new Hono()
 

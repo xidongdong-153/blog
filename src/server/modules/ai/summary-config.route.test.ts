@@ -4,12 +4,12 @@ import assert from 'node:assert/strict'
 import crypto from 'node:crypto'
 import test from 'node:test'
 import { eq } from 'drizzle-orm'
-import { app } from '../app'
-import { auth } from '../auth/config'
-import { db } from '../infra/db/client'
-import { aiSummaryConfig } from '../infra/db/schema/ai'
-import { session, user } from '../infra/db/schema/auth'
-import { AI_CONFIG_ID } from '../services/ai-summary-config'
+import { db } from '@/server/infra/db/client'
+import { aiSummaryConfig } from '@/server/infra/db/schema/ai'
+import { session, user } from '@/server/infra/db/schema/auth'
+import { app } from '../../app.ts'
+import { auth } from '../auth/auth.config.ts'
+import { AI_CONFIG_ID } from './summary-config.service.ts'
 
 async function makeSignedSessionCookie(token: string, secret: string): Promise<string> {
   const secretBuf = new TextEncoder().encode(secret)
@@ -87,6 +87,7 @@ test('AI 路由权限、参数校验与脱敏响应测试', async (t) => {
       { path: '/api/ai/summary-config', method: 'PUT', body: {} },
       { path: '/api/ai/summary-config/check', method: 'POST' },
       { path: '/api/ai/summary-config/credential', method: 'DELETE' },
+      { path: '/api/ai/summary-config/models', method: 'POST', body: {} },
     ]
 
     for (const ep of endpoints) {
@@ -108,6 +109,7 @@ test('AI 路由权限、参数校验与脱敏响应测试', async (t) => {
       { path: '/api/ai/summary-config', method: 'PUT', body: {} },
       { path: '/api/ai/summary-config/check', method: 'POST' },
       { path: '/api/ai/summary-config/credential', method: 'DELETE' },
+      { path: '/api/ai/summary-config/models', method: 'POST', body: {} },
     ]
 
     for (const ep of endpoints) {

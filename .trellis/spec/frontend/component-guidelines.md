@@ -160,6 +160,6 @@ MDX 渲染走异步 RSC（`mdx-content.tsx` 的 `compileMDX`），不需要 clie
   - 文案遵循亲切客观的技术交流口吻，提交按钮采用「发送 ↗」。
 - **API 与邮件投递契约**：
   - 后端接口：`POST /api/links/apply`，校验 `nickname`、`siteName`、`siteUrl`、`email`、`description` 等必填字段与合法 URL / 邮箱格式，并附带基于 IP 的简易滑动窗口频控（10 分钟最多 3 次）。
-  - 邮件服务：在 `src/lib/email.ts` 中通过原生 `fetch` 投递 Resend API（环境变量 `RESEND_API_KEY`、`FRIEND_APPLY_NOTIFY_EMAIL`），零外部 npm 邮件包依赖。
+  - 邮件服务：在 `src/server/infra/email.ts` 中通过原生 `fetch` 投递 Resend API（环境变量 `RESEND_API_KEY`、`FRIEND_APPLY_NOTIFY_EMAIL`），零外部 npm 邮件包依赖。
   - 本地环境容错：未配置凭证时自动回退为控制台格式化打印（Mock 模式），返回模拟成功，不影响本地预览与前端测试。
 

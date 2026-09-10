@@ -17,9 +17,9 @@ Hono 4 + Drizzle ORM + Turso（libSQL）。Hono 应用已通过 `src/app/api/[[.
 
 ## 开发前检查清单
 
-- [ ] 新增 API 端点 → 按 [API 设计](./api-design-guidelines.md)加到 `src/server/routes/` 对应域文件并在 `routes/index.ts` 注册
-- [ ] 要动表结构 → 按 [数据库](./database-guidelines.md)的 schema 组织加文件，再走 migration 流程
-- [ ] 页面要取数据 → 按 [服务调用](./service-call-guidelines.md)的规则判断直连 `db` 还是走 API
+- [ ] 新增业务功能或端点 → 在 `src/server/modules/<module>/` 下按高内聚模式增加或扩展 service、route 与 types，并在 `src/server/app.ts` 链式挂载路由
+- [ ] 要动表结构 → 按 [数据库](./database-guidelines.md) 在 `src/server/infra/db/schema/` 增加或修改定义，并在 `schema/index.ts` 导出后走 migration 流程
+- [ ] 页面或脚本要取数据 → 按 [服务调用](./service-call-guidelines.md) 的规则通过 `src/server/modules/<module>/<module>.service.ts` 调用，避免直接在页面中发自调用 HTTP 或绕过 service 层
 
 ## 质量检查
 
@@ -27,25 +27,26 @@ Hono 4 + Drizzle ORM + Turso（libSQL）。Hono 应用已通过 `src/app/api/[[.
 pnpm typecheck     # next typegen && tsc --noEmit
 pnpm lint          # eslint .
 pnpm format:check  # prettier --check .
-pnpm build         # 改动路由或数据层后跑
+pnpm test          # 单元与集成测试（14 个测试文件）
+pnpm build         # 生产构建（31 个路由静态/动态验证）
 pnpm db:verify     # 改了连接配置或执行迁移后跑
 ```
 
-前三条全过才算完成，顺序：类型 → lint → format。
+前三条代码质量门按顺序全部通过才算修改完成：类型检查 → lint → format。
 
 ## 关键入口
 
-| 入口          | 文件                                  |
-| ------------- | ------------------------------------- |
-| API 挂载入口  | `src/app/api/[[...route]]/route.ts`   |
-| Hono 应用工厂 | `src/server/app.ts`                   |
-| 路由聚合      | `src/server/routes/index.ts`          |
-| system 域路由 | `src/server/routes/system.ts`         |
-| presence 路由 | `src/server/routes/presence.ts`       |
-| links 域路由  | `src/server/routes/links.ts`          |
-| comments 路由 | `src/server/routes/comments.ts`       |
-| auth 配置     | `src/server/auth/config.ts`           |
-| 数据库实例    | `src/server/infra/db/client.ts`       |
-| 表定义聚合    | `src/server/infra/db/schema/index.ts` |
-| 响应封装      | `src/server/shared/response.ts`       |
-| db 直连页面   | `src/app/(site)/status/page.tsx`      |
+| 入口              | 文件                                                               |
+| ----------------- | ------------------------------------------------------------------ |
+| API 挂载入口      | `src/app/api/[[...route]]/route.ts`                                |
+| Hono 应用与路由装配 | `src/server/app.ts`                                              |
+| auth 模块         | `src/server/modules/auth/` (`auth.service.ts`, `auth.route.ts`)    |
+| comments 模块     | `src/server/modules/comments/` (`comments.service.ts`, `comments.route.ts`) |
+| links 模块        | `src/server/modules/links/` (`links.service.ts`, `links.route.ts`) |
+| ai 模块           | `src/server/modules/ai/` (`summary.service.ts`, `summary-config.service.ts`, `summary-config.route.ts`) |
+| presence 模块     | `src/server/modules/presence/` (`presence.service.ts`, `presence.route.ts`) |
+| system 模块       | `src/server/modules/system/` (`system.service.ts`, `system.route.ts`) |
+| 数据库基础设施    | `src/server/infra/db/client.ts`、`src/server/infra/db/schema/index.ts` |
+| AI 模型与凭据基础设施 | `src/server/infra/ai/` (`summary-model.ts`, `credential-crypto.ts`, `types.ts`) |
+| 邮件发送基础设施  | `src/server/infra/email.ts`                                        |
+| 统一响应封装      | `src/server/shared/response.ts`                                    |

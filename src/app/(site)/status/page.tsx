@@ -1,7 +1,6 @@
 import type { Metadata } from 'next'
-import { sql } from 'drizzle-orm'
 import { formatDate } from '@/lib/content'
-import { db } from '@/server/infra/db/client'
+import { getStatusPageData } from '@/server/modules/system/system.service'
 
 export const dynamic = 'force-dynamic'
 
@@ -21,66 +20,15 @@ function formatUptime(seconds: number): string {
   return `${s}秒`
 }
 
-async function checkDatabase() {
-  const start = performance.now()
-  try {
-    await db.run(sql`SELECT 1 as ping`)
-    const latency = Math.round(performance.now() - start)
-    return {
-      status: 'operational' as const,
-      latency,
-      message: '连接畅通',
-    }
-  } catch (error) {
-    const latency = Math.round(performance.now() - start)
-    return {
-      status: 'degraded' as const,
-      latency,
-      message: error instanceof Error ? error.message : '连接异常',
-    }
-  }
-}
-
-async function checkPresence() {
-  const sourceUrl = process.env.PRESENCE_SOURCE_URL || 'http://127.0.0.1:4401/api/presence'
-  const controller = new AbortController()
-  const timer = setTimeout(() => controller.abort(), 800)
-  try {
-    const res = await fetch(sourceUrl, {
-      cache: 'no-store',
-      signal: controller.signal,
-    })
-    clearTimeout(timer)
-    if (res.ok) {
-      return { status: 'online' as const, label: '活跃运行中' }
-    }
-    return { status: 'standby' as const, label: '待机离线' }
-  } catch {
-    clearTimeout(timer)
-    return { status: 'standby' as const, label: '待机离线' }
-  }
-}
-
-function checkEmail() {
-  const hasKey = Boolean(process.env.RESEND_API_KEY?.trim())
-  return {
-    status: hasKey ? ('ready' as const) : ('mock' as const),
-    label: hasKey ? '已接入 (生产通道)' : '开发模拟 (控制台记录)',
-  }
-}
-
 export default async function StatusPage() {
-  const [dbResult, presenceResult] = await Promise.all([checkDatabase(), checkPresence()])
-  const emailResult = checkEmail()
+  const statusData = await getStatusPageData()
+  const { db: dbResult, presence: presenceResult, email: emailResult, process: processData } = statusData
 
   const isAllOperational = dbResult.status === 'operational'
   const now = new Date()
   const nowISO = now.toISOString()
   const formattedDate = formatDate(nowISO)
   const formattedTime = now.toTimeString().slice(0, 8)
-  const memoryUsage = process.memoryUsage()
-  const heapUsedMb = Math.round(memoryUsage.heapUsed / 1024 / 1024)
-  const rssMb = Math.round(memoryUsage.rss / 1024 / 1024)
 
   return (
     <div className="mx-auto flex w-full max-w-3xl flex-col gap-10">
@@ -150,7 +98,7 @@ export default async function StatusPage() {
               <div className="flex flex-col">
                 <span className="text-sm font-medium text-foreground">Web 渲染与应用服务</span>
                 <span className="font-mono text-xs text-muted-foreground">
-                  Next.js 16 (Turbopack) · Node.js {process.version}
+                  Next.js 16 (Turbopack) · Node.js {processData.nodeVersion}
                 </span>
               </div>
               <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-2.5 py-0.5 font-mono text-xs font-medium text-emerald-600 dark:text-emerald-400">
@@ -301,18 +249,18 @@ export default async function StatusPage() {
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
           <div className="flex flex-col gap-1 rounded-lg border border-border/60 bg-card/30 p-3">
             <span className="font-mono text-[11px] text-muted-foreground">系统运行时间</span>
-            <span className="font-mono text-xs font-semibold text-foreground">{formatUptime(process.uptime())}</span>
+            <span className="font-mono text-xs font-semibold text-foreground">{formatUptime(processData.uptime)}</span>
           </div>
           <div className="flex flex-col gap-1 rounded-lg border border-border/60 bg-card/30 p-3">
             <span className="font-mono text-[11px] text-muted-foreground">运行时平台</span>
             <span className="font-mono text-xs font-semibold text-foreground">
-              {process.platform} ({process.arch})
+              {processData.platform} ({processData.arch})
             </span>
           </div>
           <div className="flex flex-col gap-1 rounded-lg border border-border/60 bg-card/30 p-3">
             <span className="font-mono text-[11px] text-muted-foreground">Node 内存分配</span>
             <span className="font-mono text-xs font-semibold text-foreground">
-              {heapUsedMb} MB / {rssMb} MB
+              {processData.memory.heapUsedMb} MB / {processData.memory.rssMb} MB
             </span>
           </div>
           <div className="flex flex-col gap-1 rounded-lg border border-border/60 bg-card/30 p-3">

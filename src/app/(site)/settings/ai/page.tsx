@@ -1,8 +1,8 @@
 import type { Metadata } from 'next'
 import { headers } from 'next/headers'
 import { notFound } from 'next/navigation'
-import { getSession, isSiteAdmin } from '@/server/auth/session'
-import { isMasterKeyConfigured } from '@/server/infra/ai/credential-crypto'
+import { isAiMasterKeyAvailable } from '@/server/modules/ai/summary-config.service'
+import { getSession, isSiteAdmin } from '@/server/modules/auth/auth.service'
 import { AiSummarySettingsForm } from '../../_components/settings/ai-summary-settings-form'
 
 export const metadata: Metadata = {
@@ -17,7 +17,7 @@ export default async function AiSettingsPage() {
     notFound()
   }
 
-  const masterKeyAvailable = isMasterKeyConfigured()
+  const masterKeyAvailable = isAiMasterKeyAvailable()
 
   return (
     <div className="mx-auto w-full max-w-2xl px-4 py-8 sm:py-12">

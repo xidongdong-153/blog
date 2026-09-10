@@ -1,21 +1,12 @@
 import type { LookupAddress } from 'node:dns'
+import type { SummaryProtocol, UpstreamModelItem } from './types'
 import dns from 'node:dns/promises'
 import net from 'node:net'
 import { createAnthropic } from '@ai-sdk/anthropic'
 import { createOpenAI } from '@ai-sdk/openai'
+
 import { APICallError, generateText } from 'ai'
-
-export type SummaryProtocol = 'openai-completions' | 'openai-responses' | 'anthropic-messages'
-
-export const SUPPORTED_SUMMARY_PROTOCOLS: readonly SummaryProtocol[] = [
-  'openai-completions',
-  'openai-responses',
-  'anthropic-messages',
-] as const
-
-export function isSupportedProtocol(protocol: string): protocol is SummaryProtocol {
-  return (SUPPORTED_SUMMARY_PROTOCOLS as readonly string[]).includes(protocol)
-}
+import { isSupportedProtocol } from './types'
 
 export type SummaryModelErrorCode =
   | 'INVALID_BASE_URL'
@@ -502,11 +493,6 @@ export async function testSummaryModelConnection(
       outputTokens: result.usage?.outputTokens,
     },
   }
-}
-
-export interface UpstreamModelItem {
-  id: string
-  displayName: string
 }
 
 export interface FetchUpstreamModelsOptions {

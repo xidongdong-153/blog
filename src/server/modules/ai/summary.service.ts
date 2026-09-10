@@ -1,34 +1,22 @@
+import type { ReadySummaryConfig } from './summary-config.service'
 import type { BlogPost } from '@/lib/content'
-import type { SummaryProtocol } from '@/server/infra/ai/summary-model'
+import type { SummaryProtocol } from '@/server/infra/ai/types'
 import type { AppDatabase } from '@/server/infra/db/client'
 import type { ArticleSummaryRecord } from '@/server/infra/db/schema/ai'
 import { generateText } from 'ai'
 import { eq } from 'drizzle-orm'
 import { computeArticleContentHash } from '@/lib/ai-summary'
 import { getAllBlogPosts } from '@/lib/content'
-import { decryptCredential, isMasterKeyConfigured } from '@/server/infra/ai/credential-crypto'
-import {
-  classifyAiError,
-  createSummaryModel,
-  isSupportedProtocol,
-  SummaryModelError,
-} from '@/server/infra/ai/summary-model'
+import { classifyAiError, createSummaryModel, SummaryModelError } from '@/server/infra/ai/summary-model'
 import { db as defaultDb } from '@/server/infra/db/client'
-import { aiSummaryConfig, articleSummaries } from '@/server/infra/db/schema/ai'
-import { AI_CONFIG_ID } from './ai-summary-config'
+import { articleSummaries } from '@/server/infra/db/schema/ai'
+import { getReadySummaryConfig } from './summary-config.service'
 
 export const SUMMARY_SYSTEM_PROMPT =
   '根据提供的中文技术文章生成准确摘要，只输出中文纯文本 2 至 3 句、约 120 至 180 字，不使用 Markdown、不添加“本文介绍”等空话，不编造正文没有的信息。'
 
 export const MIN_SUMMARY_CHAR_LENGTH = 80
 export const MAX_SUMMARY_CHAR_LENGTH = 260
-
-export interface ReadySummaryConfig {
-  protocol: SummaryProtocol
-  baseUrl: string
-  modelId: string
-  apiKey: string
-}
 
 export interface SummaryValidationResult {
   valid: boolean
@@ -75,112 +63,62 @@ export function validateSummaryText(text: string): SummaryValidationResult {
 }
 
 /**
- * 查询文章详情页缓存的摘要记录，未查到返回 null。
- * 查询异常时不抛出错误，降级返回 null 保证正文正常渲染。
+ * 读取单篇文章已缓存的摘要。
  */
 export async function getArticleSummaryBySlug(
   slug: string,
   database: AppDatabase = defaultDb,
 ): Promise<ArticleSummaryRecord | null> {
-  try {
-    const records = await database.select().from(articleSummaries).where(eq(articleSummaries.slug, slug)).limit(1)
+  const records = await database.select().from(articleSummaries).where(eq(articleSummaries.slug, slug)).limit(1)
 
-    return records[0] ?? null
-  } catch {
+  if (records.length === 0) {
     return null
   }
-}
-
-export interface UpsertArticleSummaryInput {
-  slug: string
-  contentHash: string
-  summary: string
-  protocol: SummaryProtocol
-  model: string
-}
-
-/**
- * 插入或更新文章摘要缓存记录。
- */
-export async function upsertArticleSummary(
-  input: UpsertArticleSummaryInput,
-  database: AppDatabase = defaultDb,
-): Promise<ArticleSummaryRecord> {
-  const now = new Date()
-
-  await database
-    .insert(articleSummaries)
-    .values({
-      slug: input.slug,
-      contentHash: input.contentHash,
-      summary: input.summary,
-      protocol: input.protocol,
-      model: input.model,
-      createdAt: now,
-      updatedAt: now,
-    })
-    .onConflictDoUpdate({
-      target: articleSummaries.slug,
-      set: {
-        contentHash: input.contentHash,
-        summary: input.summary,
-        protocol: input.protocol,
-        model: input.model,
-        updatedAt: now,
-      },
-    })
-
-  const records = await database.select().from(articleSummaries).where(eq(articleSummaries.slug, input.slug)).limit(1)
 
   return records[0]
 }
 
 /**
- * 读取当前数据库中已启用的 AI 摘要模型配置并解密凭据。
- * 若不存在、未处于 ready 状态、凭据损坏或密钥未就绪，返回 null。
+ * 插入或更新单篇文章的摘要缓存。
  */
-export async function getReadySummaryConfig(database: AppDatabase = defaultDb): Promise<ReadySummaryConfig | null> {
-  try {
-    if (!isMasterKeyConfigured()) {
-      return null
-    }
+export async function upsertArticleSummary(
+  data: {
+    slug: string
+    contentHash: string
+    summary: string
+    protocol: SummaryProtocol
+    model: string
+  },
+  database: AppDatabase = defaultDb,
+): Promise<ArticleSummaryRecord> {
+  const now = new Date()
 
-    const records = await database.select().from(aiSummaryConfig).where(eq(aiSummaryConfig.id, AI_CONFIG_ID)).limit(1)
-
-    const config = records[0]
-    if (!config || config.status !== 'ready') {
-      return null
-    }
-
-    if (
-      !config.credentialCiphertext ||
-      !config.credentialIv ||
-      !config.credentialAuthTag ||
-      !config.protocol ||
-      !isSupportedProtocol(config.protocol)
-    ) {
-      return null
-    }
-
-    const apiKey = decryptCredential({
-      ciphertext: config.credentialCiphertext,
-      iv: config.credentialIv,
-      authTag: config.credentialAuthTag,
+  const existing = await getArticleSummaryBySlug(data.slug, database)
+  if (existing) {
+    await database
+      .update(articleSummaries)
+      .set({
+        contentHash: data.contentHash,
+        summary: data.summary,
+        protocol: data.protocol,
+        model: data.model,
+        updatedAt: now,
+      })
+      .where(eq(articleSummaries.slug, data.slug))
+  } else {
+    await database.insert(articleSummaries).values({
+      slug: data.slug,
+      contentHash: data.contentHash,
+      summary: data.summary,
+      protocol: data.protocol,
+      model: data.model,
+      createdAt: now,
+      updatedAt: now,
     })
-
-    if (!apiKey || !apiKey.trim()) {
-      return null
-    }
-
-    return {
-      protocol: config.protocol as SummaryProtocol,
-      baseUrl: config.baseUrl,
-      modelId: config.modelId,
-      apiKey: apiKey.trim(),
-    }
-  } catch {
-    return null
   }
+
+  const updated = await getArticleSummaryBySlug(data.slug, database)
+  return updated!
 }
 
 export interface GenerateSummaryOptions {

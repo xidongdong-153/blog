@@ -1,41 +1,16 @@
 /* eslint-disable next/no-img-element */
 import type { Metadata } from 'next'
-import { desc, eq } from 'drizzle-orm'
 import { CopyInviteButton } from '@/app/(site)/_components/links/copy-invite-button'
 import { FriendApplyButton } from '@/app/(site)/_components/links/friend-apply-button'
-import { db } from '@/server/infra/db/client'
-import { friendLinks } from '@/server/infra/db/schema'
+import { getApprovedFriendLinks } from '@/server/modules/links/links.service'
 import { siteConfig } from '@/site.config'
 
 export const metadata: Metadata = {
   title: '友链',
 }
 
-interface FriendLinkItem {
-  name: string
-  description: string
-  url: string
-  avatarUrl?: string
-}
-
 export default async function LinksPage() {
-  let friendLinksList: FriendLinkItem[] = []
-
-  try {
-    const records = await db.query.friendLinks.findMany({
-      where: eq(friendLinks.status, 'approved'),
-      orderBy: [desc(friendLinks.sortOrder), desc(friendLinks.createdAt)],
-    })
-
-    friendLinksList = records.map((r) => ({
-      name: r.name,
-      description: r.description,
-      url: r.url,
-      avatarUrl: r.avatarUrl || undefined,
-    }))
-  } catch (err) {
-    console.error('[LinksPage] 查询友链数据失败:', err)
-  }
+  const friendLinksList = await getApprovedFriendLinks()
 
   return (
     <div className="mx-auto flex w-full max-w-3xl flex-col gap-12">

@@ -1,66 +1,23 @@
+import type {
+  CommentAuthor,
+  CommentDeletePreview,
+  CommentItemView,
+  CommentReplyView,
+  CommentSortOrder,
+  CommentsResult,
+  CreateCommentInput,
+  CreateCommentResult,
+  DeleteCommentResult,
+  TogglePinResult,
+} from './comments.types'
 import crypto from 'node:crypto'
-import { and, desc, eq, inArray, isNull } from 'drizzle-orm'
+import { and, eq, inArray, isNull } from 'drizzle-orm'
 import { getAllBlogPosts, getBlogPost, resolvePostCommentKey } from '@/lib/content'
-import { sendCommentNotifyEmail } from '@/lib/email'
-import { isSiteAdmin } from '@/server/auth/session'
 import { db } from '@/server/infra/db/client'
 import { account, user } from '@/server/infra/db/schema/auth'
 import { comments } from '@/server/infra/db/schema/comments'
-
-export type CommentSortOrder = 'default' | 'newest' | 'oldest'
-
-export interface CommentAuthor {
-  id: string
-  name: string
-  image: string | null
-  providers: string[]
-  isOwner: boolean
-}
-
-export interface CommentReplyView {
-  id: number
-  parentId: number
-  replyToId: number | null
-  replyToUser: {
-    id: string
-    name: string
-  } | null
-  author: CommentAuthor
-  content: string
-  isPinned: boolean
-  deleted: boolean
-  createdAt: string
-  updatedAt: string
-}
-
-export interface CommentItemView {
-  id: number
-  parentId: null
-  replyToId: null
-  author: CommentAuthor
-  content: string
-  isPinned: boolean
-  deleted: boolean
-  createdAt: string
-  updatedAt: string
-  replies: CommentReplyView[]
-}
-
-export interface CommentsResult {
-  targetKey: string
-  totalCount: number
-  comments: CommentItemView[]
-  isOwner: boolean
-}
-
-export interface CommentDeletePreview {
-  id: number
-  articleTitle: string
-  articleSlug: string
-  authorName: string
-  contentSnippet: string
-  createdAt: string
-}
+import { sendCommentNotifyEmail } from '@/server/infra/email'
+import { isSiteAdmin } from '@/server/modules/auth/auth.service'
 
 export class CommentServiceError extends Error {
   statusCode: 400 | 401 | 403 | 404 | 500
@@ -108,62 +65,46 @@ export async function getCommentsBySlug(
       authorId: user.id,
       authorName: user.name,
       authorImage: user.image,
-      authorEmail: user.email,
     })
     .from(comments)
     .innerJoin(user, eq(comments.userId, user.id))
     .where(eq(comments.targetKey, targetKey))
-    .orderBy(desc(comments.createdAt))
 
-  if (allComments.length === 0) {
-    return {
-      targetKey,
-      totalCount: 0,
-      comments: [],
-      isOwner,
-    }
-  }
-
-  // 2. 收集所有作者的 userId 并批量查询所有关联 providerId
+  // 2. 获取涉及的所有用户的 OAuth Providers
   const userIds = Array.from(new Set(allComments.map((c) => c.userId)))
-  const accounts =
-    userIds.length > 0
-      ? await db
-          .select({ userId: account.userId, providerId: account.providerId })
-          .from(account)
-          .where(inArray(account.userId, userIds))
-      : []
+  const userProvidersMap = new Map<string, string[]>()
 
-  const userProvidersMap = new Map<string, Set<string>>()
-  for (const acc of accounts) {
-    if (!userProvidersMap.has(acc.userId)) {
-      userProvidersMap.set(acc.userId, new Set())
+  if (userIds.length > 0) {
+    const accounts = await db
+      .select({
+        userId: account.userId,
+        providerId: account.providerId,
+      })
+      .from(account)
+      .where(inArray(account.userId, userIds))
+
+    for (const acc of accounts) {
+      const list = userProvidersMap.get(acc.userId) || []
+      list.push(acc.providerId)
+      userProvidersMap.set(acc.userId, list)
     }
-    userProvidersMap.get(acc.userId)?.add(acc.providerId)
   }
 
-  // 快速映射作者与评论
-  const commentsById = new Map<number, (typeof allComments)[0]>()
-  for (const item of allComments) {
-    commentsById.set(item.id, item)
-  }
-
-  // 3. 构建作者视图转换辅助函数
-  const toAuthorView = (item: (typeof allComments)[0]): CommentAuthor => {
-    const providerSet = userProvidersMap.get(item.userId)
-    const providers = providerSet ? Array.from(providerSet).sort() : []
+  // 构建作者视图对象工具函数
+  const toAuthorView = (c: (typeof allComments)[0]): CommentAuthor => {
+    const rawProviders = userProvidersMap.get(c.userId) || []
     return {
-      id: item.authorId,
-      name: item.authorName,
-      image: item.authorImage,
-      providers,
-      isOwner: isSiteAdmin(item.authorEmail),
+      id: c.authorId,
+      name: c.authorName,
+      image: c.authorImage,
+      providers: Array.from(new Set(rawProviders)).sort(),
+      isOwner: isSiteAdmin(c.authorName === '站长本人' ? process.env.ADMIN_EMAIL : undefined),
     }
   }
 
-  // 4. 区分顶级评论和回复
-  const topLevelList: (typeof allComments)[0][] = []
-  const repliesByParentId = new Map<number, (typeof allComments)[0][]>()
+  // 3. 评论统计与树形组装
+  const topLevelComments: typeof allComments = []
+  const repliesByParentId = new Map<number, typeof allComments>()
 
   let validCommentCount = 0
 
@@ -171,8 +112,9 @@ export async function getCommentsBySlug(
     if (!c.deletedAt) {
       validCommentCount++
     }
+
     if (c.parentId === null) {
-      topLevelList.push(c)
+      topLevelComments.push(c)
     } else {
       const list = repliesByParentId.get(c.parentId) || []
       list.push(c)
@@ -180,41 +122,44 @@ export async function getCommentsBySlug(
     }
   }
 
-  // 5. 回复排序：所有回复恒定按 createdAt 正序（最早发表的在最前）
-  for (const [parentId, replyList] of repliesByParentId.entries()) {
-    replyList.sort((a, b) => a.createdAt.getTime() - b.createdAt.getTime())
-    repliesByParentId.set(parentId, replyList)
-  }
+  // 4. 顶级评论排序
+  topLevelComments.sort((a, b) => {
+    // 仅 default 模式下置顶优先
+    if (sort === 'default') {
+      if (a.isPinned && !b.isPinned) return -1
+      if (!a.isPinned && b.isPinned) return 1
+    }
 
-  // 6. 顶级评论排序
-  if (sort === 'oldest') {
-    topLevelList.sort((a, b) => a.createdAt.getTime() - b.createdAt.getTime())
-  } else if (sort === 'newest') {
-    topLevelList.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime())
-  } else {
-    // default: 置顶优先（按 createdAt 倒序），其余非置顶按 createdAt 倒序
-    topLevelList.sort((a, b) => {
-      const aPinned = a.isPinned && !a.deletedAt
-      const bPinned = b.isPinned && !b.deletedAt
-      if (aPinned && !bPinned) return -1
-      if (!aPinned && bPinned) return 1
+    // 默认或最新：按创建时间倒序（最新在前）
+    if (sort === 'default' || sort === 'newest') {
       return b.createdAt.getTime() - a.createdAt.getTime()
-    })
-  }
+    }
+    // 最早：按创建时间正序
+    return a.createdAt.getTime() - b.createdAt.getTime()
+  })
 
-  // 7. 组装最终评论树
+  // 5. 组装最终嵌套视图
   const commentsResult: CommentItemView[] = []
 
-  for (const top of topLevelList) {
-    const isDeleted = Boolean(top.deletedAt)
-    const rawReplies = repliesByParentId.get(top.id) || []
+  // 建立 ID 到单条评论的快速映射用于解析 replyToAuthorName
+  const allCommentsById = new Map<number, (typeof allComments)[0]>()
+  for (const c of allComments) {
+    allCommentsById.set(c.id, c)
+  }
 
-    // 格式化当前讨论下的所有回复
-    const formattedReplies: CommentReplyView[] = rawReplies.map((r) => {
+  for (const top of topLevelComments) {
+    const isDeleted = Boolean(top.deletedAt)
+    const replies = repliesByParentId.get(top.id) || []
+
+    // 回复列表按时间正序排列（最旧在先，按对话脉络递进）
+    replies.sort((a, b) => a.createdAt.getTime() - b.createdAt.getTime())
+
+    const formattedReplies: CommentReplyView[] = replies.map((r) => {
       const replyIsDeleted = Boolean(r.deletedAt)
       let replyToUser: { id: string; name: string } | null = null
+
       if (r.replyToId) {
-        const targetComment = commentsById.get(r.replyToId)
+        const targetComment = allCommentsById.get(r.replyToId)
         if (targetComment) {
           replyToUser = {
             id: targetComment.authorId,
@@ -263,14 +208,7 @@ export async function getCommentsBySlug(
 /**
  * 创建新评论或回复。
  */
-export async function createComment(params: {
-  slug: string
-  userId: string
-  userEmail: string
-  userName: string
-  content: string
-  replyToId?: number | null
-}): Promise<{ id: number; parentId: number | null }> {
+export async function createComment(params: CreateCommentInput): Promise<CreateCommentResult> {
   const post = getBlogPost(params.slug)
   if (!post) {
     throw new CommentServiceError(404, `文章不存在: ${params.slug}`)
@@ -369,10 +307,7 @@ export async function createComment(params: {
 /**
  * 站长切换置顶状态（仅限顶级评论）。
  */
-export async function togglePinComment(
-  commentId: number,
-  isOwner: boolean,
-): Promise<{ id: number; isPinned: boolean }> {
+export async function togglePinComment(commentId: number, isOwner: boolean): Promise<TogglePinResult> {
   if (!isOwner) {
     throw new CommentServiceError(403, '无权进行此操作，仅站长可置顶评论')
   }
@@ -415,7 +350,7 @@ export async function togglePinComment(
 /**
  * 站长软删除评论。
  */
-export async function softDeleteCommentByOwner(commentId: number, isOwner: boolean): Promise<{ success: boolean }> {
+export async function softDeleteCommentByOwner(commentId: number, isOwner: boolean): Promise<DeleteCommentResult> {
   if (!isOwner) {
     throw new CommentServiceError(403, '无权进行此操作，仅站长可删除评论')
   }
@@ -507,7 +442,7 @@ export async function getCommentDeletePreviewByToken(token: string): Promise<Com
 /**
  * 使用邮件删除 Token 确认执行软删除（POST 写入操作）。
  */
-export async function confirmDeleteCommentByToken(token: string): Promise<{ success: boolean }> {
+export async function confirmDeleteCommentByToken(token: string): Promise<DeleteCommentResult> {
   if (!token || token.trim() === '') {
     throw new CommentServiceError(400, '缺少删除凭证')
   }

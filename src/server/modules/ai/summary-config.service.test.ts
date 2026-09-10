@@ -12,7 +12,7 @@ import {
   clearAiSummaryCredential,
   getAiSummaryConfig,
   saveAiSummaryConfig,
-} from './ai-summary-config'
+} from './summary-config.service.ts'
 
 test('AI 摘要模型配置 Service 综合测试', async (t) => {
   const masterKey = crypto.randomBytes(32).toString('base64')

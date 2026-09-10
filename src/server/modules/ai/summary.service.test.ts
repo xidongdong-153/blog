@@ -11,15 +11,14 @@ import { computeArticleContentHash } from '@/lib/ai-summary'
 import { encryptCredential } from '@/server/infra/ai/credential-crypto'
 import { createDatabase } from '@/server/infra/db/client'
 import { aiSummaryConfig } from '@/server/infra/db/schema/ai'
+import { AI_CONFIG_ID, getReadySummaryConfig } from './summary-config.service.ts'
 import {
   generateSummaryForPost,
   getArticleSummaryBySlug,
-  getReadySummaryConfig,
   syncAllArticleSummaries,
   upsertArticleSummary,
   validateSummaryText,
-} from './ai-summary'
-import { AI_CONFIG_ID } from './ai-summary-config'
+} from './summary.service.ts'
 
 const MOCK_SUMMARY_TEXT =
   '本文深入探讨了现代化前端工程化与全栈架构的最佳实践。通过合理的模块化设计、严密的类型检查以及完善的跨层数据流管理，系统能够在高并发与复杂业务场景下维持卓越的性能表现与长期可维护性。同时结合实际业务案例，梳理了关键路径上的性能瓶颈与规避方案。'

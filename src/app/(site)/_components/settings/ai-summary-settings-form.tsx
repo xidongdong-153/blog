@@ -1,6 +1,6 @@
 'use client'
 
-import type { AiSummaryConfigDto } from '@/server/services/ai-summary-config'
+import type { AiSummaryConfigDto } from '@/server/modules/ai/ai.types'
 import { AlertCircle, CheckCircle2, Loader2, RefreshCw, ShieldAlert, Trash2 } from 'lucide-react'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 

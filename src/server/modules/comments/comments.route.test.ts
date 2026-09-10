@@ -2,7 +2,7 @@
 
 import assert from 'node:assert/strict'
 import test from 'node:test'
-import { app } from '../app.ts'
+import { app } from '../../app.ts'
 
 const TEST_SLUG = '20260615-hello-blog'
 

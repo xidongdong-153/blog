@@ -1,9 +1,9 @@
 import type { Context } from 'hono'
 import type { ContentfulStatusCode } from 'hono/utils/http-status'
-import type { SummaryProtocol } from '@/server/infra/ai/summary-model'
+import type { SummaryProtocol } from './ai.types'
 import { Hono } from 'hono'
-import { getSession, isSiteAdmin } from '@/server/auth/session'
-import { SummaryModelError } from '@/server/infra/ai/summary-model'
+import { getSession, isSiteAdmin } from '@/server/modules/auth/auth.service'
+import { createFailureResponse, createSuccessResponse } from '@/server/shared/response'
 import {
   AiSummaryConfigError,
   checkAndEnableAiSummaryConfig,
@@ -11,16 +11,15 @@ import {
   getAiSummaryConfig,
   getAvailableSummaryModels,
   saveAiSummaryConfig,
-} from '@/server/services/ai-summary-config'
-import { createFailureResponse, createSuccessResponse } from '@/server/shared/response'
+} from './summary-config.service'
 
-export const aiRoute = new Hono()
+export const summaryConfigRoute = new Hono()
 
 /**
  * 统一异常处理，避免泄露内部调用堆栈或上游原始明文
  */
 function handleAiRouteError(c: Context, err: unknown) {
-  if (err instanceof AiSummaryConfigError || err instanceof SummaryModelError) {
+  if (err instanceof AiSummaryConfigError) {
     return c.json(createFailureResponse(err.message), err.statusCode as ContentfulStatusCode)
   }
 
@@ -47,7 +46,7 @@ async function requireAdminAuth(c: Context) {
  * GET /api/ai/summary-config
  * 站长读取当前 AI 摘要配置与凭据掩码
  */
-aiRoute.get('/summary-config', async (c) => {
+summaryConfigRoute.get('/summary-config', async (c) => {
   const auth = await requireAdminAuth(c)
   if (!auth.ok) {
     return auth.response
@@ -65,7 +64,7 @@ aiRoute.get('/summary-config', async (c) => {
  * PUT /api/ai/summary-config
  * 站长保存 AI 摘要配置，更新凭据或保留原有凭据
  */
-aiRoute.put('/summary-config', async (c) => {
+summaryConfigRoute.put('/summary-config', async (c) => {
   const auth = await requireAdminAuth(c)
   if (!auth.ok) {
     return auth.response
@@ -104,7 +103,7 @@ aiRoute.put('/summary-config', async (c) => {
  * POST /api/ai/summary-config/check
  * 测试当前配置连通性，成功后更新为 ready 状态
  */
-aiRoute.post('/summary-config/check', async (c) => {
+summaryConfigRoute.post('/summary-config/check', async (c) => {
   const auth = await requireAdminAuth(c)
   if (!auth.ok) {
     return auth.response
@@ -122,7 +121,7 @@ aiRoute.post('/summary-config/check', async (c) => {
  * DELETE /api/ai/summary-config/credential
  * 显式清除当前配置的 API Key 凭据
  */
-aiRoute.delete('/summary-config/credential', async (c) => {
+summaryConfigRoute.delete('/summary-config/credential', async (c) => {
   const auth = await requireAdminAuth(c)
   if (!auth.ok) {
     return auth.response
@@ -140,7 +139,7 @@ aiRoute.delete('/summary-config/credential', async (c) => {
  * POST /api/ai/summary-config/models
  * 站长拉取当前 Base URL 下可用的模型列表
  */
-aiRoute.post('/summary-config/models', async (c) => {
+summaryConfigRoute.post('/summary-config/models', async (c) => {
   const auth = await requireAdminAuth(c)
   if (!auth.ok) {
     return auth.response

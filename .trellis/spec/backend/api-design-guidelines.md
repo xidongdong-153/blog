@@ -1,10 +1,10 @@
 # API 设计规范
 
-Hono 应用在 `src/server/app.ts`，端点响应统一走 `ApiResponse<T>` 封装。当前应用没有挂载到 Next.js，`/api/system/health` 和 `/api/system/db-check` 从外部访问不到；接入方式见本文「Hono 挂载现状与接入」。
+Hono 应用在 `src/server/app.ts`，全站 `/api/*` 请求通过 `src/app/api/[[...route]]/route.ts` 由 Hono 统一承载。各领域端点由 `src/server/modules/<域>/<域>.route.ts` 提供并链式组装。
 
 ## 响应封装
 
-Hono 端点的响应体用 `src/server/shared/response.ts` 的类型和工厂函数，签名如下：
+基础系统端点与通用接口使用 `src/server/shared/response.ts` 的类型与工厂函数：
 
 ```ts
 export interface ApiResponse<T> {
@@ -22,42 +22,32 @@ export function createSuccessResponse<T>(data: T, requestId?: string): ApiRespon
 export function createFailureResponse(error: string, requestId?: string): ApiResponse<never>
 ```
 
-`meta.timestamp` 是 `Date.now()` 的毫秒时间戳，两个工厂函数都会填。`meta.requestId` 当前没有调用方传，字段留给以后做日志追踪，不强制。
+`meta.timestamp` 是 `Date.now()` 的毫秒时间戳。
 
-`GET /api/system/health` 的真实响应结构（来自 `src/server/routes/system.ts`）：
-
-```json
-{
-  "success": true,
-  "data": {
-    "status": "ok",
-    "uptime": 1234.5
-  },
-  "meta": {
-    "timestamp": 1757328000000
-  }
-}
-```
-
-注意边界：`ApiResponse` 约束基础系统与业务 Hono 端点。为维持前端调用兼容，`src/server/routes/presence.ts` 返回活动对象（结构见 `src/lib/presence.ts` 的 `PublicPresence`），`src/server/routes/links.ts` 返回 `{ success, message }` 或 `{ success: false, error }`。维护这两个端点时维持各自现有格式，不包装外层结构。
+注意边界：`ApiResponse` 用于系统与通用接口。为维持前端调用协议兼容：
+- `src/server/modules/presence/presence.route.ts` 直接返回 `PublicPresence` 活动对象。
+- `src/server/modules/links/links.route.ts` 返回 `{ success: true, message: string }` 或 `{ success: false, error: string }`。
+- `src/server/modules/auth/auth.route.ts` 承载 Better Auth 原生 API Handler。
 
 ## 路由命名与注册
 
-URL 到代码是三层结构：
+URL 到模块代码的映射关系：
 
-| URL 片段               | 定义位置                                                         |
-| ---------------------- | ---------------------------------------------------------------- |
-| `/api`                 | `src/server/app.ts` 的 `basePath('/api')`                        |
-| `/system`、`/presence`、`/links`、`/config`、`/comments`、`/auth`、`/ai` | `src/server/routes/index.ts` 的 `.route('/<域>', <域>Route)` |
-| `/health`、`/apply` 等 | 各域路由文件中的具体端点定义                                     |
+| URL 前缀 | 模块定义文件 | 挂载方式 (`src/server/app.ts`) |
+| --- | --- | --- |
+| `/api/auth` | `src/server/modules/auth/auth.route.ts` | `.route('/auth', authRoute)` |
+| `/api/config/auth` | `src/server/modules/auth/auth-config.route.ts` | `.route('/config/auth', authConfigRoute)` |
+| `/api/comments` | `src/server/modules/comments/comments.route.ts` | `.route('/comments', commentsRoute)` |
+| `/api/links` | `src/server/modules/links/links.route.ts` | `.route('/links', linksRoute)` |
+| `/api/ai` | `src/server/modules/ai/summary-config.route.ts` | `.route('/ai', summaryConfigRoute)` |
+| `/api/presence` | `src/server/modules/presence/presence.route.ts` | `.route('/presence', presenceRoute)` |
+| `/api/system` | `src/server/modules/system/system.route.ts` | `.route('/system', systemRoute)` |
 
-新增一个域路由的步骤：
+新增端点步骤：
 
-1. 新建 `src/server/routes/<域>.ts`，导出 `new Hono()` 实例并定义端点。
-2. 在 `src/server/routes/index.ts` 挂上：`.route('/<域>', <域>Route)`。
-3. 完整 URL 就是 `/api/<域>/<端点>`，不需要动 `app.ts`。
-
-命名规则：域名和端点全小写，端点多词用 kebab-case（现有写法是 `db-check`、`summary-config`），URL 不用下划线、不用大写。
+1. 在对应的 `src/server/modules/<域>/` 中，向 `<域>.service.ts` 补充领域逻辑，向 `<域>.route.ts` 补充端点。
+2. 若新增独立领域模块，在 `src/server/app.ts` 中链式挂载：`.route('/<域>', <域>Route)`。
+3. 命名规则：路径全小写，多词使用 kebab-case，不用下划线与大写。
 
 ## Hono 挂载与接入
 
@@ -88,41 +78,41 @@ export {
 flowchart TD
   B["浏览器 / 前端调用"] --> C["/api/[[...route]]<br/>catch-all 转发"]
   C --> H["Hono app<br/>basePath /api"]
-  H --> S["system 路由<br/>/health /db-check"]
+  H --> S["system 路由<br/>/system/health"]
   H --> P["presence 路由<br/>/presence"]
-  H --> L["links 路由<br/>/links/apply"]
+  H --> L["links 路由<br/>/links/apply /links/review"]
   H --> COM["comments 路由<br/>/comments"]
   H --> AUTH["auth 路由<br/>/auth/*"]
   H --> AI["ai 路由<br/>/ai/summary-config"]
-  S --> DB[("db 实例<br/>src/server/infra/db/client.ts")]
-  COM --> DB
-  AUTH --> DB
-  AI --> DB
-  P --> EXT["外部活动服务<br/>PRESENCE_SOURCE_URL"]
-  L --> MAIL["Resend 邮件<br/>src/lib/email.ts"]
-  COM -.-> MAIL
-  AI --> AISRV["AI 模型中转服务<br/>OpenAI / Anthropic"]
+  S --> SS["system.service.ts"]
+  P --> PS["presence.service.ts"]
+  L --> LS["links.service.ts"]
+  COM --> CS["comments.service.ts"]
+  AUTH --> AS["auth.service.ts"]
+  AI --> AIS["summary-config.service.ts"]
+  SS --> DB[("db 实例<br/>src/server/infra/db/client.ts")]
+  CS --> DB
+  AS --> DB
+  AIS --> DB
+  LS --> DB
+  PS --> EXT["外部活动服务<br/>PRESENCE_SOURCE_URL"]
+  LS --> MAIL["邮件服务<br/>src/server/infra/email.ts"]
+  CS -.-> MAIL
+  AIS --> AISRV["AI 模型客户端<br/>src/server/infra/ai/"]
 ```
 
-## 错误响应
+## 错误响应与领域错误映射
 
-失败响应用 `createFailureResponse(error)` 包装，HTTP 状态码通过 `c.json()` 的第二个参数传。`src/server/routes/system.ts` 的 `db-check` 是现有案例：
+路由层不直接操作底层数据库错误，而是捕获 service 层抛出的领域错误并转换为对应 HTTP 状态码：
 
-```ts
-catch (error) {
-  const message = error instanceof Error ? error.message : 'Unknown database error'
-  return c.json(
-    createFailureResponse(`Database check failed (${Date.now() - start}ms): ${message}`),
-    500,
-  )
-}
-```
-
-状态码语义沿用现有约定：请求参数错 400，频控拦下 429，上游或内部失败 500。`error` 字段写具体报错信息，说清哪里错了，不写空泛错误提示。
+- `CommentServiceError` -> `comments.route.ts` 映射为对应状态码（400/401/403/404/500）与错误响应。
+- `LinksServiceError` -> `links.route.ts` 映射为对应状态码（400/401/403/404/410/429/500）。
+- `AiSummaryConfigError` -> `summary-config.route.ts` 映射为对应状态码并保留安全错误信息。
+- 上游与内部未捕获异常统一记日志并返回 500。
 
 ## 边界决策：端点选型
 
-全站 HTTP API（即 `/api/*` 下的所有接口）统一收敛在 Hono 应用内承载，放置于 `src/server/routes/`。
+全站 HTTP API（即 `/api/*` 下的所有接口）统一收敛在 Hono 应用内承载，模块代码放置于 `src/server/modules/`。
 
 非 `/api` 的特殊协议端点（如全站 RSS 生成 `src/app/rss.xml/route.ts`）保留 Next Route Handler 原生导出。
 

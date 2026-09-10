@@ -14,7 +14,7 @@ import {
   getCommentsBySlug,
   softDeleteCommentByOwner,
   togglePinComment,
-} from './comments'
+} from './comments.service'
 
 const TEST_SLUG = '20260615-hello-blog'
 const TEST_USER_ID = 'test-user-service-01'

@@ -2,9 +2,9 @@
 
 import assert from 'node:assert/strict'
 import test from 'node:test'
-import { app } from '../app.ts'
-import { auth, getAuthSecret } from './config.ts'
-import { isSiteAdmin } from './session.ts'
+import { app } from '../../app.ts'
+import { auth, getAuthSecret } from './auth.config.ts'
+import { isSiteAdmin } from './auth.service.ts'
 
 test('getAuthSecret 密钥校验规则', () => {
   // 1. 生产环境缺失 secret 时抛错

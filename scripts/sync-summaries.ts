@@ -1,4 +1,4 @@
-import { syncAllArticleSummaries } from '@/server/services/ai-summary'
+import { syncAllArticleSummaries } from '@/server/modules/ai/summary.service'
 
 async function main() {
   try {

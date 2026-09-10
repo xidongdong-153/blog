@@ -1,9 +1,17 @@
 import { eq } from 'drizzle-orm'
 import { db } from '@/server/infra/db/client'
 import { account } from '@/server/infra/db/schema/auth'
-import { auth } from './config'
+import { auth } from './auth.config'
 
 export type AuthSession = NonNullable<Awaited<ReturnType<typeof auth.api.getSession>>>
+
+export interface PublicAuthConfig {
+  providers: {
+    github: boolean
+    google: boolean
+  }
+  isOwner: boolean
+}
 
 /**
  * 从原始请求 Header 中解析 Better Auth Session。若未登录或解析失败返回 null。
@@ -26,6 +34,22 @@ export function isSiteAdmin(email?: string | null): boolean {
   const adminEmail = process.env.ADMIN_EMAIL?.trim().toLowerCase()
   if (!adminEmail) return false
   return email.trim().toLowerCase() === adminEmail
+}
+
+/**
+ * 获取公开认证配置（社交登录可用性与当前访问者是否为站长）
+ */
+export async function getPublicAuthConfig(headers: Headers): Promise<PublicAuthConfig> {
+  const session = await getSession(headers)
+  const isOwner = isSiteAdmin(session?.user?.email)
+
+  return {
+    providers: {
+      github: Boolean(process.env.OAUTH_GITHUB_CLIENT_ID?.trim() && process.env.OAUTH_GITHUB_CLIENT_SECRET?.trim()),
+      google: Boolean(process.env.OAUTH_GOOGLE_CLIENT_ID?.trim() && process.env.OAUTH_GOOGLE_CLIENT_SECRET?.trim()),
+    },
+    isOwner,
+  }
 }
 
 /**

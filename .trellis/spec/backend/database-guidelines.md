@@ -93,7 +93,7 @@ pnpm db:studio     # 打开 drizzle-kit studio，本地默认连 file:local.db
 ### 1. Scope / Trigger
 
 - 触发范围：文章正文变化、生产部署前同步、摘要缓存表结构变更。
-- 代码边界：`src/lib/ai-summary.ts` 只负责正文哈希；`src/server/services/ai-summary.ts` 负责配置读取、模型调用、缓存读写和逐篇同步；`scripts/sync-summaries.ts` 是部署命令入口；文章页只读取缓存。
+- 代码边界：`src/lib/ai-summary.ts` 只负责正文哈希；`src/server/modules/ai/summary.service.ts` 负责配置读取、模型调用、缓存读写和逐篇同步；`scripts/sync-summaries.ts` 是部署命令入口；文章页只读取缓存。
 - 不在页面请求期间调用模型，也不把摘要写回 MDX。
 
 ### 2. Signatures
