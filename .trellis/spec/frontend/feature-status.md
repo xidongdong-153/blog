@@ -24,5 +24,6 @@
 | Mac 实时活动（独立采集与首页展示） | 已实现                 | `src/lib/presence.ts`、`src/app/api/presence/`、`$HOME/.hammerspoon/presence/` |
 | AI 摘要模型配置                    | 已实现                 | `src/app/(site)/settings/ai/`、`src/server/routes/ai.ts`、`src/server/services/ai-summary-config.ts` |
 | AI 摘要同步与展示                  | 已实现                 | `scripts/sync-summaries.ts`、`src/server/services/ai-summary.ts`、`src/app/(site)/_components/blog/ai-summary.tsx`、`src/app/(site)/blog/[slug]/page.tsx` |
+| 顶栏站长登录入口与弹窗             | 已实现                 | `src/app/(site)/_components/site/site-header.tsx`、`src/app/(site)/_components/site/header-auth.tsx`、`src/app/(site)/_components/site/auth-modal.tsx` |
 
 评论配置与状态见[组件规范](./component-guidelines.md)；活动服务配置及验证边界见[活动规范](./presence-guidelines.md)。已实现不代表外部服务当前在线。

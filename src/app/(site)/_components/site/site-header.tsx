@@ -5,6 +5,7 @@ import { usePathname } from 'next/navigation'
 import { useEffect, useRef, useState } from 'react'
 import { siteConfig } from '@/site.config'
 import { PresenceStatus } from '../home/presence'
+import { HeaderAuth } from './header-auth'
 
 /**
  * 液体融合胶囊页头。
@@ -127,93 +128,98 @@ export function SiteHeader() {
   }, [pathname])
 
   return (
-    <header
-      ref={headerRef}
-      data-visible={visible}
-      className="sticky top-4 z-[70] w-full px-4 transition-[transform,opacity] will-change-[transform,opacity] motion-reduce:transition-opacity motion-reduce:transform-none sm:px-6 data-[visible=false]:pointer-events-none data-[visible=false]:-translate-y-1.5 data-[visible=false]:scale-[0.98] data-[visible=false]:opacity-0 data-[visible=false]:duration-160 data-[visible=false]:ease-out data-[visible=true]:pointer-events-auto data-[visible=true]:translate-y-0 data-[visible=true]:scale-100 data-[visible=true]:opacity-100 data-[visible=true]:duration-[240ms] data-[visible=true]:ease-out"
-    >
-      <div
-        ref={capsuleRef}
-        className="relative mx-auto flex h-14 max-w-5xl items-center justify-between px-4 sm:rounded-2xl will-change-transform motion-reduce:transform-none"
+    <>
+      <header
+        ref={headerRef}
+        data-visible={visible}
+        className="sticky top-4 z-[70] w-full px-4 transition-[transform,opacity] will-change-[transform,opacity] motion-reduce:transition-opacity motion-reduce:transform-none sm:px-6 data-[visible=false]:pointer-events-none data-[visible=false]:-translate-y-1.5 data-[visible=false]:scale-[0.98] data-[visible=false]:opacity-0 data-[visible=false]:duration-160 data-[visible=false]:ease-out data-[visible=true]:pointer-events-auto data-[visible=true]:translate-y-0 data-[visible=true]:scale-100 data-[visible=true]:opacity-100 data-[visible=true]:duration-[240ms] data-[visible=true]:ease-out"
       >
-        {/* 液体融合水膜背景层 */}
         <div
-          ref={backdropRef}
-          aria-hidden="true"
-          className="pointer-events-none absolute inset-0 -z-10 rounded-xl border border-border bg-background/80 shadow-[0_0_0_1px_hsl(var(--foreground)/0.06),0_10px_15px_-3px_hsl(var(--foreground)/0.06),0_4px_6px_-4px_hsl(var(--foreground)/0.06)] backdrop-blur-md will-change-[opacity] sm:rounded-2xl dark:bg-muted/80"
-          style={{
-            opacity: 0,
-            WebkitMaskImage: 'linear-gradient(to bottom, black calc(100% - 6px), transparent 100%)',
-            maskImage: 'linear-gradient(to bottom, black calc(100% - 6px), transparent 100%)',
-          }}
-        />
-
-        <PresenceStatus />
-
-        <div className="flex items-center gap-2">
-          <nav className="hidden items-center gap-4 text-sm sm:flex">
-            {siteConfig.nav.map((item) => (
-              <Link
-                key={item.href}
-                href={item.href}
-                className={
-                  isActive(item.href) ? 'font-medium text-foreground' : 'text-muted-foreground hover:text-primary'
-                }
-              >
-                {item.name}
-              </Link>
-            ))}
-          </nav>
-          <button
-            type="button"
-            aria-label="切换菜单"
-            aria-expanded={expanded}
-            aria-controls="mobile-nav"
-            onClick={() => setExpanded((prev) => !prev)}
-            className="rounded-md border border-border p-1.5 transition-colors hover:bg-muted sm:hidden"
-          >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              className="size-4.5"
-            >
-              <line x1="4" x2="20" y1="12" y2="12" />
-              <line x1="4" x2="20" y1="6" y2="6" />
-              <line x1="4" x2="20" y1="18" y2="18" />
-            </svg>
-          </button>
-        </div>
-
-        {/* 移动端展开菜单 */}
-        <div
-          id="mobile-nav"
-          data-expanded={expanded}
-          className="absolute left-0 right-0 top-[calc(100%+0.5rem)] grid rounded-xl border border-border bg-background/95 shadow-lg backdrop-blur-md transition-[grid-template-rows,opacity] duration-300 dark:bg-muted/95 data-[expanded=false]:pointer-events-none data-[expanded=false]:grid-rows-[0fr] data-[expanded=false]:opacity-0 data-[expanded=true]:pointer-events-auto data-[expanded=true]:grid-rows-[1fr] data-[expanded=true]:opacity-100 sm:hidden"
+          ref={capsuleRef}
+          className="relative mx-auto flex h-14 max-w-5xl items-center justify-between pl-4 pr-12 sm:px-4 sm:rounded-2xl will-change-transform motion-reduce:transform-none"
         >
-          <div className="overflow-hidden p-2">
-            <nav className="flex flex-col gap-1 text-sm">
+          {/* 液体融合水膜背景层 */}
+          <div
+            ref={backdropRef}
+            aria-hidden="true"
+            className="pointer-events-none absolute inset-0 -z-10 rounded-xl border border-border bg-background/80 shadow-[0_0_0_1px_hsl(var(--foreground)/0.06),0_10px_15px_-3px_hsl(var(--foreground)/0.06),0_4px_6px_-4px_hsl(var(--foreground)/0.06)] backdrop-blur-md will-change-[opacity] sm:rounded-2xl dark:bg-muted/80"
+            style={{
+              opacity: 0,
+              WebkitMaskImage: 'linear-gradient(to bottom, black calc(100% - 6px), transparent 100%)',
+              maskImage: 'linear-gradient(to bottom, black calc(100% - 6px), transparent 100%)',
+            }}
+          />
+
+          <PresenceStatus />
+
+          <div className="flex items-center gap-2">
+            <nav className="hidden items-center gap-4 text-sm sm:flex">
               {siteConfig.nav.map((item) => (
                 <Link
                   key={item.href}
                   href={item.href}
-                  className={`rounded-md px-3 py-2 font-medium transition-colors ${
-                    isActive(item.href)
-                      ? 'bg-muted text-foreground'
-                      : 'text-muted-foreground hover:bg-muted/50 hover:text-primary'
-                  }`}
+                  className={
+                    isActive(item.href) ? 'font-medium text-foreground' : 'text-muted-foreground hover:text-primary'
+                  }
                 >
                   {item.name}
                 </Link>
               ))}
             </nav>
+            <button
+              type="button"
+              aria-label="切换菜单"
+              aria-expanded={expanded}
+              aria-controls="mobile-nav"
+              onClick={() => setExpanded((prev) => !prev)}
+              className="rounded-md border border-border p-1.5 transition-colors hover:bg-muted sm:hidden"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                className="size-4.5"
+              >
+                <line x1="4" x2="20" y1="12" y2="12" />
+                <line x1="4" x2="20" y1="6" y2="6" />
+                <line x1="4" x2="20" y1="18" y2="18" />
+              </svg>
+            </button>
+          </div>
+
+          {/* 移动端展开菜单 */}
+          <div
+            id="mobile-nav"
+            data-expanded={expanded}
+            className="absolute left-0 right-0 top-[calc(100%+0.5rem)] grid rounded-xl border border-border bg-background/95 shadow-lg backdrop-blur-md transition-[grid-template-rows,opacity] duration-300 dark:bg-muted/95 data-[expanded=false]:pointer-events-none data-[expanded=false]:grid-rows-[0fr] data-[expanded=false]:opacity-0 data-[expanded=true]:pointer-events-auto data-[expanded=true]:grid-rows-[1fr] data-[expanded=true]:opacity-100 sm:hidden"
+          >
+            <div className="overflow-hidden p-2">
+              <nav className="flex flex-col gap-1 text-sm">
+                {siteConfig.nav.map((item) => (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    className={`rounded-md px-3 py-2 font-medium transition-colors ${
+                      isActive(item.href)
+                        ? 'bg-muted text-foreground'
+                        : 'text-muted-foreground hover:bg-muted/50 hover:text-primary'
+                    }`}
+                  >
+                    {item.name}
+                  </Link>
+                ))}
+              </nav>
+            </div>
           </div>
         </div>
-      </div>
-    </header>
+      </header>
+
+      {/* 独立固定于顶栏右侧的微型站长入口，不随胶囊 bar 滚动隐藏 */}
+      <HeaderAuth />
+    </>
   )
 }
