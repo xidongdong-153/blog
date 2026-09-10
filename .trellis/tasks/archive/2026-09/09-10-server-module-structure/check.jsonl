@@ -1,0 +1,6 @@
+{"file":".trellis/spec/backend/index.md","reason":"后端检查入口；按获批设计验证新目录，不重新引入旧结构"}
+{"file":".trellis/spec/backend/api-design-guidelines.md","reason":"核对Hono挂载、原始认证响应、各端点协议及HTTP职责"}
+{"file":".trellis/spec/backend/database-guidelines.md","reason":"核对数据规则、凭据安全和没有schema或迁移变更"}
+{"file":".trellis/spec/frontend/quality-guidelines.md","reason":"全量质量门、文档格式和提交授权规则"}
+{"file":".trellis/spec/guides/code-reuse-thinking-guide.md","reason":"检查重复业务逻辑、遗漏调用方和无必要的转发层"}
+{"file":".trellis/tasks/09-10-server-module-structure/research/current-structure.md","reason":"核对受影响入口、临时SQLite隔离、业务边界和不做兼容的要求"}

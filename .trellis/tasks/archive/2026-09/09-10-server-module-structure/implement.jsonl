@@ -1,0 +1,6 @@
+{"file":".trellis/spec/backend/index.md","reason":"后端规范入口与质量门；过期结构描述以任务调研和获批设计为准"}
+{"file":".trellis/spec/backend/api-design-guidelines.md","reason":"Hono唯一挂载、响应和方法约定；本任务只替换目录及组装位置"}
+{"file":".trellis/spec/backend/database-guidelines.md","reason":"schema与迁移不动，保留凭据及摘要业务规则"}
+{"file":".trellis/spec/frontend/quality-guidelines.md","reason":"依次执行类型、Lint、格式及纯文档显式检查"}
+{"file":".trellis/spec/guides/cross-layer-thinking-guide.md","reason":"核对页面、路由、service、CLI和类型之间的数据边界"}
+{"file":".trellis/tasks/09-10-server-module-structure/research/current-structure.md","reason":"源码证据、调用点、测试写库风险、已批准范围和禁止兼容要求"}
