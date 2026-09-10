@@ -684,3 +684,39 @@ trellis init -u xdd --pi 完成，填充 .trellis/spec/frontend 5 个规范文�
 ### Status
 
 [OK] **Completed**
+
+
+## Session 27: 服务端目录与职责整理
+<!-- trellis-session: v=2 fp=d633aa76f5a32c80 -->
+
+**Date**: 2026-09-10
+**Task**: 服务端目录与职责整理
+**Branch**: `main`
+
+### Summary
+
+将平铺的 routes/services/auth 重构为高内聚业务模块架构 (auth/comments/links/ai/presence/system)，完善 infra 层解耦并同步全套测试与规范文档
+
+### Main Changes
+
+- 创建 6 个高内聚业务模块目录，分别封装 service、route、types 和对应测试
+- 下沉 email 与 AI 模型协议至 infra 层，删除旧目录且不留向后兼容层
+- 更新所有服务端组件调用为直接调用 service，修复 97 项测试全绿并通过生产构建
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `534cbfb` | refactor(server): 模块化重构服务端为高内聚业务模块架构 |
+
+### Testing
+
+- [OK] pnpm typecheck
+- [OK] pnpm lint
+- [OK] pnpm format:check
+- [OK] pnpm test (14 files, 97 passed)
+- [OK] NODE_ENV=production pnpm build (31 routes)
+
+### Status
+
+[OK] **Completed**
