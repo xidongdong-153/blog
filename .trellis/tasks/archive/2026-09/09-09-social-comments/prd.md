@@ -43,3 +43,9 @@
 - 独立后台、角色权限系统和批量审核界面。
 - 匿名评论、密码注册、评论反应和富文本编辑器。
 - 自动迁移 GitHub Discussions 中的历史评论。
+
+## 归档核验
+
+- 实施清单已完成；当前 `pnpm test` 包含认证、评论 service 和评论路由测试，70 个测试全部通过。
+- `pnpm typecheck`、`pnpm lint`、`pnpm format:check`、`pnpm db:check`、`pnpm db:verify` 和 `pnpm build` 均已通过。
+- 本次复核未执行真实 GitHub/Google OAuth、Resend 邮件投递和移动端浏览器验收；这些项目仍需在部署环境验证。

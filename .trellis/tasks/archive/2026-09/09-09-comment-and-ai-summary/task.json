@@ -1,0 +1,30 @@
+{
+  "id": "comment-and-ai-summary",
+  "name": "comment-and-ai-summary",
+  "title": "实现社交评论与 AI 自动摘要",
+  "description": "按现有设计为博客实现 Better Auth 社交评论系统与基于内容哈希的 AI 摘要。",
+  "status": "completed",
+  "dev_type": null,
+  "scope": null,
+  "package": null,
+  "priority": "P2",
+  "creator": "xdd",
+  "assignee": "xdd",
+  "createdAt": "2026-09-09",
+  "completedAt": "2026-09-10",
+  "branch": null,
+  "base_branch": "main",
+  "worktree_path": null,
+  "commit": null,
+  "pr_url": null,
+  "subtasks": [],
+  "children": [
+    "09-09-social-comments",
+    "09-09-ai-summary-settings",
+    "09-09-ai-summary-sync-display"
+  ],
+  "parent": null,
+  "relatedFiles": [],
+  "notes": "",
+  "meta": {}
+}
