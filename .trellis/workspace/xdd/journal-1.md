@@ -662,3 +662,25 @@ trellis init -u xdd --pi 完成，填充 .trellis/spec/frontend 5 个规范文�
 ### Status
 
 [OK] **Completed**
+
+
+## Session 26: 顶栏常驻快捷登录入口与弹窗
+<!-- trellis-session: v=2 fp=e7aca1eaf5e5d461 -->
+
+**Date**: 2026-09-10
+**Task**: 顶栏常驻快捷登录入口与弹窗
+**Branch**: `main`
+
+### Summary
+
+在全站顶栏右侧添加独立常驻的微型登录入口按钮，点击唤起纯图标单行社交登录弹窗，登录后展示用户信息与操作菜单，且与顶栏严格垂直居中对齐
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `06e9ab7` | feat(header): 顶栏常驻快捷登录入口与极简纯图标登录弹窗 |
+
+### Status
+
+[OK] **Completed**

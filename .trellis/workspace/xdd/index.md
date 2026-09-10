@@ -8,8 +8,8 @@
 
 <!-- @@@auto:current-status -->
 - **Active File**: `journal-1.md`
-- **Total Sessions**: 25
-- **Last Active**: 2026-09-08
+- **Total Sessions**: 26
+- **Last Active**: 2026-09-10
 <!-- @@@/auto:current-status -->
 
 ---
@@ -19,7 +19,7 @@
 <!-- @@@auto:active-documents -->
 | File | Lines | Status |
 |------|-------|--------|
-| `journal-1.md` | ~664 | Active |
+| `journal-1.md` | ~686 | Active |
 <!-- @@@/auto:active-documents -->
 
 ---
@@ -29,6 +29,7 @@
 <!-- @@@auto:session-history -->
 | # | Date | Title | Commits | Branch |
 |---|------|-------|---------|--------|
+| 26 | 2026-09-10 | 顶栏常驻快捷登录入口与弹窗 | `06e9ab7` | `main` |
 | 25 | 2026-09-08 | 实现友链邮件一键审批工作流 | `5427148` | `main` |
 | 24 | 2026-09-08 | 新增后端规范层（Hono 与 Drizzle） | `edef81f` | `main` |
 | 23 | 2026-09-08 | 友链申请弹窗与邮件通知功能实现 | `f91976b` | `main` |
