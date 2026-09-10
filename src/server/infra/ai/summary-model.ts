@@ -503,3 +503,105 @@ export async function testSummaryModelConnection(
     },
   }
 }
+
+export interface UpstreamModelItem {
+  id: string
+  displayName: string
+}
+
+export interface FetchUpstreamModelsOptions {
+  baseUrl: string
+  apiKey: string
+  fetch?: typeof globalThis.fetch
+  timeoutMs?: number
+}
+
+/**
+ * 探测并拉取上游服务提供的模型列表（兼容 OpenAI、DeepSeek、通用中转等 /models 规范）
+ */
+export async function fetchUpstreamModels(options: FetchUpstreamModelsOptions): Promise<UpstreamModelItem[]> {
+  if (!options.baseUrl || typeof options.baseUrl !== 'string' || !options.baseUrl.trim()) {
+    throw new SummaryModelError('INVALID_BASE_URL', 'Base URL 不能为空', 400)
+  }
+
+  if (!options.apiKey || typeof options.apiKey !== 'string' || !options.apiKey.trim()) {
+    throw new SummaryModelError('CONFIG_INVALID', '模型 API Key 不能为空', 400)
+  }
+
+  const timeoutMs = options.timeoutMs ?? 10_000
+  const effectiveFetch = options.fetch || createRestrictedFetch({ timeoutMs })
+
+  const rawBaseUrl = options.baseUrl.trim().replace(/\/+$/, '')
+  const candidates: string[] = []
+
+  if (rawBaseUrl.endsWith('/v1')) {
+    candidates.push(`${rawBaseUrl}/models`)
+    candidates.push(`${rawBaseUrl.slice(0, -3)}/models`)
+  } else {
+    candidates.push(`${rawBaseUrl}/models`)
+    candidates.push(`${rawBaseUrl}/v1/models`)
+  }
+
+  let lastError: Error | null = null
+
+  for (let i = 0; i < candidates.length; i++) {
+    const candidateUrl = candidates[i]
+    try {
+      const res = await effectiveFetch(candidateUrl, {
+        method: 'GET',
+        headers: {
+          Authorization: `Bearer ${options.apiKey.trim()}`,
+          Accept: 'application/json',
+        },
+      })
+
+      if (res.status === 200) {
+        const json = await res.json().catch(() => null)
+        if (!json || typeof json !== 'object' || !Array.isArray(json.data)) {
+          throw new SummaryModelError('UPSTREAM_INVALID_RESPONSE', '上游模型列表响应不是合法的 JSON 格式', 502)
+        }
+
+        const models: UpstreamModelItem[] = []
+        for (const item of json.data) {
+          if (item && typeof item === 'object' && typeof item.id === 'string' && item.id.trim()) {
+            models.push({
+              id: item.id.trim(),
+              displayName:
+                typeof item.display_name === 'string' && item.display_name.trim()
+                  ? item.display_name.trim()
+                  : item.id.trim(),
+            })
+          }
+        }
+
+        return models
+      }
+
+      if (res.status === 401 || res.status === 403) {
+        throw new SummaryModelError('AUTH_FAILED', '上游模型认证失败，请检查 API Key 是否正确或具有权限', 401)
+      }
+
+      if (res.status === 404 || res.status === 405) {
+        lastError = new SummaryModelError('UPSTREAM_ERROR', '未探测到上游服务的 models 接口 (HTTP 404)', 404)
+        continue
+      }
+
+      throw new SummaryModelError(
+        'UPSTREAM_ERROR',
+        `上游模型服务请求错误 (HTTP ${res.status})`,
+        res.status >= 400 && res.status < 600 ? res.status : 502,
+      )
+    } catch (err) {
+      if (err instanceof SummaryModelError && (err.code === 'AUTH_FAILED' || err.statusCode === 401)) {
+        throw err
+      }
+
+      lastError = err instanceof Error ? err : new Error(String(err))
+      if (i === candidates.length - 1) {
+        throw classifyAiError(lastError)
+      }
+    }
+  }
+
+  throw classifyAiError(lastError ?? new SummaryModelError('UPSTREAM_ERROR', '获取模型列表失败', 502))
+}

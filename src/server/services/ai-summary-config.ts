@@ -1,4 +1,4 @@
-import type { SummaryModelFactoryConfig, SummaryProtocol } from '@/server/infra/ai/summary-model'
+import type { SummaryModelFactoryConfig, SummaryProtocol, UpstreamModelItem } from '@/server/infra/ai/summary-model'
 import { and, eq } from 'drizzle-orm'
 import { db as defaultDb } from '@/server/infra/db/client'
 import { aiSummaryConfig } from '@/server/infra/db/schema/ai'
@@ -8,7 +8,12 @@ import {
   encryptCredential,
   isMasterKeyConfigured,
 } from '../infra/ai/credential-crypto'
-import { isSupportedProtocol, testSummaryModelConnection, validateAiBaseUrlAsync } from '../infra/ai/summary-model'
+import {
+  fetchUpstreamModels,
+  isSupportedProtocol,
+  testSummaryModelConnection,
+  validateAiBaseUrlAsync,
+} from '../infra/ai/summary-model'
 
 export const AI_CONFIG_ID = 'default'
 
@@ -313,4 +318,68 @@ export async function checkAndEnableAiSummaryConfig(options?: {
     .where(eq(aiSummaryConfig.id, AI_CONFIG_ID))
     .limit(1)
   return toDto(updatedRecords[0])
+}
+
+export interface GetAvailableSummaryModelsInput {
+  baseUrl?: string
+  apiKey?: string
+}
+
+/**
+ * 获取可用的模型列表。
+ * - 优先使用入参中的 baseUrl 与 apiKey。
+ * - 若未提供，回退读取数据库中已保存的 baseUrl 与解密已有凭据。
+ */
+export async function getAvailableSummaryModels(
+  input?: GetAvailableSummaryModelsInput,
+  options?: {
+    database?: typeof defaultDb
+    masterKeyOverride?: string
+    fetch?: typeof globalThis.fetch
+    timeoutMs?: number
+  },
+): Promise<UpstreamModelItem[]> {
+  const database = options?.database ?? defaultDb
+
+  const existingRecords = await database
+    .select()
+    .from(aiSummaryConfig)
+    .where(eq(aiSummaryConfig.id, AI_CONFIG_ID))
+    .limit(1)
+  const existing = existingRecords[0]
+
+  const effectiveBaseUrl = input?.baseUrl?.trim() || existing?.baseUrl
+  if (!effectiveBaseUrl) {
+    throw new AiSummaryConfigError('INVALID_INPUT', 'Base URL 不能为空', 400)
+  }
+
+  let effectiveApiKey = input?.apiKey?.trim()
+  if (!effectiveApiKey) {
+    if (!existing?.credentialCiphertext || !existing?.credentialIv || !existing?.credentialAuthTag) {
+      throw new AiSummaryConfigError('NO_CREDENTIAL', '未配置 API Key，无法获取模型列表', 400)
+    }
+
+    try {
+      effectiveApiKey = decryptCredential(
+        {
+          ciphertext: existing.credentialCiphertext,
+          iv: existing.credentialIv,
+          authTag: existing.credentialAuthTag,
+        },
+        options?.masterKeyOverride,
+      )
+    } catch (err) {
+      if (err instanceof CredentialCryptoError) {
+        throw new AiSummaryConfigError('CRYPTO_ERROR', err.message, 500)
+      }
+      throw err
+    }
+  }
+
+  return fetchUpstreamModels({
+    baseUrl: effectiveBaseUrl,
+    apiKey: effectiveApiKey,
+    fetch: options?.fetch,
+    timeoutMs: options?.timeoutMs,
+  })
 }

@@ -5,6 +5,7 @@ import http from 'node:http'
 import test from 'node:test'
 import {
   createRestrictedFetch,
+  fetchUpstreamModels,
   SummaryModelError,
   testSummaryModelConnection,
   validateAiBaseUrl,
@@ -570,6 +571,120 @@ test('三协议真实本地 HTTP 集成测试与错误边界', async (t) => {
         (err) => {
           assert(err instanceof SummaryModelError)
           assert.equal(err.code, 'UPSTREAM_TIMEOUT')
+          return true
+        },
+      )
+    })
+  } finally {
+    await new Promise<void>((resolve) => server.close(() => resolve()))
+  }
+})
+
+test('fetchUpstreamModels: 探测拉取模型列表与候选容错', async (t) => {
+  let requestedPaths: string[] = []
+  let responseMode: 'normal' | 'v1_only' | 'unauthorized' | 'not_found' = 'normal'
+
+  const server = http.createServer((req, res) => {
+    requestedPaths.push(req.url || '')
+
+    if (responseMode === 'unauthorized') {
+      res.writeHead(401, { 'Content-Type': 'application/json' })
+      res.end(JSON.stringify({ error: { message: 'Invalid API key' } }))
+      return
+    }
+
+    if (responseMode === 'not_found') {
+      res.writeHead(404, { 'Content-Type': 'application/json' })
+      res.end(JSON.stringify({ error: { message: 'Not found' } }))
+      return
+    }
+
+    if (responseMode === 'v1_only') {
+      if (req.url === '/v1/models') {
+        res.writeHead(200, { 'Content-Type': 'application/json' })
+        res.end(JSON.stringify({ data: [{ id: 'gpt-5.5', display_name: 'GPT-5.5' }] }))
+        return
+      }
+      res.writeHead(404, { 'Content-Type': 'application/json' })
+      res.end(JSON.stringify({ error: 'Not found' }))
+      return
+    }
+
+    // normal: /models
+    if (req.url === '/models' || req.url === '/v1/models') {
+      res.writeHead(200, { 'Content-Type': 'application/json' })
+      res.end(
+        JSON.stringify({
+          data: [
+            { id: 'codex-auto-review', display_name: 'Codex Auto Review' },
+            { id: 'gpt-5.5', display_name: 'GPT-5.5' },
+            { id: 'plain-model' },
+          ],
+        }),
+      )
+      return
+    }
+
+    res.writeHead(404)
+    res.end()
+  })
+
+  await new Promise<void>((resolve) => server.listen(0, '127.0.0.1', () => resolve()))
+  const address = server.address() as AddressInfo
+  const baseURL = `http://127.0.0.1:${address.port}`
+
+  try {
+    // 1. 参数校验
+    await t.test('参数非空校验', async () => {
+      await assert.rejects(
+        () => fetchUpstreamModels({ baseUrl: '', apiKey: 'sk-123' }),
+        (err) => err instanceof SummaryModelError && err.code === 'INVALID_BASE_URL',
+      )
+      await assert.rejects(
+        () => fetchUpstreamModels({ baseUrl: baseURL, apiKey: '' }),
+        (err) => err instanceof SummaryModelError && err.code === 'CONFIG_INVALID',
+      )
+    })
+
+    // 2. /models 正常获取
+    await t.test('直接请求 /models 成功解析模型列表', async () => {
+      requestedPaths = []
+      responseMode = 'normal'
+      const models = await fetchUpstreamModels({
+        baseUrl: baseURL,
+        apiKey: 'sk-test',
+      })
+
+      assert.equal(models.length, 3)
+      assert.deepEqual(models[0], { id: 'codex-auto-review', displayName: 'Codex Auto Review' })
+      assert.deepEqual(models[1], { id: 'gpt-5.5', displayName: 'GPT-5.5' })
+      assert.deepEqual(models[2], { id: 'plain-model', displayName: 'plain-model' })
+    })
+
+    // 3. /models 404 时回退探测 /v1/models
+    await t.test('/models 返回 404 时自动探测 /v1/models', async () => {
+      requestedPaths = []
+      responseMode = 'v1_only'
+      const models = await fetchUpstreamModels({
+        baseUrl: baseURL,
+        apiKey: 'sk-test',
+      })
+
+      assert.equal(models.length, 1)
+      assert.equal(models[0].id, 'gpt-5.5')
+      assert.deepEqual(requestedPaths, ['/models', '/v1/models'])
+    })
+
+    // 4. 认证失败直接中断
+    await t.test('401 认证失败抛出 AUTH_FAILED', async () => {
+      requestedPaths = []
+      responseMode = 'unauthorized'
+      await assert.rejects(
+        () => fetchUpstreamModels({ baseUrl: baseURL, apiKey: 'sk-bad' }),
+        (err) => {
+          assert(err instanceof SummaryModelError)
+          assert.equal(err.code, 'AUTH_FAILED')
+          assert.equal(err.statusCode, 401)
           return true
         },
       )

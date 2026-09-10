@@ -1,7 +1,7 @@
 'use client'
 
 import type { AiSummaryConfigDto } from '@/server/services/ai-summary-config'
-import { AlertCircle, CheckCircle2, Loader2, ShieldAlert, Trash2 } from 'lucide-react'
+import { AlertCircle, CheckCircle2, Loader2, RefreshCw, ShieldAlert, Trash2 } from 'lucide-react'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 
 type ProtocolType = 'openai-completions' | 'openai-responses' | 'anthropic-messages'
@@ -38,12 +38,72 @@ export function AiSummarySettingsForm({ initialMasterKeyAvailable = true }: AiSu
   const [modelId, setModelId] = useState('')
   const [apiKey, setApiKey] = useState('')
 
+  // 模型列表与交互状态
+  const [availableModels, setAvailableModels] = useState<Array<{ id: string; displayName: string }> | null>(null)
+  const [isFetchingModels, setIsFetchingModels] = useState(false)
+  const [fetchModelsError, setFetchModelsError] = useState<string | null>(null)
+  const [isCustomModelInput, setIsCustomModelInput] = useState(false)
+
   // 交互与状态反馈
   const [isSaving, setIsSaving] = useState(false)
   const [isChecking, setIsChecking] = useState(false)
   const [isClearing, setIsClearing] = useState(false)
   const [statusMessage, setStatusMessage] = useState<string | null>(null)
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
+
+  const hasCredential = Boolean(config?.hasCredential)
+
+  // 从服务商探测拉取可用模型列表
+  const handleFetchModels = async () => {
+    if (!baseUrl.trim()) {
+      setErrorMessage('请先填写 Base URL')
+      return
+    }
+
+    if (!apiKey.trim() && !hasCredential) {
+      setErrorMessage('请先输入 API Key 凭据或使用已保存的凭据')
+      return
+    }
+
+    setIsFetchingModels(true)
+    setFetchModelsError(null)
+    setErrorMessage(null)
+
+    try {
+      const res = await fetch('/api/ai/summary-config/models', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          baseUrl: baseUrl.trim(),
+          apiKey: apiKey.trim() || undefined,
+        }),
+      })
+
+      const json = await res.json()
+      if (!res.ok || !json.success) {
+        throw new Error(json.error || '获取模型列表失败')
+      }
+
+      const list = json.data as Array<{ id: string; displayName: string }>
+      setAvailableModels(list)
+
+      if (list.length > 0) {
+        const matched = list.some((item) => item.id === modelId.trim())
+        if (!modelId.trim()) {
+          setModelId(list[0].id)
+          setIsCustomModelInput(false)
+        } else if (matched) {
+          setIsCustomModelInput(false)
+        }
+      }
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : '获取模型列表异常'
+      setFetchModelsError(msg)
+      setErrorMessage(`拉取模型列表失败: ${msg}`)
+    } finally {
+      setIsFetchingModels(false)
+    }
+  }
 
   // 从服务端加载配置
   const fetchConfig = useCallback(async () => {
@@ -202,7 +262,6 @@ export function AiSummarySettingsForm({ initialMasterKeyAvailable = true }: AiSu
   }
 
   const isReady = config?.status === 'ready'
-  const hasCredential = Boolean(config?.hasCredential)
   const masterKeyAvailable = config ? config.masterKeyAvailable : initialMasterKeyAvailable
   const masterKeyMissing = !masterKeyAvailable
 
@@ -324,18 +383,93 @@ export function AiSummarySettingsForm({ initialMasterKeyAvailable = true }: AiSu
 
         {/* 模型 ID */}
         <div className="flex flex-col gap-1.5">
-          <label htmlFor="ai-model-id" className="font-mono text-xs uppercase tracking-wider text-muted-foreground">
-            模型 ID (Model ID)
-          </label>
-          <input
-            id="ai-model-id"
-            type="text"
-            required
-            value={modelId}
-            onChange={(e) => setModelId(e.target.value)}
-            placeholder="gpt-4o-mini 或 claude-3-5-haiku-latest"
-            className="h-10 w-full rounded-md border border-border/80 bg-background px-3 font-mono text-xs text-foreground placeholder:text-muted-foreground/60 transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
-          />
+          <div className="flex items-center justify-between">
+            <label htmlFor="ai-model-id" className="font-mono text-xs uppercase tracking-wider text-muted-foreground">
+              模型 ID (Model ID)
+            </label>
+            <div className="flex items-center gap-2">
+              {availableModels && availableModels.length > 0 && (
+                <button
+                  type="button"
+                  onClick={() => setIsCustomModelInput((prev) => !prev)}
+                  className="font-mono text-xs text-primary underline-offset-4 hover:underline"
+                >
+                  {isCustomModelInput ? '从下拉列表选择' : '手动输入'}
+                </button>
+              )}
+              <button
+                type="button"
+                onClick={handleFetchModels}
+                disabled={isFetchingModels || (!apiKey.trim() && !hasCredential)}
+                title={!apiKey.trim() && !hasCredential ? '请先输入或配置 API Key' : '通过 Base URL 获取可用模型列表'}
+                className="inline-flex items-center gap-1 font-mono text-xs text-muted-foreground transition-colors hover:text-foreground disabled:cursor-not-allowed disabled:opacity-40"
+              >
+                <RefreshCw className={`size-3 ${isFetchingModels ? 'animate-spin' : ''}`} />
+                <span>{isFetchingModels ? '拉取中...' : '拉取模型列表'}</span>
+              </button>
+            </div>
+          </div>
+
+          {availableModels && availableModels.length > 0 && !isCustomModelInput ? (
+            <select
+              id="ai-model-id"
+              required
+              value={modelId}
+              onChange={(e) => {
+                if (e.target.value === '__custom__') {
+                  setIsCustomModelInput(true)
+                } else {
+                  setModelId(e.target.value)
+                }
+              }}
+              className="h-10 w-full rounded-md border border-border/80 bg-background px-3 font-mono text-xs text-foreground transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+            >
+              {!modelId && <option value="">-- 请选择模型（共 {availableModels.length} 个）--</option>}
+              {modelId && !availableModels.some((m) => m.id === modelId) && (
+                <option value={modelId}>[当前模型] {modelId}</option>
+              )}
+              {availableModels.map((m) => (
+                <option key={m.id} value={m.id}>
+                  {m.displayName !== m.id ? `${m.displayName} (${m.id})` : m.id}
+                </option>
+              ))}
+              <option value="__custom__">+ 手动输入其他模型 ID...</option>
+            </select>
+          ) : (
+            <input
+              id="ai-model-id"
+              type="text"
+              required
+              value={modelId}
+              onChange={(e) => setModelId(e.target.value)}
+              placeholder="gpt-4o-mini 或 claude-3-5-haiku-latest"
+              list="ai-available-models-datalist"
+              className="h-10 w-full rounded-md border border-border/80 bg-background px-3 font-mono text-xs text-foreground placeholder:text-muted-foreground/60 transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+            />
+          )}
+
+          {availableModels && availableModels.length > 0 && (
+            <datalist id="ai-available-models-datalist">
+              {availableModels.map((m) => (
+                <option key={m.id} value={m.id}>
+                  {m.displayName}
+                </option>
+              ))}
+            </datalist>
+          )}
+
+          <div className="flex items-center justify-between text-xs text-muted-foreground">
+            <span>
+              {availableModels && availableModels.length > 0
+                ? isCustomModelInput
+                  ? `已获取 ${availableModels.length} 个可用模型，当前为自由输入模式`
+                  : `已获取 ${availableModels.length} 个可用模型，可直接从下拉菜单选择`
+                : '支持通过右上方按钮拉取服务商模型列表，亦可直接手动输入'}
+            </span>
+            {fetchModelsError && (
+              <span className="font-mono text-red-500 dark:text-red-400">拉取失败: {fetchModelsError}</span>
+            )}
+          </div>
         </div>
 
         {/* API Key 凭据 */}

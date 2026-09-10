@@ -9,6 +9,7 @@ import {
   checkAndEnableAiSummaryConfig,
   clearAiSummaryCredential,
   getAiSummaryConfig,
+  getAvailableSummaryModels,
   saveAiSummaryConfig,
 } from '@/server/services/ai-summary-config'
 import { createFailureResponse, createSuccessResponse } from '@/server/shared/response'
@@ -130,6 +131,31 @@ aiRoute.delete('/summary-config/credential', async (c) => {
   try {
     const cleared = await clearAiSummaryCredential()
     return c.json(createSuccessResponse(cleared))
+  } catch (err) {
+    return handleAiRouteError(c, err)
+  }
+})
+
+/**
+ * POST /api/ai/summary-config/models
+ * 站长拉取当前 Base URL 下可用的模型列表
+ */
+aiRoute.post('/summary-config/models', async (c) => {
+  const auth = await requireAdminAuth(c)
+  if (!auth.ok) {
+    return auth.response
+  }
+
+  try {
+    const body = await c.req.json().catch(() => ({}))
+    const { baseUrl, apiKey } = body ?? {}
+
+    const models = await getAvailableSummaryModels({
+      baseUrl: typeof baseUrl === 'string' && baseUrl.trim() ? baseUrl.trim() : undefined,
+      apiKey: typeof apiKey === 'string' && apiKey.trim() ? apiKey.trim() : undefined,
+    })
+
+    return c.json(createSuccessResponse(models))
   } catch (err) {
     return handleAiRouteError(c, err)
   }
