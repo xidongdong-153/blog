@@ -8,8 +8,8 @@
 
 <!-- @@@auto:current-status -->
 - **Active File**: `journal-1.md`
-- **Total Sessions**: 27
-- **Last Active**: 2026-09-10
+- **Total Sessions**: 28
+- **Last Active**: 2026-09-11
 <!-- @@@/auto:current-status -->
 
 ---
@@ -19,7 +19,7 @@
 <!-- @@@auto:active-documents -->
 | File | Lines | Status |
 |------|-------|--------|
-| `journal-1.md` | ~722 | Active |
+| `journal-1.md` | ~760 | Active |
 <!-- @@@/auto:active-documents -->
 
 ---
@@ -29,6 +29,7 @@
 <!-- @@@auto:session-history -->
 | # | Date | Title | Commits | Branch |
 |---|------|-------|---------|--------|
+| 28 | 2026-09-11 | 访客统计与文章实时在线状态 | `222a992` | `main` |
 | 27 | 2026-09-10 | 服务端目录与职责整理 | `534cbfb` | `main` |
 | 26 | 2026-09-10 | 顶栏常驻快捷登录入口与弹窗 | `06e9ab7` | `main` |
 | 25 | 2026-09-08 | 实现友链邮件一键审批工作流 | `5427148` | `main` |

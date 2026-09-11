@@ -720,3 +720,43 @@ trellis init -u xdd --pi 完成，填充 .trellis/spec/frontend 5 个规范文�
 ### Status
 
 [OK] **Completed**
+
+
+## Session 28: 访客统计与文章实时在线状态
+<!-- trellis-session: v=2 fp=e728ab96f4c102a1 -->
+
+**Date**: 2026-09-11
+**Task**: 访客统计与文章实时在线状态
+**Branch**: `main`
+
+### Summary
+
+实现基于一年期匿名 Cookie 去重的累计访客统计、同源单 WebSocket 实时在线与文章在读人数广播，并适配自定义 Node 入口、页脚左对齐布局与 CI/CD 迁移验证。
+
+### Main Changes
+
+- 新增 `site_visitor_records` 数据库表与迁移，基于 1 年期 `site_visitor_id` HttpOnly Cookie 实现长期匿名去重。
+- 实现 `src/server/modules/visitors/` 业务模块与自定义 `server.ts` 入口，支持 Hono HTTP API、Next.js 页面与 HMR、访客 WebSocket Upgrade 分流与平滑停机。
+- 新增 `VisitorPresenceProvider` 客户端单连接与页脚左侧 `VisitorStats`、文章在读状态 `ArticleViewerCount`。
+- 增强 `.github/workflows/ci-cd.yml`，在质量检查中加入 `pnpm db:check`，在部署检查中加入访客 API 与 WebSocket 握手健康探测。
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `222a992` | feat(visitors): 访客统计与文章实时在线状态 |
+| `6daf45f` | chore(task): archive 09-11-visitor-analytics-presence |
+
+### Testing
+
+- [OK] pnpm typecheck
+- [OK] pnpm lint
+- [OK] pnpm format:check
+- [OK] pnpm db:check
+- [OK] pnpm test (18 suites, 122 passed)
+- [OK] pnpm build (31 routes)
+
+### Status
+
+[OK] **Completed**
+
