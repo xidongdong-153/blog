@@ -151,7 +151,7 @@ ssh "deploy@$DEPLOY_HOST" 'curl -i http://127.0.0.1:4400/'
 ssh "deploy@$DEPLOY_HOST" 'sudo ss -ltnp "sport = :4400"'
 curl -I https://blog.xdd.ink/
 # 检查访客 WebSocket 握手（返回 401 表示 WebSocket 路径存活且 Cookie 鉴权生效）
-curl -i -N -H "Connection: Upgrade" -H "Upgrade: websocket" -H "Host: 127.0.0.1:4400" -H "Sec-WebSocket-Version: 13" -H "Sec-WebSocket-Key: SGVsbG8sIHdvcmxkIQ==" http://127.0.0.1:4400/api/visitors/socket
+curl -i -N -H "Connection: Upgrade" -H "Upgrade: websocket" -H "Host: 127.0.0.1:4400" -H "Sec-WebSocket-Version: 13" -H "Sec-WebSocket-Key: dGhlIHNhbXBsZSBub25jZQ==" http://127.0.0.1:4400/api/visitors/socket
 ```
 
 公网 `502` 时先确认 systemd 正常且本机端口监听，再查 Caddy。完整服务器初始化、Caddy 配置与故障记录位于仓库外 `/Users/wuwanzhu/Projects/code-server-frp-maintenance/docs/services/blog.md`；已确认本机文件存在，其他机器需另行定位。首页活动上游的配置见[活动服务规范](./presence-guidelines.md)。
