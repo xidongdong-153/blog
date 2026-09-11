@@ -746,6 +746,8 @@ trellis init -u xdd --pi 完成，填充 .trellis/spec/frontend 5 个规范文�
 |------|---------|
 | `222a992` | feat(visitors): 访客统计与文章实时在线状态 |
 | `6daf45f` | chore(task): archive 09-11-visitor-analytics-presence |
+| `f8f3935` | ci: 使用标准 16 字节 WebSocket Key 并更新部署文档 |
+| `d5bf7b7` | fix(server): 启动时先注入环境文件并延迟加载 WebSocket Hub |
 
 ### Testing
 
