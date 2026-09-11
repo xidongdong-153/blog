@@ -1,0 +1,3 @@
+{"file": ".trellis/spec/frontend/quality-guidelines.md", "reason": "代码质量门与三项检查要求"}
+{"file": ".trellis/spec/backend/database-guidelines.md", "reason": "数据库迁移与一致性验证"}
+{"file": ".trellis/spec/frontend/deployment-guidelines.md", "reason": "部署入口与健康检查验证"}

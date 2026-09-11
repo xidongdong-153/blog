@@ -1,0 +1,6 @@
+{"file": ".trellis/spec/backend/directory-structure.md", "reason": "服务端业务模块目录规范与高内聚组织约定"}
+{"file": ".trellis/spec/backend/api-design-guidelines.md", "reason": "API 路径规范、只读快照与安全错误响应边界"}
+{"file": ".trellis/spec/backend/database-guidelines.md", "reason": "Drizzle schema、迁移生成与 Turso libSQL 规范"}
+{"file": ".trellis/spec/frontend/component-guidelines.md", "reason": "UI 布局规范、语义 token 与无抖动状态展示"}
+{"file": ".trellis/spec/frontend/state-management.md", "reason": "客户端单连接 Provider 与轻量 React Context 约定"}
+{"file": ".trellis/spec/frontend/deployment-guidelines.md", "reason": "生产 Node 进程、systemd 与 Caddy 反代边界"}
