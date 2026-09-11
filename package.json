@@ -9,9 +9,9 @@
     "node": ">=24.16.0"
   },
   "scripts": {
-    "dev": "tsx server.ts --dev",
+    "dev": "tsx --env-file-if-exists=.env.local server.ts --dev",
     "build": "next build",
-    "start": "tsx server.ts",
+    "start": "tsx --env-file-if-exists=.env.local server.ts",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
     "format": "prettier --write .",

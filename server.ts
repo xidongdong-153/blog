@@ -1,6 +1,19 @@
+import fs from 'node:fs'
 import { createServer } from 'node:http'
+import path from 'node:path'
 import next from 'next'
-import { visitorWebSocketHub } from './src/server/modules/visitors/visitors.websocket'
+
+// 在加载任何业务及数据库模块前，使用 Node 内置能力注入 .env 与 .env.local 环境变量
+for (const envFile of ['.env', '.env.local']) {
+  const fullPath = path.resolve(process.cwd(), envFile)
+  if (fs.existsSync(fullPath)) {
+    try {
+      process.loadEnvFile(fullPath)
+    } catch {
+      // 忽略单个文件解析异常
+    }
+  }
+}
 
 const dev = process.argv.includes('--dev') || process.env.NODE_ENV !== 'production'
 const hostname = process.env.HOST || '127.0.0.1'
@@ -16,6 +29,9 @@ const app = next({ dev, hostname, port })
 
 async function main() {
   await app.prepare()
+
+  // 动态导入 WebSocket Hub，确保 db 实例在环境变量就绪后初始化
+  const { visitorWebSocketHub } = await import('./src/server/modules/visitors/visitors.websocket')
 
   const handle = app.getRequestHandler()
   const rawApp = app as unknown as {
