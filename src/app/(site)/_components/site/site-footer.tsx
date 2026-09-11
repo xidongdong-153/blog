@@ -1,5 +1,6 @@
 import Link from 'next/link'
 import { siteConfig } from '@/site.config'
+import { VisitorStats } from '../visitor/visitor-stats'
 import { ThemeToggle } from './theme-toggle'
 
 export function SiteFooter() {
@@ -10,16 +11,20 @@ export function SiteFooter() {
       <div className="mx-auto max-w-5xl px-6">
         {/* 上层：品牌信息与关于导航 */}
         <div className="flex flex-col justify-between gap-8 md:flex-row">
-          <div className="space-y-2">
-            <Link
-              href="/"
-              className="font-mono text-base font-semibold tracking-wide text-foreground transition-colors hover:text-primary"
-            >
-              {siteConfig.title}
-            </Link>
-            <div className="text-[11px] text-muted-foreground/60">
-              © {year} {siteConfig.author}. 使用 Next.js 构建。
+          <div className="space-y-3">
+            <div className="space-y-2">
+              <Link
+                href="/"
+                className="font-mono text-base font-semibold tracking-wide text-foreground transition-colors hover:text-primary"
+              >
+                {siteConfig.title}
+              </Link>
+              <div className="text-[11px] text-muted-foreground/60">
+                © {year} {siteConfig.author}. 使用 Next.js 构建。
+              </div>
             </div>
+
+            <VisitorStats align="left" className="pt-0.5" />
           </div>
 
           <div>

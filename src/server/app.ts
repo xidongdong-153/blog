@@ -6,6 +6,7 @@ import { commentsRoute } from './modules/comments/comments.route'
 import { linksRoute } from './modules/links/links.route'
 import { presenceRoute } from './modules/presence/presence.route'
 import { systemRoute } from './modules/system/system.route'
+import { visitorsRoute } from './modules/visitors/visitors.route'
 
 export function createApp() {
   return new Hono()
@@ -13,6 +14,7 @@ export function createApp() {
     .route('/system', systemRoute)
     .route('/presence', presenceRoute)
     .route('/links', linksRoute)
+    .route('/visitors', visitorsRoute)
     .route('/config', authConfigRoute)
     .route('/comments', commentsRoute)
     .route('/auth', authRoute)

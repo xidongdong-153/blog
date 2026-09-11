@@ -1,6 +1,7 @@
 import type { BlogPost } from '@/lib/content'
 import Link from 'next/link'
 import { BLOG_CATEGORY_LABELS, calculateReadingTime, formatDate } from '@/lib/content'
+import { ArticleViewerCount } from '../visitor/article-viewer-count'
 
 export interface PostCardProps {
   post: BlogPost
@@ -61,6 +62,7 @@ export function PostCard({
             <span>{readingTime}</span>
           </>
         )}
+        <ArticleViewerCount slug={post.slug} mode="compact" />
       </div>
 
       <Link href={`/blog/${post.slug}`} className="group/link flex w-full flex-col">

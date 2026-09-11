@@ -29,6 +29,13 @@
       "when": 1789001938264,
       "tag": "0003_low_klaw",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "6",
+      "when": 1789097107003,
+      "tag": "0004_heavy_sharon_carter",
+      "breakpoints": true
     }
   ]
 }

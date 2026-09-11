@@ -49,6 +49,12 @@ jobs:
       - name: Check formatting
         run: pnpm format:check
 
+      - name: Check database migrations
+        env:
+          TURSO_DATABASE_URL: file:ci.db
+          TURSO_AUTH_TOKEN: ci-local-only-token
+        run: pnpm db:check
+
       - name: Prepare test database
         env:
           TURSO_DATABASE_URL: file:ci.db
@@ -272,4 +278,24 @@ jobs:
             exit 1
           fi
           echo "Local health check returned HTTP 200"
+
+          echo "Checking visitor API and WebSocket health"
+          visitor_code="$(curl --silent --output /dev/null --write-out '%{http_code}' --max-time 5 http://127.0.0.1:4400/api/visitors/stats || true)"
+          if [[ "$visitor_code" != "200" ]]; then
+            echo "Visitor stats check returned HTTP $visitor_code; deployment failed." >&2
+            exit 1
+          fi
+
+          ws_check_code="$(curl --silent --output /dev/null --write-out '%{http_code}' --max-time 5 \
+            -H "Connection: Upgrade" \
+            -H "Upgrade: websocket" \
+            -H "Host: 127.0.0.1:4400" \
+            -H "Sec-WebSocket-Version: 13" \
+            -H "Sec-WebSocket-Key: SGVsbG8sIHdvcmxkIQ==" \
+            http://127.0.0.1:4400/api/visitors/socket || true)"
+          if [[ "$ws_check_code" != "401" ]]; then
+            echo "Visitor WebSocket check returned HTTP $ws_check_code (expected 401 Unauthorized); deployment failed." >&2
+            exit 1
+          fi
+          echo "Visitor API and WebSocket health check passed"
           REMOTE

@@ -17,6 +17,7 @@ import { FloatingActionGroup } from '../../_components/blog/floating-action-grou
 import { MdxContent } from '../../_components/blog/mdx-content'
 import { TableOfContents } from '../../_components/blog/toc'
 import { CommentSection } from '../../_components/comment/comment-section'
+import { ArticleViewerCount } from '../../_components/visitor/article-viewer-count'
 
 interface BlogPostPageProps {
   params: Promise<{ slug: string }>
@@ -97,6 +98,8 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
               )}
               <span>/</span>
               <span>{readingTime}</span>
+              <span>/</span>
+              <ArticleViewerCount slug={post.slug} mode="detailed" />
             </div>
 
             <h1 className="font-serif text-3xl font-medium tracking-tight text-foreground sm:text-4xl lg:text-[2.6rem] leading-[1.2]">

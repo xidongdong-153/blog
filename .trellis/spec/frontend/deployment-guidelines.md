@@ -9,7 +9,7 @@
 - CI 临时生成包含 `@prisma/client`、`better-sqlite3`、`esbuild` 和 `sharp` 的 `pnpm-workspace.yaml`，允许 pnpm 11 执行这些依赖的安装脚本；该文件贯穿检查步骤，job 结束时清理，不提交仓库。
 - `deploy` 使用 `Deployment` Environment，通过 SSH 执行 `bash -s -- <target-sha>`，工作目录为 `/home/deploy/code/xdd/blog`。
 - 同一分支的 workflow 串行执行，不取消正在运行的发布。只有服务器安装、构建、重启和健康检查全部通过才算发布成功。
-- 运行服务为 `xdd-blog.service`，监听 `127.0.0.1:4400`；公网入口由 Caddy 提供 `https://blog.xdd.ink`。
+- 运行服务为 `xdd-blog.service`，监听 `127.0.0.1:4400`；启动入口必须通过 `pnpm start`（执行 `tsx server.ts`），同时承载 Next.js 页面请求与 `/api/visitors/socket` 的 WebSocket 升级分流；生产环境不使用 `output: 'standalone'`，`tsx` 与 `ws` 声明为直接运行时依赖；公网入口由 Caddy 提供 `https://blog.xdd.ink` 并自动转发 WebSocket 升级。
 
 以下操作是维护手册，不表示已执行。本次文档整理只核对仓库 workflow，未连接服务器或核验 GitHub Environment、分支保护和线上服务状态。
 
@@ -150,6 +150,8 @@ ssh "deploy@$DEPLOY_HOST" 'sudo journalctl -u xdd-blog.service -n 80 --no-pager 
 ssh "deploy@$DEPLOY_HOST" 'curl -i http://127.0.0.1:4400/'
 ssh "deploy@$DEPLOY_HOST" 'sudo ss -ltnp "sport = :4400"'
 curl -I https://blog.xdd.ink/
+# 检查访客 WebSocket 握手（返回 401 表示 WebSocket 路径存活且 Cookie 鉴权生效）
+curl -i -N -H "Connection: Upgrade" -H "Upgrade: websocket" -H "Host: 127.0.0.1:4400" -H "Sec-WebSocket-Version: 13" -H "Sec-WebSocket-Key: SGVsbG8sIHdvcmxkIQ==" http://127.0.0.1:4400/api/visitors/socket
 ```
 
 公网 `502` 时先确认 systemd 正常且本机端口监听，再查 Caddy。完整服务器初始化、Caddy 配置与故障记录位于仓库外 `/Users/wuwanzhu/Projects/code-server-frp-maintenance/docs/services/blog.md`；已确认本机文件存在，其他机器需另行定位。首页活动上游的配置见[活动服务规范](./presence-guidelines.md)。
