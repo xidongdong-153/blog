@@ -3,6 +3,7 @@ import type { CommentSortOrder } from './comments.types'
 import { Hono } from 'hono'
 import { getSession, isSiteAdmin } from '@/server/modules/auth/auth.service'
 import { createFailureResponse, createSuccessResponse } from '@/server/shared/response'
+import { isCommentRateLimited } from './comments.rate-limit'
 import {
   CommentServiceError,
   confirmDeleteCommentByToken,
@@ -102,6 +103,13 @@ commentsRoute.post('/', async (c) => {
       return c.json(createFailureResponse('请先登录后再发表评论'), 401)
     }
 
+    const forwarded = c.req.header('x-forwarded-for') || c.req.header('x-real-ip')
+    const clientIp = forwarded ? forwarded.split(',')[0].trim() : '127.0.0.1'
+
+    if (isCommentRateLimited(session.user.id, clientIp)) {
+      return c.json(createFailureResponse('发表评论过于频繁，请稍候再试'), 429)
+    }
+
     const body = await c.req.json().catch(() => ({}))
     const slug = typeof body?.slug === 'string' ? body.slug.trim() : ''
     const content = typeof body?.content === 'string' ? body.content : ''
@@ -141,7 +149,7 @@ commentsRoute.patch('/:id/pin', async (c) => {
       return c.json(createFailureResponse('未登录'), 401)
     }
 
-    const isOwner = isSiteAdmin(session.user.email)
+    const isOwner = isSiteAdmin(session.user)
     if (!isOwner) {
       return c.json(createFailureResponse('无权进行此操作，仅站长可置顶评论'), 403)
     }
@@ -169,7 +177,7 @@ commentsRoute.delete('/:id', async (c) => {
       return c.json(createFailureResponse('未登录'), 401)
     }
 
-    const isOwner = isSiteAdmin(session.user.email)
+    const isOwner = isSiteAdmin(session.user)
     if (!isOwner) {
       return c.json(createFailureResponse('无权进行此操作，仅站长可删除评论'), 403)
     }

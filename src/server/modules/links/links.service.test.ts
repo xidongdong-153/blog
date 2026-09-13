@@ -77,6 +77,8 @@ test('友链 Service 业务规则测试', async (t) => {
     })
 
     assert.equal(res.success, true)
+    assert.ok(res.reviewToken)
+    reviewToken = res.reviewToken
 
     // 检查数据库记录
     const record = await db.query.friendLinks.findFirst({
@@ -86,11 +88,11 @@ test('友链 Service 业务规则测试', async (t) => {
     assert.ok(record)
     assert.equal(record.status, 'pending')
     assert.equal(record.hasAddedUs, 1)
-    assert.ok(record.reviewToken)
+    // 数据库仅保存 64 位 SHA-256 哈希，不保存原始令牌
+    assert.notEqual(record.reviewToken, reviewToken)
+    assert.equal(record.reviewToken?.length, 64)
     assert.ok(record.tokenExpiresAt)
     assert.ok(record.tokenExpiresAt.getTime() > Date.now())
-
-    reviewToken = record.reviewToken
   })
 
   await t.test('审核详情读取（只读验证）', async () => {

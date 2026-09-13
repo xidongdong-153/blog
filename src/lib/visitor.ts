@@ -52,7 +52,12 @@ export interface VisitorSnapshotMessage {
 
 /** 错误码定义 */
 export type VisitorErrorCode =
-  'invalid_message' | 'invalid_session' | 'invalid_article' | 'visitor_cookie_required' | 'service_unavailable'
+  | 'invalid_message'
+  | 'invalid_session'
+  | 'invalid_article'
+  | 'visitor_cookie_required'
+  | 'service_unavailable'
+  | 'rate_limited'
 
 /** 服务端 WebSocket 错误消息 */
 export interface VisitorErrorMessage {

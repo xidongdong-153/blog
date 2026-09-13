@@ -52,6 +52,13 @@ test('isSiteAdmin 校验逻辑', () => {
     assert.equal(isSiteAdmin('user@example.com'), false)
     assert.equal(isSiteAdmin('attacker@example.com'), false)
 
+    // 2.1 支持传入 User 对象且强制要求 emailVerified
+    assert.equal(isSiteAdmin({ email: 'admin@example.com', emailVerified: true }), true)
+    assert.equal(isSiteAdmin({ email: 'ADMIN@example.com', emailVerified: true }), true)
+    assert.equal(isSiteAdmin({ email: 'admin@example.com', emailVerified: false }), false)
+    assert.equal(isSiteAdmin({ email: 'admin@example.com' }), false)
+    assert.equal(isSiteAdmin({ email: 'other@example.com', emailVerified: true }), false)
+
     // 3. 旧的 SITE_OWNER_EMAIL 不参与站长判断
     delete process.env.ADMIN_EMAIL
     process.env.SITE_OWNER_EMAIL = 'owner@example.com'

@@ -3,6 +3,7 @@
 import assert from 'node:assert/strict'
 import test from 'node:test'
 import { app } from '../../app.ts'
+import { isCommentRateLimited, resetCommentRateLimit } from './comments.rate-limit.ts'
 
 const TEST_SLUG = '20260615-hello-blog'
 
@@ -75,5 +76,24 @@ test('评论 Hono 路由与权限状态码测试', async (t) => {
       body: JSON.stringify({}),
     })
     assert.equal(postRes.status, 400)
+  })
+
+  await t.test('isCommentRateLimited 频控规则', () => {
+    resetCommentRateLimit()
+    const testUserId = 'test-user-limit-1'
+    const testIp = '203.0.113.10'
+
+    // 用户最多允许 5 次，第 6 次超限
+    for (let i = 0; i < 5; i++) {
+      assert.equal(isCommentRateLimited(testUserId, `203.0.113.${100 + i}`), false)
+    }
+    assert.equal(isCommentRateLimited(testUserId, '203.0.113.200'), true)
+
+    // IP 最多允许 10 次，第 11 次超限
+    resetCommentRateLimit()
+    for (let i = 0; i < 10; i++) {
+      assert.equal(isCommentRateLimited(`user-ip-test-${i}`, testIp), false)
+    }
+    assert.equal(isCommentRateLimited('user-ip-test-11', testIp), true)
   })
 })

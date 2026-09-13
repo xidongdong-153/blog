@@ -40,8 +40,6 @@ workflow 使用 `BatchMode=yes`、`ConnectTimeout=15`、`StrictHostKeyChecking=y
 
 ```yaml
 allowBuilds:
-  '@prisma/client': true
-  better-sqlite3: true
   esbuild: true
   sharp: true
 ```
@@ -73,7 +71,7 @@ ssh "deploy@$DEPLOY_HOST" 'bash -s' <<'REMOTE'
 set -euo pipefail
 cd /home/deploy/code/xdd/blog
 worktree_status="$(git status --porcelain --untracked-files=all)"
-expected_pnpm_config=$'allowBuilds:\n  \x27@prisma/client\x27: true\n  better-sqlite3: true\n  esbuild: true\n  sharp: true\n'
+expected_pnpm_config=$'allowBuilds:\n  esbuild: true\n  sharp: true\n'
 pnpm_config_status="$(git status --porcelain --untracked-files=all --ignored -- pnpm-workspace.yaml)"
 if git ls-files --error-unmatch -- pnpm-workspace.yaml >/dev/null 2>&1 ||
   [[ "$pnpm_config_status" != '' && "$pnpm_config_status" != '?? pnpm-workspace.yaml' ]]; then

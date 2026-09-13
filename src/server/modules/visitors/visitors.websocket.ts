@@ -18,6 +18,9 @@ interface ExtendedWebSocket extends WebSocket {
   isAlive: boolean
   connectionId: string
   visitorId: string
+  currentSessionId?: string
+  msgCount?: number
+  lastMsgReset?: number
 }
 
 function parseCookie(cookieHeader: string | undefined, name: string): string | null {
@@ -143,6 +146,12 @@ export class VisitorWebSocketHub {
       return
     }
 
+    if (this.wss.clients.size >= 1000) {
+      console.warn('[VisitorWS] 握手拒绝: 全局活跃连接数已达上限 (1000)')
+      socket.end('HTTP/1.1 503 Service Unavailable\r\nConnection: close\r\n\r\n')
+      return
+    }
+
     this.wss.handleUpgrade(req, socket, head, (ws) => {
       this.wss.emit('connection', ws, req, visitorId)
     })
@@ -160,6 +169,17 @@ export class VisitorWebSocketHub {
     })
 
     ws.on('message', async (rawData) => {
+      const now = Date.now()
+      if (!ws.lastMsgReset || now - ws.lastMsgReset >= 1000) {
+        ws.lastMsgReset = now
+        ws.msgCount = 0
+      }
+      ws.msgCount = (ws.msgCount || 0) + 1
+      if (ws.msgCount > 10) {
+        this.sendError(ws, 'rate_limited')
+        return
+      }
+
       let msg: VisitorClientMessage
       try {
         msg = JSON.parse(rawData.toString())
@@ -192,6 +212,12 @@ export class VisitorWebSocketHub {
               articleSlug = null
             }
           }
+
+          // 单物理连接会话限制：若当前连接已有旧 sessionId，先移除旧会话
+          if (ws.currentSessionId && ws.currentSessionId !== msg.sessionId) {
+            this.visitorsService.removeSession(ws.currentSessionId, connectionId)
+          }
+          ws.currentSessionId = msg.sessionId
 
           this.visitorsService.registerSession({
             sessionId: msg.sessionId,
