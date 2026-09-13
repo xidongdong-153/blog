@@ -150,7 +150,7 @@ jobs:
               };
               process.stdout.write("export ENV_JSON_B64=" + Buffer.from(JSON.stringify(vars)).toString("base64") + "\n");
             '
-            cat <<'          REMOTE'
+            cat <<'REMOTE'
           set -euo pipefail
           target_sha="${TARGET_SHA:?missing target SHA}"
           app_dir=/home/deploy/code/xdd/blog
