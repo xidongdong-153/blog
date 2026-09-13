@@ -6,7 +6,7 @@
 
 - 目标为 `main` 的 Pull Request 只运行 `quality`。`main` push 的 `quality` 成功后才运行 `deploy`，不要从 Fork Pull Request 触发生产发布。
 - `quality` 依次运行 `pnpm install --frozen-lockfile`、`pnpm typecheck`、`pnpm lint`、`pnpm format:check`、`pnpm db:migrate`、`pnpm test`、`pnpm build`；测试和构建使用 runner 上的 `file:ci.db` 与临时 token，不访问生产数据库；`build` 只注入固定的非生产 `BETTER_AUTH_SECRET` 和 `http://localhost:4400`，不读取生产认证密钥或 AI 凭据。
-- 仓库根目录跟踪 `pnpm-workspace.yaml`，配置 `esbuild` 与 `sharp` 的依赖构建白名单（`allowBuilds`），统一本地、CI 与生产服务器的依赖构建策略。
+- 仓库根目录跟踪 `pnpm-workspace.yaml`，配置 `@prisma/client`、`better-sqlite3`、`esbuild` 与 `sharp` 的依赖构建白名单（`allowBuilds`），统一本地、CI 与生产服务器的依赖构建策略。
 - `deploy` 使用 `Deployment` Environment，通过 SSH 执行 `bash -s -- <target-sha>`，工作目录为 `/home/deploy/code/xdd/blog`。
 - 同一分支的 workflow 串行执行，不取消正在运行的发布。只有服务器安装、构建、重启和健康检查全部通过才算发布成功。
 - 运行服务为 `xdd-blog.service`，监听 `127.0.0.1:4400`；启动入口必须通过 `pnpm start`（执行 `tsx server.ts`），同时承载 Next.js 页面请求与 `/api/visitors/socket` 的 WebSocket 升级分流；生产环境不使用 `output: 'standalone'`，`tsx` 与 `ws` 声明为直接运行时依赖；公网入口由 Caddy 提供 `https://blog.xdd.ink` 并自动转发 WebSocket 升级。
