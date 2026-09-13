@@ -762,3 +762,41 @@ trellis init -u xdd --pi 完成，填充 .trellis/spec/frontend 5 个规范文�
 
 [OK] **Completed**
 
+
+## Session 29: 项目与 CI/CD 综合安全加固
+<!-- trellis-session: v=2 fp=8b3ee88e1542ac -->
+
+**Date**: 2026-09-13
+**Task**: 项目与 CI/CD 综合安全加固
+**Branch**: `main`
+
+### Summary
+
+依据安全审计报告实施体系化加固：生产数据库防静默回退、Better Auth 鉴权核验与密文存储、友链审批 Token 哈希化、AI 切换域名凭据防外泄、接口信息脱敏、访客与评论频控保护，以及 GitHub Actions SHA 固定与部署凭据安全标准输入传输。
+
+### Main Changes
+
+- 生产环境未配置 Turso 时直接抛错熔断，禁止静默回退本地 SQLite；开启 Better Auth `encryptOAuthTokens`，站长判断要求 `emailVerified`。
+- 友链审批 Token 改为数据库仅存 SHA-256 哈希值；AI 配置切换 Base URL 时强制要求重新输入 API Key；公开 `/api/system/db-check` 接口脱敏。
+- 访客 Bootstrap 接口与评论提交增加 IP / 账号频控；WebSocket 物理连接限制单活跃会话，施加 1000 连接上限；邮件降级日志严格脱敏。
+- `.github/workflows/ci-cd.yml` 依赖白名单裁剪为 `esbuild` 与 `sharp`，第三方 Action 固定到 40 位 SHA，重构 SSH 部署传参改走加密管道标准输入（stdin）流式写入 `.env.local`。
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `8b3ee88` | feat(security): 项目与 CI/CD 综合安全加固 |
+| `e1542ac` | chore(task): archive 09-13-security-hardening |
+
+### Testing
+
+- [OK] pnpm typecheck
+- [OK] pnpm lint
+- [OK] pnpm format:check
+- [OK] pnpm test (18 suites, 127 passed)
+- [OK] pnpm build (31 routes)
+
+### Status
+
+[OK] **Completed**
+
