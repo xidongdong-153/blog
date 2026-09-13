@@ -11,6 +11,7 @@ import {
   checkAndEnableAiSummaryConfig,
   clearAiSummaryCredential,
   getAiSummaryConfig,
+  getAvailableSummaryModels,
   saveAiSummaryConfig,
 } from './summary-config.service.ts'
 
@@ -189,6 +190,38 @@ test('AI 摘要模型配置 Service 综合测试', async (t) => {
     // 确认配置状态仍然是 needs_check
     const config = await getAiSummaryConfig()
     assert.equal(config?.status, 'needs_check')
+  })
+
+  await t.test('8. 切换 Base URL 时防旧凭据外泄', async () => {
+    // 先保存旧配置
+    await saveAiSummaryConfig({
+      protocol: 'openai-completions',
+      baseUrl: 'http://old-api.example.com/v1',
+      modelId: 'gpt-4o-mini',
+      apiKey: 'sk-old-secret-key-12345',
+    })
+
+    // 8.1 拉取模型列表：传新 baseUrl 但不传 apiKey 应被拦截
+    await assert.rejects(
+      () =>
+        getAvailableSummaryModels({
+          baseUrl: 'http://new-api.example.com/v1',
+        }),
+      (err) =>
+        err instanceof AiSummaryConfigError &&
+        err.code === 'NO_CREDENTIAL' &&
+        err.message.includes('切换 Base URL 时必须提供对应的 API Key'),
+    )
+
+    // 8.2 保存配置：更新为新 baseUrl 但不传 apiKey，自动清除旧凭据
+    const savedWithNewOrigin = await saveAiSummaryConfig({
+      protocol: 'openai-completions',
+      baseUrl: 'http://new-api.example.com/v1',
+      modelId: 'gpt-4o-mini',
+    })
+
+    assert.equal(savedWithNewOrigin.hasCredential, false)
+    assert.equal(savedWithNewOrigin.credentialMask, null)
   })
 
   // 清理测试数据

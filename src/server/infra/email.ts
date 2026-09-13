@@ -286,10 +286,14 @@ export async function sendFriendApplyEmail(payload: FriendApplyPayload): Promise
 
   // 未配置 API Key 时，打印到控制台，供本地开发或无凭证环境调试
   if (!apiKey || !notifyEmail) {
-    console.info('[FriendApply Email Mock] 未检测到 RESEND_API_KEY 或 FRIEND_APPLY_NOTIFY_EMAIL，模拟发送：')
-    console.info(`[FriendApply Email Mock] 申请站点: ${payload.siteName} (${payload.siteUrl})`)
-    console.info(`[FriendApply Email Mock] 申请人: ${payload.nickname} <${payload.email}>`)
-    console.info(`[FriendApply Email Mock] 简介: ${payload.description}`)
+    if (process.env.NODE_ENV === 'production') {
+      console.warn('[FriendApply Email Mock] 生产环境未配置邮件发送服务，申请已模拟记录（用户隐私数据已脱敏）')
+    } else {
+      console.info('[FriendApply Email Mock] 未检测到 RESEND_API_KEY 或 FRIEND_APPLY_NOTIFY_EMAIL，模拟发送：')
+      console.info(`[FriendApply Email Mock] 申请站点: ${payload.siteName} (${payload.siteUrl})`)
+      console.info(`[FriendApply Email Mock] 申请人: ${payload.nickname} <${payload.email}>`)
+      console.info(`[FriendApply Email Mock] 简介: ${payload.description}`)
+    }
     return { success: true, mocked: true }
   }
 

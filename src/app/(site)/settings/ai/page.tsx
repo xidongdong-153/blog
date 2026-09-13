@@ -13,7 +13,7 @@ export default async function AiSettingsPage() {
   const reqHeaders = await headers()
   const session = await getSession(reqHeaders)
 
-  if (!session?.user?.id || !isSiteAdmin(session.user.email)) {
+  if (!session?.user?.id || !isSiteAdmin(session.user)) {
     notFound()
   }
 

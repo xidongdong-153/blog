@@ -172,10 +172,29 @@ export async function saveAiSummaryConfig(
       throw err
     }
   } else if (existing) {
-    ciphertext = existing.credentialCiphertext
-    iv = existing.credentialIv
-    authTag = existing.credentialAuthTag
-    mask = existing.credentialMask
+    // 安全防护：若 Base URL 的 origin 发生变更且未提交新 API Key，清除旧凭据以防向新地址误发
+    let isOriginChanged = false
+    if (existing.baseUrl) {
+      try {
+        const newOrigin = new URL(validatedBaseUrl).origin.toLowerCase()
+        const oldOrigin = new URL(existing.baseUrl).origin.toLowerCase()
+        isOriginChanged = newOrigin !== oldOrigin
+      } catch {
+        isOriginChanged = false
+      }
+    }
+
+    if (isOriginChanged) {
+      ciphertext = null
+      iv = null
+      authTag = null
+      mask = null
+    } else {
+      ciphertext = existing.credentialCiphertext
+      iv = existing.credentialIv
+      authTag = existing.credentialAuthTag
+      mask = existing.credentialMask
+    }
   }
 
   const now = new Date()
@@ -388,6 +407,24 @@ export async function getAvailableSummaryModels(
 
   let effectiveApiKey = input?.apiKey?.trim()
   if (!effectiveApiKey) {
+    // 安全防护：若请求指定了与库中不同的新 Base URL origin，禁止解密旧凭据向新地址发送
+    if (input?.baseUrl?.trim() && existing?.baseUrl) {
+      try {
+        const inputOrigin = new URL(input.baseUrl.trim()).origin.toLowerCase()
+        const existingOrigin = new URL(existing.baseUrl).origin.toLowerCase()
+        if (inputOrigin !== existingOrigin) {
+          throw new AiSummaryConfigError(
+            'NO_CREDENTIAL',
+            '切换 Base URL 时必须提供对应的 API Key，禁止向新域名发送旧凭据',
+            400,
+          )
+        }
+      } catch (err) {
+        if (err instanceof AiSummaryConfigError) throw err
+        throw new AiSummaryConfigError('INVALID_INPUT', 'Base URL 格式无效', 400)
+      }
+    }
+
     if (!existing?.credentialCiphertext || !existing?.credentialIv || !existing?.credentialAuthTag) {
       throw new AiSummaryConfigError('NO_CREDENTIAL', '未配置 API Key，无法获取模型列表', 400)
     }

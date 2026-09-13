@@ -19,11 +19,10 @@ export const systemRoute = new Hono()
         createSuccessResponse({
           status: result.status,
           latencyMs: result.latencyMs,
-          provider: result.provider,
-          result: result.result,
         }),
       )
     }
 
-    return c.json(createFailureResponse(`Database check failed (${result.latencyMs}ms): ${result.message}`), 500)
+    console.error(`[System/db-check] 数据库检查失败 (${result.latencyMs}ms):`, result.message)
+    return c.json(createFailureResponse('数据库连通性异常'), 503)
   })

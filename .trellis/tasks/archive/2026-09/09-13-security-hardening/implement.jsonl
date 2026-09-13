@@ -1,0 +1,4 @@
+{"file": ".trellis/spec/backend/api-design-guidelines.md", "reason": "API 接口错误脱敏与限流规范"}
+{"file": ".trellis/spec/backend/database-guidelines.md", "reason": "数据库连接、配置与防呆规范"}
+{"file": ".trellis/spec/backend/service-call-guidelines.md", "reason": "服务端业务模块调用与鉴权准则"}
+{"file": ".trellis/spec/frontend/deployment-guidelines.md", "reason": "CI/CD 部署流水线与环境要求"}

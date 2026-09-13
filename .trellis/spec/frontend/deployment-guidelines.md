@@ -6,7 +6,7 @@
 
 - 目标为 `main` 的 Pull Request 只运行 `quality`。`main` push 的 `quality` 成功后才运行 `deploy`，不要从 Fork Pull Request 触发生产发布。
 - `quality` 依次运行 `pnpm install --frozen-lockfile`、`pnpm typecheck`、`pnpm lint`、`pnpm format:check`、`pnpm db:migrate`、`pnpm test`、`pnpm build`；测试和构建使用 runner 上的 `file:ci.db` 与临时 token，不访问生产数据库；`build` 只注入固定的非生产 `BETTER_AUTH_SECRET` 和 `http://localhost:4400`，不读取生产认证密钥或 AI 凭据。
-- CI 临时生成包含 `@prisma/client`、`better-sqlite3`、`esbuild` 和 `sharp` 的 `pnpm-workspace.yaml`，允许 pnpm 11 执行这些依赖的安装脚本；该文件贯穿检查步骤，job 结束时清理，不提交仓库。
+- 仓库根目录跟踪 `pnpm-workspace.yaml`，配置 `@prisma/client`、`better-sqlite3`、`esbuild` 与 `sharp` 的依赖构建白名单（`allowBuilds`），统一本地、CI 与生产服务器的依赖构建策略。
 - `deploy` 使用 `Deployment` Environment，通过 SSH 执行 `bash -s -- <target-sha>`，工作目录为 `/home/deploy/code/xdd/blog`。
 - 同一分支的 workflow 串行执行，不取消正在运行的发布。只有服务器安装、构建、重启和健康检查全部通过才算发布成功。
 - 运行服务为 `xdd-blog.service`，监听 `127.0.0.1:4400`；启动入口必须通过 `pnpm start`（执行 `tsx server.ts`），同时承载 Next.js 页面请求与 `/api/visitors/socket` 的 WebSocket 升级分流；生产环境不使用 `output: 'standalone'`，`tsx` 与 `ws` 声明为直接运行时依赖；公网入口由 Caddy 提供 `https://blog.xdd.ink` 并自动转发 WebSocket 升级。
@@ -36,17 +36,7 @@ workflow 使用 `BatchMode=yes`、`ConnectTimeout=15`、`StrictHostKeyChecking=y
 ## 服务器发布契约
 
 - Git 远端 `origin` 必须能读取 `main`。服务器 `.env.local` 必须存在、被 `.gitignore` 忽略且未被 Git 跟踪；不得复制或覆盖它。
-- 工作区必须干净，唯一允许的例外是未跟踪的普通文件 `pnpm-workspace.yaml`。它不能是软链接、被 Git 跟踪或忽略，内容必须精确为以下内容（含末尾换行）：
-
-```yaml
-allowBuilds:
-  '@prisma/client': true
-  better-sqlite3: true
-  esbuild: true
-  sharp: true
-```
-
-- 该文件是服务器专用的 pnpm 构建脚本白名单；workflow 会把旧的 `sharp`、`sharp + esbuild` 或上一版错误生成的配置更新为上面的内容，不允许其他未跟踪文件留在工作区。
+- 工作区必须完全干净，仅允许被忽略的 `.env.local` 存在。工作区内不得有任何未提交或未跟踪文件；构建白名单配置 `pnpm-workspace.yaml` 由版本库统一跟踪管理。
 - 远程先检查工作区和 `.env.local`，再 `git switch main`、`git fetch --prune origin main`。`origin/main` 必须等于本次 `github.sha`，服务器当前 `main` 必须是其祖先，禁止未推送提交或历史分叉。
 - 通过检查后才执行 `git merge --ff-only origin/main`，加载 `/home/deploy/.nvm/nvm.sh` 并切换到 Node.js `24.16.0`，安装依赖、执行 `pnpm db:migrate`、`pnpm db:verify` 与 `pnpm summary:sync`，再构建；只有成功后才 `sudo -n systemctl restart xdd-blog.service`。
 - 重启后检查 systemd active，再对 `http://127.0.0.1:4400/` 最多请求 15 次，单次 `curl --max-time 5`，失败轮次等待 1 秒，要求 HTTP `200`。这是重试次数限制，不是总计 15 秒的 deadline。
@@ -72,26 +62,13 @@ Node/pnpm 版本应与 workflow 的 Node.js `24.16.0`、pnpm `11.5.0` 一致。�
 ssh "deploy@$DEPLOY_HOST" 'bash -s' <<'REMOTE'
 set -euo pipefail
 cd /home/deploy/code/xdd/blog
+if [[ -f pnpm-workspace.yaml ]] && ! git ls-files --error-unmatch -- pnpm-workspace.yaml >/dev/null 2>&1; then
+  echo '清理合并前的旧版未跟踪 pnpm-workspace.yaml。'
+  rm -f pnpm-workspace.yaml
+fi
 worktree_status="$(git status --porcelain --untracked-files=all)"
-expected_pnpm_config=$'allowBuilds:\n  \x27@prisma/client\x27: true\n  better-sqlite3: true\n  esbuild: true\n  sharp: true\n'
-pnpm_config_status="$(git status --porcelain --untracked-files=all --ignored -- pnpm-workspace.yaml)"
-if git ls-files --error-unmatch -- pnpm-workspace.yaml >/dev/null 2>&1 ||
-  [[ "$pnpm_config_status" != '' && "$pnpm_config_status" != '?? pnpm-workspace.yaml' ]]; then
-  echo 'pnpm-workspace.yaml 必须是未跟踪的服务器专用文件，停止部署。' >&2
-  git status --short --branch >&2
-  exit 1
-fi
-if [[ "$pnpm_config_status" == '?? pnpm-workspace.yaml' ]]; then
-  if [[ ! -f pnpm-workspace.yaml || -L pnpm-workspace.yaml ]] ||
-    ! cmp -s pnpm-workspace.yaml <(printf '%s' "$expected_pnpm_config"); then
-    echo 'pnpm-workspace.yaml 与允许的配置不完全一致，停止部署。' >&2
-    git status --short --branch >&2
-    exit 1
-  fi
-  echo '保留已核验的服务器专用 pnpm 配置。'
-fi
-if [[ -n "$worktree_status" && "$worktree_status" != '?? pnpm-workspace.yaml' ]]; then
-  echo '服务器工作区有其他未提交或未跟踪改动，停止部署。' >&2
+if [[ -n "$worktree_status" ]]; then
+  echo '服务器工作区有未提交或未跟踪改动，停止部署。' >&2
   git status --short --branch >&2
   exit 1
 fi
@@ -121,7 +98,7 @@ systemctl is-active --quiet xdd-blog.service
 REMOTE
 ```
 
-若 pnpm 提示忽略构建脚本，先确认服务器项目目录的 `pnpm-workspace.yaml` 与上面的四项配置完全一致，再执行 `pnpm install --frozen-lockfile`；不要使用 `pnpm approve-builds --all`。手工脚本只检查 systemd 状态，完成后还必须检查服务器本机 HTTP 和公网：
+若 pnpm 提示忽略构建脚本，先确认代码仓库中的 `pnpm-workspace.yaml` 已包含对应包的 `allowBuilds` 配置，再执行 `pnpm install --frozen-lockfile`；不要使用 `pnpm approve-builds --all`。手工脚本只检查 systemd 状态，完成后还必须检查服务器本机 HTTP 和公网：
 
 ```bash
 ssh "deploy@$DEPLOY_HOST" 'curl -I http://127.0.0.1:4400/'

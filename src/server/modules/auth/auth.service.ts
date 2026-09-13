@@ -29,7 +29,20 @@ export async function getSession(headers: Headers): Promise<AuthSession | null> 
  * 校验指定邮箱是否为站长邮箱（只读取 ADMIN_EMAIL）。
  * 配置缺失、为空或不匹配时统一返回 false。
  */
-export function isSiteAdmin(email?: string | null): boolean {
+export function isSiteAdmin(target?: string | null | { email?: string | null; emailVerified?: boolean }): boolean {
+  if (!target) return false
+
+  let email: string | null | undefined
+
+  if (typeof target === 'string') {
+    email = target
+  } else {
+    if (target.emailVerified !== true) {
+      return false
+    }
+    email = target.email
+  }
+
   if (!email) return false
   const adminEmail = process.env.ADMIN_EMAIL?.trim().toLowerCase()
   if (!adminEmail) return false
@@ -41,7 +54,7 @@ export function isSiteAdmin(email?: string | null): boolean {
  */
 export async function getPublicAuthConfig(headers: Headers): Promise<PublicAuthConfig> {
   const session = await getSession(headers)
-  const isOwner = isSiteAdmin(session?.user?.email)
+  const isOwner = isSiteAdmin(session?.user)
 
   return {
     providers: {

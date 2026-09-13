@@ -21,24 +21,21 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
 
       - name: Setup pnpm
-        uses: pnpm/action-setup@v4
+        uses: pnpm/action-setup@fe02b34f77f8bc703788d5817da081398fad5dd2 # v4.0.0
         with:
           version: 11.5.0
 
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@39370e3970a6d050c480ffad4ff0ed4d3fdee5af # v4.1.0
         with:
           node-version: 24.16.0
           cache: pnpm
 
       - name: Install dependencies
-        run: |
-          set -euo pipefail
-          printf 'allowBuilds:\n  '\''@prisma/client'\'': true\n  better-sqlite3: true\n  esbuild: true\n  sharp: true\n' > pnpm-workspace.yaml
-          pnpm install --frozen-lockfile
+        run: pnpm install --frozen-lockfile
 
       - name: Typecheck
         run: pnpm typecheck
@@ -74,10 +71,6 @@ jobs:
           TURSO_DATABASE_URL: file:ci.db
           TURSO_AUTH_TOKEN: ci-local-only-token
         run: pnpm build
-
-      - name: Clean up pnpm build approval file
-        if: ${{ always() }}
-        run: rm -f pnpm-workspace.yaml
 
   deploy:
     name: Deploy production
@@ -137,54 +130,40 @@ jobs:
             -p "$DEPLOY_PORT"
           )
 
-          ssh "${ssh_args[@]}" "$DEPLOY_USER@$DEPLOY_HOST" bash -s -- "$TARGET_SHA" "${RESEND_API_KEY:-}" "${FRIEND_APPLY_NOTIFY_EMAIL:-}" "${RESEND_FROM_EMAIL:-}" "${TURSO_DATABASE_URL:-}" "${TURSO_AUTH_TOKEN:-}" "${BETTER_AUTH_URL:-}" "${BETTER_AUTH_SECRET:-}" "${OAUTH_GITHUB_CLIENT_ID:-}" "${OAUTH_GITHUB_CLIENT_SECRET:-}" "${OAUTH_GOOGLE_CLIENT_ID:-}" "${OAUTH_GOOGLE_CLIENT_SECRET:-}" "${ADMIN_EMAIL:-}" "${AI_CREDENTIAL_ENCRYPTION_KEY:-}" <<'REMOTE'
+          (
+            printf 'export TARGET_SHA=%q\n' "$TARGET_SHA"
+            node -e '
+              const vars = {
+                RESEND_API_KEY: process.env.RESEND_API_KEY || "",
+                FRIEND_APPLY_NOTIFY_EMAIL: process.env.FRIEND_APPLY_NOTIFY_EMAIL || "",
+                RESEND_FROM_EMAIL: process.env.RESEND_FROM_EMAIL || "",
+                TURSO_DATABASE_URL: process.env.TURSO_DATABASE_URL || "",
+                TURSO_AUTH_TOKEN: process.env.TURSO_AUTH_TOKEN || "",
+                BETTER_AUTH_URL: process.env.BETTER_AUTH_URL || "",
+                BETTER_AUTH_SECRET: process.env.BETTER_AUTH_SECRET || "",
+                OAUTH_GITHUB_CLIENT_ID: process.env.OAUTH_GITHUB_CLIENT_ID || "",
+                OAUTH_GITHUB_CLIENT_SECRET: process.env.OAUTH_GITHUB_CLIENT_SECRET || "",
+                OAUTH_GOOGLE_CLIENT_ID: process.env.OAUTH_GOOGLE_CLIENT_ID || "",
+                OAUTH_GOOGLE_CLIENT_SECRET: process.env.OAUTH_GOOGLE_CLIENT_SECRET || "",
+                ADMIN_EMAIL: process.env.ADMIN_EMAIL || "",
+                AI_CREDENTIAL_ENCRYPTION_KEY: process.env.AI_CREDENTIAL_ENCRYPTION_KEY || ""
+              };
+              process.stdout.write("export ENV_JSON_B64=" + Buffer.from(JSON.stringify(vars)).toString("base64") + "\n");
+            '
+            cat <<'          REMOTE'
           set -euo pipefail
-          target_sha="${1:?missing target SHA}"
-          resend_api_key="${2:-}"
-          friend_apply_notify_email="${3:-}"
-          resend_from_email="${4:-}"
-          turso_database_url="${5:-}"
-          turso_auth_token="${6:-}"
-          better_auth_url="${7:-}"
-          better_auth_secret="${8:-}"
-          oauth_github_client_id="${9:-}"
-          oauth_github_client_secret="${10:-}"
-          oauth_google_client_id="${11:-}"
-          oauth_google_client_secret="${12:-}"
-          admin_email="${13:-}"
-          ai_credential_encryption_key="${14:-}"
+          target_sha="${TARGET_SHA:?missing target SHA}"
           app_dir=/home/deploy/code/xdd/blog
 
           cd "$app_dir"
           echo "Checking the server worktree"
+          if [[ -f pnpm-workspace.yaml ]] && ! git ls-files --error-unmatch -- pnpm-workspace.yaml >/dev/null 2>&1; then
+            echo "Cleaning up legacy untracked pnpm-workspace.yaml before merge"
+            rm -f pnpm-workspace.yaml
+          fi
+
           worktree_status="$(git status --porcelain --untracked-files=all)"
-          old_pnpm_config=$'allowBuilds:\n  sharp: true\n'
-          legacy_pnpm_config=$'allowBuilds:\n  sharp: true\n  esbuild: true\n'
-          broken_pnpm_config=$'allowBuilds:\n  \x27@prisma/client\x27: true\\n  better-sqlite3: true\\n  esbuild: true\\n  sharp: true\\n'
-          expected_pnpm_config=$'allowBuilds:\n  \x27@prisma/client\x27: true\n  better-sqlite3: true\n  esbuild: true\n  sharp: true\n'
-          if [[ -f pnpm-workspace.yaml ]] &&
-            { cmp -s pnpm-workspace.yaml <(printf '%s' "$old_pnpm_config") ||
-              cmp -s pnpm-workspace.yaml <(printf '%s' "$legacy_pnpm_config") ||
-              cmp -s pnpm-workspace.yaml <(printf '%s' "$broken_pnpm_config"); }; then
-            printf '%s' "$expected_pnpm_config" > pnpm-workspace.yaml
-          fi
-          pnpm_config_status="$(git status --porcelain --untracked-files=all --ignored -- pnpm-workspace.yaml)"
-          if git ls-files --error-unmatch -- pnpm-workspace.yaml >/dev/null 2>&1 ||
-            [[ "$pnpm_config_status" != '' && "$pnpm_config_status" != '?? pnpm-workspace.yaml' ]]; then
-            echo "pnpm-workspace.yaml must be an untracked server-only file; deployment stopped." >&2
-            git status --short --branch >&2
-            exit 1
-          fi
-          if [[ "$pnpm_config_status" == '?? pnpm-workspace.yaml' ]]; then
-            if [[ ! -f pnpm-workspace.yaml || -L pnpm-workspace.yaml ]] ||
-              ! cmp -s pnpm-workspace.yaml <(printf '%s' "$expected_pnpm_config"); then
-              echo "pnpm-workspace.yaml does not exactly match the approved server-only config; deployment stopped." >&2
-              git status --short --branch >&2
-              exit 1
-            fi
-            echo "Keeping the approved server-only pnpm config"
-          fi
-          if [[ -n "$worktree_status" && "$worktree_status" != '?? pnpm-workspace.yaml' ]]; then
+          if [[ -n "$worktree_status" ]]; then
             echo "The server worktree has unexpected uncommitted or untracked changes; deployment stopped." >&2
             git status --short --branch >&2
             exit 1
@@ -215,35 +194,32 @@ jobs:
           echo "Fast-forwarding the server worktree"
           git merge --ff-only origin/main
 
-          echo "Syncing optional environment variables into .env.local"
-          sync_env_var() {
-            local key="$1"
-            local val="$2"
-            if [[ -n "$val" ]]; then
-              if grep -q "^${key}=" .env.local; then
-                sed -i "s|^${key}=.*|${key}=${val}|" .env.local
-              else
-                printf '\n%s=%s\n' "$key" "$val" >> .env.local
-              fi
-            fi
-          }
-
-          sync_env_var "RESEND_API_KEY" "$resend_api_key"
-          sync_env_var "FRIEND_APPLY_NOTIFY_EMAIL" "$friend_apply_notify_email"
-          sync_env_var "RESEND_FROM_EMAIL" "$resend_from_email"
-          sync_env_var "TURSO_DATABASE_URL" "$turso_database_url"
-          sync_env_var "TURSO_AUTH_TOKEN" "$turso_auth_token"
-          sync_env_var "BETTER_AUTH_URL" "$better_auth_url"
-          sync_env_var "BETTER_AUTH_SECRET" "$better_auth_secret"
-          sync_env_var "OAUTH_GITHUB_CLIENT_ID" "$oauth_github_client_id"
-          sync_env_var "OAUTH_GITHUB_CLIENT_SECRET" "$oauth_github_client_secret"
-          sync_env_var "OAUTH_GOOGLE_CLIENT_ID" "$oauth_google_client_id"
-          sync_env_var "OAUTH_GOOGLE_CLIENT_SECRET" "$oauth_google_client_secret"
-          sync_env_var "ADMIN_EMAIL" "$admin_email"
-          sync_env_var "AI_CREDENTIAL_ENCRYPTION_KEY" "$ai_credential_encryption_key"
-
           source /home/deploy/.nvm/nvm.sh
           nvm use 24.16.0 >/dev/null
+
+          echo "Syncing optional environment variables into .env.local"
+          node -e '
+            const fs = require("node:fs");
+            const raw = process.env.ENV_JSON_B64 || "";
+            if (!raw) process.exit(0);
+            const payload = JSON.parse(Buffer.from(raw, "base64").toString("utf8"));
+            let content = fs.existsSync(".env.local") ? fs.readFileSync(".env.local", "utf8") : "";
+            const synced = [];
+            for (const [k, v] of Object.entries(payload)) {
+              if (!v) continue;
+              synced.push(k);
+              const reg = new RegExp(`^${k}=.*$`, "m");
+              if (reg.test(content)) {
+                content = content.replace(reg, `${k}=${v}`);
+              } else {
+                content = content.trimEnd() + `\n${k}=${v}\n`;
+              }
+            }
+            fs.writeFileSync(".env.local", content.trim() + "\n", { mode: 0o600 });
+            console.log("Safely synced environment keys:", synced.join(", "));
+          '
+          unset ENV_JSON_B64
+
           node --version
           pnpm --version
           echo "Installing dependencies"
@@ -299,3 +275,4 @@ jobs:
           fi
           echo "Visitor API and WebSocket health check passed"
           REMOTE
+          ) | ssh "${ssh_args[@]}" "$DEPLOY_USER@$DEPLOY_HOST" bash

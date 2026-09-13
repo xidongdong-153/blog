@@ -74,8 +74,9 @@ export const auth = betterAuth({
   account: {
     accountLinking: {
       enabled: true,
-      requireLocalEmailVerified: false,
+      requireLocalEmailVerified: true,
     },
+    encryptOAuthTokens: true,
   },
   socialProviders: getSocialProviders(),
   trustedOrigins: getTrustedOrigins(),

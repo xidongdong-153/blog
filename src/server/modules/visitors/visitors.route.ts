@@ -8,6 +8,36 @@ import { VisitorsServiceError } from './visitors.types'
 
 export const visitorsRoute = new Hono()
 
+const bootstrapRateLimitMap = new Map<string, number[]>()
+const BOOTSTRAP_LIMIT_WINDOW = 60 * 1000 // 1 分钟
+const MAX_BOOTSTRAP_PER_WINDOW = 30
+const MAX_BOOTSTRAP_MAP_SIZE = 2000
+
+export function isBootstrapRateLimited(ip: string): boolean {
+  const now = Date.now()
+  const timestamps = bootstrapRateLimitMap.get(ip) || []
+  const recent = timestamps.filter((t) => now - t < BOOTSTRAP_LIMIT_WINDOW)
+  if (recent.length >= MAX_BOOTSTRAP_PER_WINDOW) {
+    return true
+  }
+
+  recent.push(now)
+  bootstrapRateLimitMap.set(ip, recent)
+
+  if (bootstrapRateLimitMap.size > MAX_BOOTSTRAP_MAP_SIZE) {
+    for (const [key, list] of bootstrapRateLimitMap.entries()) {
+      if (list.every((t) => now - t >= BOOTSTRAP_LIMIT_WINDOW)) {
+        bootstrapRateLimitMap.delete(key)
+      }
+    }
+  }
+  return false
+}
+
+export function resetBootstrapRateLimitMap(): void {
+  bootstrapRateLimitMap.clear()
+}
+
 function handleVisitorsError(c: Context, err: unknown) {
   if (err instanceof VisitorsServiceError) {
     return c.json({ error: err.message }, err.statusCode)
@@ -19,6 +49,13 @@ function handleVisitorsError(c: Context, err: unknown) {
 // 访客初始化：校验或生成匿名访客 Cookie 并持久化登记
 visitorsRoute.post('/bootstrap', async (c) => {
   c.header('Cache-Control', 'no-store, max-age=0')
+
+  const forwarded = c.req.header('x-forwarded-for')
+  const clientIp = forwarded ? forwarded.split(',')[0].trim() : '127.0.0.1'
+  if (isBootstrapRateLimited(clientIp)) {
+    return c.json({ error: '请求过于频繁，请稍后重试' }, 429)
+  }
+
   const cookieVisitorId = getCookie(c, VISITOR_COOKIE_NAME)
 
   try {

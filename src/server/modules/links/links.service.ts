@@ -35,6 +35,13 @@ function isValidEmail(emailStr: string): boolean {
 }
 
 /**
+ * 计算审批令牌的 SHA-256 哈希值，用于数据库安全持久化。
+ */
+export function hashReviewToken(token: string): string {
+  return crypto.createHash('sha256').update(token.trim()).digest('hex')
+}
+
+/**
  * 访客提交友链申请：校验字段、生成 7 天审核令牌、插入 pending 记录并发送通知邮件。
  * 若邮件发送失败，抛出错误，但保留已写入的申请记录。
  */
@@ -72,6 +79,7 @@ export async function applyFriendLink(input: ApplyFriendLinkInput): Promise<Appl
   }
 
   const reviewToken = crypto.randomUUID()
+  const hashedReviewToken = hashReviewToken(reviewToken)
   const tokenExpiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
   const now = new Date()
 
@@ -85,7 +93,7 @@ export async function applyFriendLink(input: ApplyFriendLinkInput): Promise<Appl
       email,
       hasAddedUs: hasAddedUs ? 1 : 0,
       status: 'pending',
-      reviewToken,
+      reviewToken: hashedReviewToken,
       tokenExpiresAt,
       sortOrder: 0,
       isBroken: 0,
@@ -115,6 +123,7 @@ export async function applyFriendLink(input: ApplyFriendLinkInput): Promise<Appl
   return {
     success: true,
     message: result.mocked ? '申请已模拟记录（开发模式）' : '申请已送达',
+    reviewToken,
   }
 }
 
@@ -126,10 +135,11 @@ export async function getFriendReviewDetail(token: string): Promise<FriendReview
     throw new LinksServiceError(400, '缺失审批凭证')
   }
 
+  const hashedToken = hashReviewToken(token)
   let record
   try {
     record = await db.query.friendLinks.findFirst({
-      where: eq(friendLinks.reviewToken, token),
+      where: eq(friendLinks.reviewToken, hashedToken),
     })
   } catch (err) {
     console.error('[LinksService] 查询待审申请异常:', err)
@@ -172,10 +182,11 @@ export async function reviewFriendLink(token: string, action: string): Promise<R
     throw new LinksServiceError(400, '未知的审批操作')
   }
 
+  const hashedToken = hashReviewToken(trimmedToken)
   let record
   try {
     record = await db.query.friendLinks.findFirst({
-      where: eq(friendLinks.reviewToken, trimmedToken),
+      where: eq(friendLinks.reviewToken, hashedToken),
     })
   } catch (err) {
     console.error('[LinksService] 审批查询异常:', err)

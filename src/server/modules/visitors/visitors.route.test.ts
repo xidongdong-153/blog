@@ -4,6 +4,7 @@ import assert from 'node:assert/strict'
 import test from 'node:test'
 import { VISITOR_COOKIE_NAME } from '@/lib/visitor'
 import { app } from '../../app.ts'
+import { resetBootstrapRateLimitMap } from './visitors.route.ts'
 
 const TEST_SLUG = '20260615-hello-blog'
 
@@ -42,6 +43,31 @@ test('访客 Hono 路由测试', async (t) => {
     const body = (await res.json()) as { status: string; uniqueVisitorCount: number }
     assert.equal(body.status, 'ready')
     assert.equal(typeof body.uniqueVisitorCount, 'number')
+  })
+
+  await t.test('POST /api/visitors/bootstrap 频控限流拦截', async () => {
+    resetBootstrapRateLimitMap()
+    const rateLimitIp = '198.51.100.23'
+    for (let i = 0; i < 30; i++) {
+      const res = await app.request('/api/visitors/bootstrap', {
+        method: 'POST',
+        headers: {
+          'x-forwarded-for': rateLimitIp,
+        },
+      })
+      assert.equal(res.status, 200)
+    }
+
+    // 第 31 次应返回 429
+    const blockedRes = await app.request('/api/visitors/bootstrap', {
+      method: 'POST',
+      headers: {
+        'x-forwarded-for': rateLimitIp,
+      },
+    })
+    assert.equal(blockedRes.status, 429)
+    const errJson = (await blockedRes.json()) as { error: string }
+    assert.ok(errJson.error.includes('频繁'))
   })
 
   await t.test('GET /api/visitors/stats 返回全站统计并支持 slug 校验', async () => {

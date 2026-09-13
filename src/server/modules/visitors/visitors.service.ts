@@ -66,10 +66,12 @@ export class VisitorsService {
           .onConflictDoNothing()
       }
 
-      if (this.cachedUniqueVisitorCount === null || isNew) {
+      if (this.cachedUniqueVisitorCount === null) {
         const result = await this.db.select({ total: count() }).from(visitorRecords)
         const totalCount = result[0]?.total ?? 0
         this.cachedUniqueVisitorCount = totalCount
+      } else if (isNew) {
+        this.cachedUniqueVisitorCount += 1
       }
 
       return {
@@ -102,6 +104,7 @@ export class VisitorsService {
   /**
    * 登记或更新页面会话。
    * 若同一 sessionId 存在旧连接，覆盖为新 connectionId 并刷新心跳。
+   * 内存限制最大 2000 个活跃会话，超出时按最久未活跃时间淘汰。
    */
   registerSession(params: {
     sessionId: string
@@ -110,6 +113,22 @@ export class VisitorsService {
     articleSlug: string | null
   }): void {
     this.cleanupExpiredSessions()
+
+    // 内存会话硬上限保护 (2000)，超出时淘汰最老的一项
+    if (this.sessions.size >= 2000 && !this.sessions.has(params.sessionId)) {
+      let oldestKey: string | null = null
+      let oldestTime = Number.POSITIVE_INFINITY
+      for (const [sId, record] of this.sessions.entries()) {
+        if (record.lastSeenAt < oldestTime) {
+          oldestTime = record.lastSeenAt
+          oldestKey = sId
+        }
+      }
+      if (oldestKey) {
+        this.sessions.delete(oldestKey)
+      }
+    }
+
     this.sessions.set(params.sessionId, {
       ...params,
       lastSeenAt: this.clock.now(),

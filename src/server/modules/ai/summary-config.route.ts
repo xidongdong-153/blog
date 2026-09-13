@@ -35,7 +35,7 @@ async function requireAdminAuth(c: Context) {
     return { ok: false as const, response: c.json(createFailureResponse('请先登录后再进行操作'), 401) }
   }
 
-  if (!isSiteAdmin(session.user.email)) {
+  if (!isSiteAdmin(session.user)) {
     return { ok: false as const, response: c.json(createFailureResponse('无权进行此操作，仅站长可访问'), 403) }
   }
 

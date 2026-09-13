@@ -37,6 +37,28 @@ test('system 模块服务与路由测试', async (t) => {
     assert.equal(typeof dbCheck.latencyMs, 'number')
   })
 
+  await t.test('GET /api/system/db-check 正常状态且响应脱敏', async () => {
+    const res = await app.request('/api/system/db-check')
+    assert.equal(res.status, 200)
+
+    const body = (await res.json()) as {
+      success: boolean
+      data: {
+        status: string
+        latencyMs: number
+        provider?: string
+        result?: unknown
+      }
+    }
+
+    assert.equal(body.success, true)
+    assert.equal(body.data.status, 'connected')
+    assert.equal(typeof body.data.latencyMs, 'number')
+    // 脱敏校验：响应中不得包含数据库 provider 内部标识与原始执行结果
+    assert.equal(body.data.provider, undefined)
+    assert.equal(body.data.result, undefined)
+  })
+
   await t.test('checkDatabase 模拟连接失败时的错误捕获', async () => {
     const mockFaultyDb = {
       run: async () => {

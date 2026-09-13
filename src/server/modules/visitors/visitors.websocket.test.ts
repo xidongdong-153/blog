@@ -409,4 +409,37 @@ test('VisitorWebSocketHub 实时连接与协议测试', async (t) => {
 
     ws.terminate()
   })
+
+  await t.test('9. 单连接连续发送多个不同 sessionId 自动替换，活跃会话仅保留最后 1 个', async () => {
+    const ws = new WebSocket(wsBaseUrl, {
+      headers: {
+        Cookie: `site_visitor_id=${VALID_VISITOR_A}`,
+        Origin: `http://127.0.0.1:${port}`,
+      },
+    })
+
+    await new Promise<void>((resolve) => ws.on('open', () => resolve()))
+
+    // 连续发送 5 个不同的 sessionId
+    for (let i = 1; i <= 5; i++) {
+      ws.send(
+        JSON.stringify({
+          type: 'sync',
+          sessionId: `spam-session-${i}`,
+          articleSlug: REAL_POST_SLUG,
+        }),
+      )
+    }
+
+    // 等待广播稳定
+    await new Promise((r) => setTimeout(r, 100))
+
+    // 检查服务端的会话列表，该连接应该只有 1 个会话
+    const activeSessions = (service as unknown as { sessions: Map<string, unknown> }).sessions
+    const connSessions = Array.from(activeSessions.keys()).filter((k) => k.startsWith('spam-session-'))
+    assert.equal(connSessions.length, 1)
+    assert.equal(connSessions[0], 'spam-session-5')
+
+    ws.terminate()
+  })
 })
