@@ -35,10 +35,7 @@ jobs:
           cache: pnpm
 
       - name: Install dependencies
-        run: |
-          set -euo pipefail
-          printf 'allowBuilds:\n  esbuild: true\n  sharp: true\n' > pnpm-workspace.yaml
-          pnpm install --frozen-lockfile
+        run: pnpm install --frozen-lockfile
 
       - name: Typecheck
         run: pnpm typecheck
@@ -74,10 +71,6 @@ jobs:
           TURSO_DATABASE_URL: file:ci.db
           TURSO_AUTH_TOKEN: ci-local-only-token
         run: pnpm build
-
-      - name: Clean up pnpm build approval file
-        if: ${{ always() }}
-        run: rm -f pnpm-workspace.yaml
 
   deploy:
     name: Deploy production
@@ -164,36 +157,13 @@ jobs:
 
           cd "$app_dir"
           echo "Checking the server worktree"
+          if [[ -f pnpm-workspace.yaml ]] && ! git ls-files --error-unmatch -- pnpm-workspace.yaml >/dev/null 2>&1; then
+            echo "Cleaning up legacy untracked pnpm-workspace.yaml before merge"
+            rm -f pnpm-workspace.yaml
+          fi
+
           worktree_status="$(git status --porcelain --untracked-files=all)"
-          old_pnpm_config=$'allowBuilds:\n  sharp: true\n'
-          legacy_pnpm_config=$'allowBuilds:\n  sharp: true\n  esbuild: true\n'
-          four_items_pnpm_config=$'allowBuilds:\n  \x27@prisma/client\x27: true\n  better-sqlite3: true\n  esbuild: true\n  sharp: true\n'
-          broken_pnpm_config=$'allowBuilds:\n  \x27@prisma/client\x27: true\\n  better-sqlite3: true\\n  esbuild: true\\n  sharp: true\\n'
-          expected_pnpm_config=$'allowBuilds:\n  esbuild: true\n  sharp: true\n'
-          if [[ -f pnpm-workspace.yaml ]] &&
-            { cmp -s pnpm-workspace.yaml <(printf '%s' "$old_pnpm_config") ||
-              cmp -s pnpm-workspace.yaml <(printf '%s' "$legacy_pnpm_config") ||
-              cmp -s pnpm-workspace.yaml <(printf '%s' "$four_items_pnpm_config") ||
-              cmp -s pnpm-workspace.yaml <(printf '%s' "$broken_pnpm_config"); }; then
-            printf '%s' "$expected_pnpm_config" > pnpm-workspace.yaml
-          fi
-          pnpm_config_status="$(git status --porcelain --untracked-files=all --ignored -- pnpm-workspace.yaml)"
-          if git ls-files --error-unmatch -- pnpm-workspace.yaml >/dev/null 2>&1 ||
-            [[ "$pnpm_config_status" != '' && "$pnpm_config_status" != '?? pnpm-workspace.yaml' ]]; then
-            echo "pnpm-workspace.yaml must be an untracked server-only file; deployment stopped." >&2
-            git status --short --branch >&2
-            exit 1
-          fi
-          if [[ "$pnpm_config_status" == '?? pnpm-workspace.yaml' ]]; then
-            if [[ ! -f pnpm-workspace.yaml || -L pnpm-workspace.yaml ]] ||
-              ! cmp -s pnpm-workspace.yaml <(printf '%s' "$expected_pnpm_config"); then
-              echo "pnpm-workspace.yaml does not exactly match the approved server-only config; deployment stopped." >&2
-              git status --short --branch >&2
-              exit 1
-            fi
-            echo "Keeping the approved server-only pnpm config"
-          fi
-          if [[ -n "$worktree_status" && "$worktree_status" != '?? pnpm-workspace.yaml' ]]; then
+          if [[ -n "$worktree_status" ]]; then
             echo "The server worktree has unexpected uncommitted or untracked changes; deployment stopped." >&2
             git status --short --branch >&2
             exit 1
