@@ -18,12 +18,14 @@ Next.js 16（App Router）+ React 19 + TypeScript strict + Tailwind CSS 4 + MDX�
 | [本地活动接口](./presence-guidelines.md) | Mac 采集器、Herdr、API、TTL 与隐私边界              |
 | [类型安全](./type-safety.md)             | 类型定义位置、日期存 ISO 字符串、禁 any             |
 | [质量规范](./quality-guidelines.md)      | 检查命令、lint / format 关键规则、功能状态表维护    |
+| [Git 流程](./git-workflow.md)            | 分支管理、本地质量门、PR 协作与部署审批标准流程     |
 | [部署规范](./deployment-guidelines.md)   | GitHub Actions、SSH、服务器和 systemd 的发布契约    |
 
 本项目没有自定义 hook，无 hook 规范文件；client 组件按需处理主题、滚动、目录、评论、活动轮询等浏览器交互。
 
 ## 开发前检查清单
 
+- [ ] 开始新任务 → 必须拉取最新 `main` 并切出独立分支（`feat/*`、`fix/*`），严禁在 `main` 直接开发或推送
 - [ ] 改的是公开页面 → 只在 `src/app/(site)/` 下动，页面私有组件放同级 `_components/` 对应分组
 - [ ] 涉及内容读取 → 全部走 `src/lib/content.ts`，不在组件里直接读文件
 - [ ] 实现未开始的功能 → 先查[功能状态](./feature-status.md)，实现后把状态改成「已实现」并删占位代码
