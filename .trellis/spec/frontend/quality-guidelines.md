@@ -73,8 +73,11 @@ node .agent/skills/impeccable/scripts/detect.mjs --json src/
 
 ## Git
 
-- 不擅自 `git commit` / `git push` / `git merge`，提交前把改动摘要给用户确认。
-- 提交信息风格参考 `git log`：`init: Next.js 博客骨架` 这类「前缀: 中文描述」。
+- 详细分支管理、PR 提交与环境审批见[Git 流程规范](./git-workflow.md)。
+- 严禁在 `main` 分支上直接开发、提交或推送；每次任务从最新 `origin/main` 切出独立分支。
+- 不擅自 `git commit` / `git push` / `git merge`，提交与推送前把改动摘要给用户确认。
+- 提交信息遵循 Conventional Commits：`feat(scope): 说明`、`fix(scope): 说明`。
+- 代码必须通过 Pull Request 合入 `main`，并在合并后执行生产环境审批与本地分支清理。
 
 ## 内容文件改动
 

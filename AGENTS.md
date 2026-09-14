@@ -30,7 +30,16 @@ pnpm build         # 生产构建
 ## 工作规则
 
 - 涉及 README、docs、注释、JSDoc、提示词、错误提示等说明性文本，先读 `xdd-plain-docs` 技能再动笔。
-- 每次代码修改后按顺序过质量门：`pnpm typecheck`、`pnpm lint`、`pnpm format:check`，全过才算完成。
+- 严禁在 `main` 分支上直接开发与提交：开始任务前必须拉取最新 `origin/main` 并切出独立分支（`feat/*`、`fix/*` 等）。
+- 每次代码修改后按顺序过质量门：`pnpm typecheck`、`pnpm lint`、`pnpm format:check`，全过才算完成；涉及服务端业务模块或核心工具改动时必须运行 `pnpm test`。
+- 所有改动必须通过 Pull Request 流程合入 `main`；合并后必须核验生产 `Deployment` 环境审批并对齐本地分支。完整流程详见 [.trellis/spec/frontend/git-workflow.md](.trellis/spec/frontend/git-workflow.md)。
 - 功能状态以 [.trellis/spec/frontend/feature-status.md](.trellis/spec/frontend/feature-status.md) 为唯一清单，实现后更新状态并删掉对应占位代码。README 只保留项目简介、本地启动、常用检查、核心路径和维护文档链接，不添加详细维护说明。
 - 新增页面放进 `src/app/(site)/`，页面专属组件放 `src/app/(site)/_components/` 对应分组，不建第二套目录结构。
 - 日期在数据层一律存 ISO 字符串，渲染时用 `src/lib/content.ts` 的 `formatDate`，不直接在组件里 new Date 再格式化。
+
+## Git 提交与发布
+
+- 不允许擅自提交或推送代码：执行 `git commit`、`git push`、`git merge` 前，必须先向用户展示改动摘要并获得明确确认。
+- 用户未确认前，改动停留在工作区或暂存区，不提交、不推送。
+- 严禁直接向 `main` 执行 `git push`（远端已设保护规则拦截）；提交后必须推送到特性分支并通过 `gh pr create` 发起 Pull Request。
+- PR 需等待 CI `Quality` 检查全绿后方可执行 `gh pr merge --merge --delete-branch`，并在合并后提醒用户或协助通过 `Deployment` 部署审批。
