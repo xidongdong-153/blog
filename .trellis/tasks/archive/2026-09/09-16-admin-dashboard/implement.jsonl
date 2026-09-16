@@ -1,0 +1,4 @@
+{"file": ".trellis/spec/frontend/directory-structure.md", "reason": "前端目录与页面路由结构规范"}
+{"file": ".trellis/spec/frontend/component-guidelines.md", "reason": "前端组件设计与状态规范"}
+{"file": ".trellis/spec/frontend/feature-status.md", "reason": "功能清单与状态登记规范"}
+{"file": ".trellis/spec/frontend/git-workflow.md", "reason": "Git 分支与提交流程规范"}
