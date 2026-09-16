@@ -39,6 +39,7 @@ content/notes/               笔记，一条一个 .md
 | `blog/`        | 文章相关             | `post-card.tsx`、`mdx-content.tsx`、`toc.tsx`                                                         |
 | `notes/`       | 笔记相关             | `note-card.tsx`                                                                                       |
 | `comment/`     | 评论                 | `comment-section.tsx`、`comment-composer.tsx`、`comment-item.tsx`、`comment-auth-card.tsx`、`comment-icons.tsx` |
+| `admin/`       | 管理面板             | `admin-header.tsx`、`admin-metrics.tsx`、`admin-pending-links.tsx`、`admin-recent-comments.tsx`、`admin-portal-matrix.tsx` |
 | `placeholder/` | 占位页通用内容       | `empty-state.tsx`                                                                                     |
 
 新增分组需要有新功能域才建，不要按组件类型（`ui/`、`common/`）分组。
@@ -59,3 +60,10 @@ content/notes/               笔记，一条一个 .md
 - 不建第二套组件目录（如 `src/components/`）。
 - 不把页面私有组件提到 `src/lib/`；只有跨页面复用的才考虑提升。
 - 配置不散落：站点级常量进 `src/site.config.ts`，内容读取常量留在 `src/lib/content.ts`。
+
+## 管理后台与隐蔽守卫规范
+
+- 管理后台页面位于 `src/app/(site)/admin/page.tsx`，私有组件位于 `src/app/(site)/_components/admin/`。
+- 服务端鉴权守卫：在 Server Component 页面中直接读取请求 Headers 解析会话并校验站长邮箱（`getSession` + `isSiteAdmin`）。未登录或非站长统一调用 Next.js 原生 `notFound()` 渲染 404 页面，对外隐蔽管理路由。
+- 搜索引擎隔离：页面必须声明导出 `metadata: { robots: { index: false, follow: false, nocache: true } }`，禁止任何爬虫索引管理控制台。
+

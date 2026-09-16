@@ -1,6 +1,6 @@
 'use client'
 
-import { LogOut, Settings, User } from 'lucide-react'
+import { Cpu, LayoutDashboard, LogOut, User } from 'lucide-react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { useEffect, useRef, useState } from 'react'
@@ -174,14 +174,27 @@ export function HeaderAuth() {
             {/* 菜单项 */}
             <div className="flex flex-col gap-0.5 pt-1.5">
               {isOwner && (
-                <Link
-                  href="/settings/ai"
-                  onClick={() => setMenuOpen(false)}
-                  className="flex items-center gap-2 rounded-md px-2 py-1.5 text-xs text-foreground transition-colors hover:bg-muted/70 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
-                >
-                  <Settings className="size-3.5 text-muted-foreground" />
-                  <span>AI 摘要配置</span>
-                </Link>
+                <>
+                  <Link
+                    href="/admin"
+                    onClick={() => setMenuOpen(false)}
+                    className="flex items-center gap-2 rounded-md px-2 py-1.5 text-xs text-foreground transition-colors hover:bg-muted/70 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                  >
+                    <LayoutDashboard className="size-3.5 text-muted-foreground" />
+                    <span>管理面板</span>
+                  </Link>
+
+                  <Link
+                    href="/settings/ai"
+                    onClick={() => setMenuOpen(false)}
+                    className="flex items-center gap-2 rounded-md px-2 py-1.5 text-xs text-foreground transition-colors hover:bg-muted/70 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                  >
+                    <Cpu className="size-3.5 text-muted-foreground" />
+                    <span>AI 摘要配置</span>
+                  </Link>
+
+                  <div className="my-1 border-t border-border/50" />
+                </>
               )}
 
               <button
