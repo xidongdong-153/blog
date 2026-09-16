@@ -293,7 +293,7 @@ export function extractHeadings(content: string): Heading[] {
   return headings
 }
 
-export { formatDate } from './date'
+export { formatDate, formatRelativeTime } from './date'
 
 /** 首页最近写作时间线日期格式，输出 MM / DD（如 07 / 25）。 */
 export function formatTimelineDate(iso: string): string {

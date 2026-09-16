@@ -26,5 +26,6 @@
 | AI 摘要同步与展示                  | 已实现                 | `scripts/sync-summaries.ts`、`src/server/modules/ai/summary.service.ts`、`src/app/(site)/_components/blog/ai-summary.tsx`、`src/app/(site)/blog/[slug]/page.tsx` |
 | 访客统计与文章实时在线状态         | 已实现                 | `server.ts`、`src/lib/visitor.ts`、`src/server/modules/visitors/`、`src/app/(site)/_components/visitor/`                                                         |
 | 顶栏站长登录入口与弹窗             | 已实现                 | `src/app/(site)/_components/site/site-header.tsx`、`src/app/(site)/_components/site/header-auth.tsx`、`src/app/(site)/_components/site/auth-modal.tsx`           |
+| 管理员管理控制台 (/admin)          | 已实现                 | `src/app/(site)/admin/`、`src/server/modules/admin/`、`src/app/(site)/_components/admin/`                                                                        |
 
 评论配置与状态见[组件规范](./component-guidelines.md)；活动服务配置及验证边界见[活动规范](./presence-guidelines.md)。已实现不代表外部服务当前在线。

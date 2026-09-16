@@ -100,7 +100,10 @@ export function CommentItem({ comment, slug, currentUserIsOwner, isLoggedIn, onR
   }
 
   return (
-    <div className="flex flex-col gap-3 rounded-lg border border-border/60 bg-card/30 p-4 transition-colors sm:p-5">
+    <div
+      id={`comment-${comment.id}`}
+      className="flex flex-col gap-3 rounded-lg border border-border/60 bg-card/30 p-4 transition-colors sm:p-5"
+    >
       {/* 顶级评论头部 */}
       <div className="flex items-start justify-between gap-3">
         <div className="flex items-center gap-2.5">
@@ -208,7 +211,11 @@ export function CommentItem({ comment, slug, currentUserIsOwner, isLoggedIn, onR
       {comment.replies && comment.replies.length > 0 && (
         <div className="mt-2 flex flex-col gap-3 border-t border-border/40 pt-3">
           {comment.replies.map((reply: CommentReplyView) => (
-            <div key={reply.id} className="flex flex-col gap-1.5 pl-3 sm:pl-4 border-l border-border/40">
+            <div
+              key={reply.id}
+              id={`comment-${reply.id}`}
+              className="flex flex-col gap-1.5 pl-3 sm:pl-4 border-l border-border/40"
+            >
               <div className="flex items-start justify-between gap-2">
                 <div className="flex items-center gap-2">
                   <AuthorAvatar author={reply.author} />
