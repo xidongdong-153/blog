@@ -26,14 +26,14 @@ export const metadata: Metadata = {
 }
 
 /**
- * 站长管理面板主页面（Server Component）。
- * 采用隐蔽式服务端权限守卫：未登录或非管理员访问直接触发 404 Not Found。
+ * 站长管理面板页面（Server Component）。
+ * 未登录或非站长访问返回 404。
  */
 export default async function AdminDashboardPage() {
   const reqHeaders = await headers()
   const session = await getSession(reqHeaders)
 
-  // 严格权限守卫：仅站长邮箱访问有效，非站长直接抛出 404 伪装不存在
+  // 仅站长账号可访问，其余返回 404
   if (!session?.user?.id || !isSiteAdmin(session.user)) {
     notFound()
   }
@@ -42,19 +42,19 @@ export default async function AdminDashboardPage() {
 
   return (
     <div className="mx-auto flex w-full max-w-5xl flex-col gap-10 py-6 sm:py-10">
-      {/* 1. 顶部控制台工作区标识与全局状态条 */}
+      {/* 1. 顶部信息与系统状态条 */}
       <AdminHeader user={dashboardData.adminUser} system={dashboardData.system} />
 
-      {/* 2. 核心资产与运营大盘 (4 格指标卡) */}
+      {/* 2. 指标总览卡片 */}
       <AdminMetrics content={dashboardData.content} engagement={dashboardData.engagement} />
 
-      {/* 3. 待办事务与动态流双列工作区 */}
+      {/* 3. 待审友链与最新评论 */}
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
         <AdminPendingLinks pendingLinks={dashboardData.pendingFriendLinks} />
         <AdminRecentComments recentComments={dashboardData.recentComments} />
       </div>
 
-      {/* 4. 各功能管理台入口卡片矩阵 */}
+      {/* 4. 快捷功能入口 */}
       <AdminPortalMatrix
         aiService={dashboardData.aiService}
         engagement={dashboardData.engagement}

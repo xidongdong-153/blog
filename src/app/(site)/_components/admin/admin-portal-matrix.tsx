@@ -9,7 +9,7 @@ interface AdminPortalMatrixProps {
 }
 
 /**
- * 管理后台 5 大标准化功能工作台入口矩阵
+ * 管理后台快捷功能入口组件
  */
 export function AdminPortalMatrix({ aiService, engagement, system }: AdminPortalMatrixProps) {
   const isAiReady = aiService.status === 'ready'
@@ -18,12 +18,10 @@ export function AdminPortalMatrix({ aiService, engagement, system }: AdminPortal
 
   return (
     <section className="flex flex-col gap-3">
-      <div className="font-mono text-xs uppercase tracking-wider text-muted-foreground">
-        // 04. 全站控制台矩阵 · PORTAL_MATRIX
-      </div>
+      <div className="font-mono text-xs uppercase tracking-wider text-muted-foreground">// 04. 快捷入口</div>
 
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
-        {/* 入口 1：AI 摘要配置管理台 */}
+        {/* 入口 1：AI 摘要配置 */}
         <div className="flex flex-col justify-between gap-4 rounded-lg border border-border/60 bg-card/40 p-4.5 transition-all hover:border-border">
           <div className="flex flex-col gap-2.5">
             <div className="flex items-center justify-between">
@@ -53,8 +51,8 @@ export function AdminPortalMatrix({ aiService, engagement, system }: AdminPortal
                 <Cpu className="size-4" />
               </div>
               <div>
-                <h2 className="font-serif text-base font-medium text-foreground">AI 摘要模型管理</h2>
-                <p className="text-xs text-muted-foreground">配置文章摘要生成协议与上游密钥凭证。</p>
+                <h2 className="font-serif text-base font-medium text-foreground">AI 摘要配置</h2>
+                <p className="text-xs text-muted-foreground">配置模型服务商与 API Key。</p>
               </div>
             </div>
           </div>
@@ -77,13 +75,13 @@ export function AdminPortalMatrix({ aiService, engagement, system }: AdminPortal
               href="/settings/ai"
               className="inline-flex items-center justify-between rounded-md border border-border/70 bg-background px-3 py-1.5 font-mono text-xs text-foreground transition-all hover:bg-muted"
             >
-              <span>前往配置台</span>
+              <span>前往配置</span>
               <ArrowRight className="size-3 text-muted-foreground" />
             </Link>
           </div>
         </div>
 
-        {/* 入口 2：友链审批与管理中心 */}
+        {/* 入口 2：友链管理 */}
         <div className="flex flex-col justify-between gap-4 rounded-lg border border-border/60 bg-card/40 p-4.5 transition-all hover:border-border">
           <div className="flex flex-col gap-2.5">
             <div className="flex items-center justify-between">
@@ -107,8 +105,8 @@ export function AdminPortalMatrix({ aiService, engagement, system }: AdminPortal
                 <Globe className="size-4" />
               </div>
               <div>
-                <h2 className="font-serif text-base font-medium text-foreground">友链审批与展示</h2>
-                <p className="text-xs text-muted-foreground">处理博友申请互换、关系链状态与展示排序。</p>
+                <h2 className="font-serif text-base font-medium text-foreground">友链管理</h2>
+                <p className="text-xs text-muted-foreground">审核申请与管理已上线的友链。</p>
               </div>
             </div>
           </div>
@@ -135,7 +133,7 @@ export function AdminPortalMatrix({ aiService, engagement, system }: AdminPortal
           </div>
         </div>
 
-        {/* 入口 3：评论监管与互动管理 */}
+        {/* 入口 3：评论管理 */}
         <div className="flex flex-col justify-between gap-4 rounded-lg border border-border/60 bg-card/40 p-4.5 transition-all hover:border-border">
           <div className="flex flex-col gap-2.5">
             <div className="flex items-center justify-between">
@@ -153,8 +151,8 @@ export function AdminPortalMatrix({ aiService, engagement, system }: AdminPortal
                 <MessageSquare className="size-4" />
               </div>
               <div>
-                <h2 className="font-serif text-base font-medium text-foreground">评论监管与互动</h2>
-                <p className="text-xs text-muted-foreground">查看各文章评论树、置顶高质量回复与垃圾软删除。</p>
+                <h2 className="font-serif text-base font-medium text-foreground">评论管理</h2>
+                <p className="text-xs text-muted-foreground">查看、置顶与删除文章评论。</p>
               </div>
             </div>
           </div>
@@ -175,13 +173,13 @@ export function AdminPortalMatrix({ aiService, engagement, system }: AdminPortal
               href="/blog"
               className="inline-flex items-center justify-between rounded-md border border-border/70 bg-background px-3 py-1.5 font-mono text-xs text-foreground transition-all hover:bg-muted"
             >
-              <span>浏览博客互动</span>
+              <span>查看文章评论</span>
               <ArrowRight className="size-3 text-muted-foreground" />
             </Link>
           </div>
         </div>
 
-        {/* 入口 4：实时访客与活动监控台 */}
+        {/* 入口 4：在线状态 */}
         <div className="flex flex-col justify-between gap-4 rounded-lg border border-border/60 bg-card/40 p-4.5 transition-all hover:border-border">
           <div className="flex flex-col gap-2.5">
             <div className="flex items-center justify-between">
@@ -199,8 +197,8 @@ export function AdminPortalMatrix({ aiService, engagement, system }: AdminPortal
                 <Activity className="size-4" />
               </div>
               <div>
-                <h2 className="font-serif text-base font-medium text-foreground">实时访客与活动</h2>
-                <p className="text-xs text-muted-foreground">WebSocket 访客广播与 Mac 桌面焦点状态。</p>
+                <h2 className="font-serif text-base font-medium text-foreground">在线状态</h2>
+                <p className="text-xs text-muted-foreground">查看实时访客与在线状态。</p>
               </div>
             </div>
           </div>
@@ -223,13 +221,13 @@ export function AdminPortalMatrix({ aiService, engagement, system }: AdminPortal
               href="/status"
               className="inline-flex items-center justify-between rounded-md border border-border/70 bg-background px-3 py-1.5 font-mono text-xs text-foreground transition-all hover:bg-muted"
             >
-              <span>查看状态大屏</span>
+              <span>查看系统状态</span>
               <ArrowRight className="size-3 text-muted-foreground" />
             </Link>
           </div>
         </div>
 
-        {/* 入口 5：系统健康与基础设施 */}
+        {/* 入口 5：系统状态 */}
         <div className="flex flex-col justify-between gap-4 rounded-lg border border-border/60 bg-card/40 p-4.5 transition-all hover:border-border">
           <div className="flex flex-col gap-2.5">
             <div className="flex items-center justify-between">
@@ -253,8 +251,8 @@ export function AdminPortalMatrix({ aiService, engagement, system }: AdminPortal
                 <Server className="size-4" />
               </div>
               <div>
-                <h2 className="font-serif text-base font-medium text-foreground">系统监控与诊断</h2>
-                <p className="text-xs text-muted-foreground">Turso 数据库连通性、进程健康与 Uptime 概览。</p>
+                <h2 className="font-serif text-base font-medium text-foreground">系统状态</h2>
+                <p className="text-xs text-muted-foreground">检查数据库连接与运行指标。</p>
               </div>
             </div>
           </div>
@@ -275,7 +273,7 @@ export function AdminPortalMatrix({ aiService, engagement, system }: AdminPortal
               href="/status"
               className="inline-flex items-center justify-between rounded-md border border-border/70 bg-background px-3 py-1.5 font-mono text-xs text-foreground transition-all hover:bg-muted"
             >
-              <span>查看诊断详情</span>
+              <span>查看系统状态</span>
               <ArrowRight className="size-3 text-muted-foreground" />
             </Link>
           </div>

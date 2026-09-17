@@ -8,7 +8,7 @@ interface AdminPendingLinksProps {
 }
 
 /**
- * 管理后台待审核友链申请队列组件
+ * 管理后台待审核友链列表组件
  */
 export function AdminPendingLinks({ pendingLinks }: AdminPendingLinksProps) {
   const hasPending = pendingLinks.length > 0
@@ -21,7 +21,7 @@ export function AdminPendingLinks({ pendingLinks }: AdminPendingLinksProps) {
     >
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2 font-mono text-xs tracking-wider text-muted-foreground">
-          <span>// 02. 待审核友链申请队列</span>
+          <span>// 02. 待审友链</span>
           <span className="text-border">•</span>
           {hasPending ? (
             <span className="font-semibold text-amber-600 dark:text-amber-400">{pendingLinks.length} 项待处理</span>
@@ -44,9 +44,7 @@ export function AdminPendingLinks({ pendingLinks }: AdminPendingLinksProps) {
             <CheckCircle2 className="size-5" />
           </div>
           <div className="text-sm font-medium text-foreground">暂无待审核申请</div>
-          <p className="max-w-xs text-xs text-muted-foreground">
-            当前所有友链申请均已处理完毕，全站关系链处于最新健康状态。
-          </p>
+          <p className="max-w-xs text-xs text-muted-foreground">暂无待审核的友链申请。</p>
         </div>
       ) : (
         <div className="flex flex-col divide-y divide-border/40">
@@ -62,7 +60,7 @@ export function AdminPendingLinks({ pendingLinks }: AdminPendingLinksProps) {
                     </span>
                   ) : (
                     <span className="rounded bg-muted px-1.5 py-0.5 font-mono text-[10px] text-muted-foreground">
-                      未标已添加
+                      未添加本站
                     </span>
                   )}
                 </div>
@@ -96,7 +94,7 @@ export function AdminPendingLinks({ pendingLinks }: AdminPendingLinksProps) {
                   className="inline-flex items-center gap-1 rounded-md border border-border/70 bg-background/80 px-2.5 py-1 font-mono text-[11px] text-foreground transition-all hover:bg-muted"
                 >
                   <ShieldAlert className="size-3 text-amber-500" />
-                  <span>处理审核</span>
+                  <span>审核</span>
                 </Link>
               </div>
             </div>
