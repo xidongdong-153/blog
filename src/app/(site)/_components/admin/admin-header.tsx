@@ -20,7 +20,7 @@ function formatUptime(seconds: number): string {
 }
 
 /**
- * 管理后台控制台顶部标识、站长资料与系统实时环境胶囊
+ * 管理后台顶部信息与系统状态条
  */
 export function AdminHeader({ user, system }: AdminHeaderProps) {
   const fallbackLetter = (user.name || user.email || 'A').charAt(0).toUpperCase()
@@ -30,17 +30,15 @@ export function AdminHeader({ user, system }: AdminHeaderProps) {
     <header className="flex flex-col gap-5 border-b border-border/50 pb-6">
       <div className="flex flex-col gap-2">
         <div className="flex items-center gap-2 font-mono text-xs tracking-wider text-muted-foreground">
-          <span>// CONSOLE / WORKSPACE · SYS_ADMIN</span>
+          <span>// ADMIN</span>
           <span className="text-border">•</span>
-          <span className="text-primary font-medium">站长专属工作台</span>
+          <span className="text-primary font-medium">控制台</span>
         </div>
 
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <h1 className="font-serif text-3xl font-medium tracking-tight text-foreground sm:text-4xl">管理面板</h1>
-            <p className="mt-1 text-sm text-muted-foreground">
-              集中掌控全站内容资产、互动待办流、基础设施监控与 AI 模型通道。
-            </p>
+            <p className="mt-1 text-sm text-muted-foreground">查看内容数据、待办审批与系统状态。</p>
           </div>
 
           {/* 站长资料卡片 */}
@@ -87,7 +85,7 @@ export function AdminHeader({ user, system }: AdminHeaderProps) {
         {/* 运行时长 */}
         <div className="inline-flex items-center gap-1.5 rounded-md border border-border/60 bg-card/40 px-2.5 py-1 text-muted-foreground">
           <Activity className="size-3.5 text-primary" />
-          <span>运行时间:</span>
+          <span>运行时间</span>
           <span className="text-foreground">{formatUptime(system.uptimeSeconds)}</span>
         </div>
 
