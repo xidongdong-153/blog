@@ -8,8 +8,8 @@
 
 <!-- @@@auto:current-status -->
 - **Active File**: `journal-1.md`
-- **Total Sessions**: 28
-- **Last Active**: 2026-09-11
+- **Total Sessions**: 33
+- **Last Active**: 2026-09-18
 <!-- @@@/auto:current-status -->
 
 ---
@@ -19,7 +19,7 @@
 <!-- @@@auto:active-documents -->
 | File | Lines | Status |
 |------|-------|--------|
-| `journal-1.md` | ~760 | Active |
+| `journal-1.md` | ~932 | Active |
 <!-- @@@/auto:active-documents -->
 
 ---
@@ -29,6 +29,11 @@
 <!-- @@@auto:session-history -->
 | # | Date | Title | Commits | Branch |
 |---|------|-------|---------|--------|
+| 33 | 2026-09-18 | 升级 Trellis 0.6.16 至 0.6.17 | `d3b788d` | `main` |
+| 32 | 2026-09-17 | 精简顶栏头像菜单与管理面板文案 | `5568fb0` | `main` |
+| 31 | 2026-09-16 | 管理员管理面板与顶栏菜单联动 | `87b53c2` | `main` |
+| 30 | 2026-09-14 | 规范化 Git 分支开发与 PR 发布流程 | `283cc8e` | `main` |
+| 29 | 2026-09-13 | 项目与 CI/CD 综合安全加固 | `8b3ee88`, `e1542ac` | `main` |
 | 28 | 2026-09-11 | 访客统计与文章实时在线状态 | `222a992` | `main` |
 | 27 | 2026-09-10 | 服务端目录与职责整理 | `534cbfb` | `main` |
 | 26 | 2026-09-10 | 顶栏常驻快捷登录入口与弹窗 | `06e9ab7` | `main` |
