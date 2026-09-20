@@ -800,3 +800,133 @@ trellis init -u xdd --pi 完成，填充 .trellis/spec/frontend 5 个规范文�
 
 [OK] **Completed**
 
+
+
+## Session 30: 规范化 Git 分支开发与 PR 发布流程
+<!-- trellis-session: v=2 fp=448fb5b27d70334b -->
+
+**Date**: 2026-09-14
+**Task**: 规范化 Git 分支开发与 PR 发布流程
+**Branch**: `main`
+
+### Summary
+
+将分支开发、本地质量门、PR 协作与生产部署审批固化到 AGENTS.md 与前端规范体系，形成从检出到审批的六步闭环。
+
+### Main Changes
+
+- AGENTS.md 增加分支开发规则：禁止在 main 直接开发，任务前拉取最新 origin/main 并切出 feat/* 分支
+- AGENTS.md 明确质量门与发布流：依次通过 typecheck/lint/format:check，PR 经 CI 通过后 gh pr merge --merge --delete-branch
+- 新增 .trellis/spec/frontend/git-workflow.md，覆盖分支检出、自测、提交、PR、CI 门禁、审批与本地同步的完整流程
+- 在 .trellis/spec/frontend/index.md 索引表与 quality-guidelines.md 的 Git 章节引用该规范
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `283cc8e` | docs(spec): 沉淀 Git 分支管理、本地质量门与 PR 部署流程规范 |
+
+### Testing
+
+- [OK] [OK] CI Quality 通过（PR #5，127 tests pass）
+
+### Status
+
+[OK] **Completed**
+
+
+## Session 31: 管理员管理面板与顶栏菜单联动
+<!-- trellis-session: v=2 fp=e48f383bd2ca1c3a -->
+
+**Date**: 2026-09-16
+**Task**: 管理员管理面板与顶栏菜单联动
+**Branch**: `main`
+
+### Summary
+
+新增站长专属 /admin 统一管理面板，聚合适时数据、待办友链、最新评论与系统状态，并联动顶栏头像菜单。
+
+### Main Changes
+
+- 新增 src/server/modules/admin/ 聚合服务与 admin.test.ts，汇总文章数、笔记数、评论与友链待办、系统诊断指标
+- 新增 /admin 页面与 _components/admin/ 组件：页头、指标卡、待办友链、最近评论、入口矩阵
+- HeaderAuth 头像菜单增加控制台入口；未登录或非管理员访问一律 notFound()，页面配置 noindex/nofollow
+- 新增 formatRelativeTime 相对时间格式化与 formatDate 无效日期回退，评论项补充 id 锚点支持定位跳转
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `87b53c2` | feat(admin): 新增管理员管理控制面板与顶栏头像菜单联动 |
+
+### Testing
+
+- [OK] [OK] CI Quality 通过（PR #7，132 tests pass）
+
+### Status
+
+[OK] **Completed**
+
+
+## Session 32: 精简顶栏头像菜单与管理面板文案
+<!-- trellis-session: v=2 fp=ee13e7c387436422 -->
+
+**Date**: 2026-09-17
+**Task**: 精简顶栏头像菜单与管理面板文案
+**Branch**: `main`
+
+### Summary
+
+移除顶栏 AI 配置入口，统一管理面板为克制功能性文案，并把界面文案风格沉淀进前端规范。
+
+### Main Changes
+
+- header-auth.tsx 下拉菜单仅保留控制台与退出登录，移除 AI 摘要配置入口及无用图标导入
+- 管理面板页头、指标、待办、入口矩阵、最近评论与 /admin 页面文案改为简洁功能性表述，去除八股与夸大词汇
+- .trellis/spec/frontend/component-guidelines.md 新增界面文案风格规范，指导后续 UI 文案保持一致
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `5568fb0` | refactor(ui): 精简顶栏头像菜单与管理面板文案并沉淀文案规范 |
+
+### Testing
+
+- [OK] [OK] CI Quality 通过（PR #9，132 tests pass）
+
+### Status
+
+[OK] **Completed**
+
+
+## Session 33: 升级 Trellis 0.6.16 至 0.6.17
+<!-- trellis-session: v=2 fp=e87f9ed224262f8c -->
+
+**Date**: 2026-09-18
+**Task**: 升级 Trellis 0.6.16 至 0.6.17
+**Branch**: `main`
+
+### Summary
+
+升级 Trellis 工具链到 0.6.17，同步任务存储、活跃任务解析与 Pi 扩展实现。
+
+### Main Changes
+
+- .trellis 升级至 0.6.17，同步 .version 与 .template-hashes.json
+- 更新 .trellis/scripts/common/task_store.py 与 active_task.py 的任务存储与活跃任务解析逻辑
+- 同步 .pi/extensions/trellis/index.ts 扩展实现与 trellis-session-insight 技能、CLI 速查参考
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `d3b788d` | chore(trellis): 升级 Trellis 0.6.16 -> 0.6.17 |
+
+### Testing
+
+- [OK] [OK] CI Quality 通过（PR #11，132 tests pass）
+
+### Status
+
+[OK] **Completed**
