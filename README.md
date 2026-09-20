@@ -4,7 +4,7 @@ Next.js 16 + React 19 + TypeScript 个人博客，文章和笔记用 MDX 文件�
 
 ## 本地启动
 
-环境：Node.js 24.16.0、pnpm 11.5.0。
+环境：Node.js 26.7.0、pnpm 11.5.0。
 
 ```bash
 pnpm install

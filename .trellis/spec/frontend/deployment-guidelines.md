@@ -13,6 +13,74 @@
 
 以下操作是维护手册，不表示已执行。本次文档整理只核对仓库 workflow，未连接服务器或核验 GitHub Environment、分支保护和线上服务状态。
 
+## Node.js 与 Action Runtime 契约
+
+### 1. 范围与触发条件
+
+修改 CI/CD 的 Node 版本、Action 引用或 pnpm 缓存配置时，必须同时检查项目运行时、Action Runtime 和生产服务器版本。三者不是同一个配置项。
+
+### 2. 配置入口
+
+- Action Runtime 由 Action 自身的 `runs.using` 决定。当前固定的 `actions/checkout`、`pnpm/action-setup`、`actions/setup-node` 版本使用 Node 24 Runtime。
+- 项目运行时由 workflow 的 `actions/setup-node` 输入 `node-version: 26.7.0` 决定。
+- 生产运行时由服务器部署脚本的 `nvm use 26.7.0` 决定。
+- pnpm 版本由 `pnpm/action-setup` 的 `version: 11.5.0` 决定。
+- pnpm 缓存由 `actions/setup-node` 的 `cache: pnpm` 和 `cache-dependency-path: pnpm-lock.yaml` 决定。
+
+### 3. 运行契约
+
+- 项目 Node 版本：`26.7.0`；`package.json` 的 `engines.node` 不得低于该版本。
+- Action Runtime：Node 24；不能通过 `node-version` 把 Action Runtime 改成 Node 26。
+- pnpm：`11.5.0`；安装必须使用 `pnpm install --frozen-lockfile`。
+- 缓存：命中用于加速安装，未命中或缓存服务返回 400 时仍继续安装，不能把缓存作为依赖安装的前提。
+- 生产服务器：正式发布前必须已安装 Node `26.7.0`，否则 `nvm use` 失败并停止部署。
+
+### 4. 校验与错误处理
+
+| 条件 | 结果 | 处理 |
+| --- | --- | --- |
+| Action 仍使用旧版 Node 20 Runtime | 日志出现 Node 20 弃用提示 | 升级 Action 的固定 SHA，不设置 Node 20 兼容开关 |
+| pnpm 缓存恢复返回 400 | 记录 cache miss，继续执行依赖安装 | 保证 `pnpm install --frozen-lockfile` 独立可用 |
+| `pnpm-lock.yaml` 与依赖声明不一致 | frozen install 失败 | 修正锁文件后重新运行 Quality，不跳过 frozen 检查 |
+| 服务器没有 Node `26.7.0` | `nvm use` 失败，部署在安装依赖前停止 | 先完成服务器 Node 安装，再重新发布 |
+
+### 5. 正常、降级和错误配置
+
+- 正常：Action 使用固定 SHA，项目 Node 为 `26.7.0`，pnpm 为 `11.5.0`，缓存键绑定 `pnpm-lock.yaml`。
+- 降级：缓存 miss 或缓存服务暂时不可用，依赖仍通过 frozen install 安装，Quality 继续执行。
+- 错误：设置 `ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION=true`、重复添加另一套 pnpm store 缓存、或让 workflow 与部署脚本使用不同 Node 版本。
+
+### 6. 必须执行的检查
+
+- 解析 workflow，确认 `quality`、`deploy`、`needs: quality` 和 `Deployment` Environment 保留。
+- 对 workflow 中的 shell 块运行 `bash -n`，不执行远程部署脚本。
+- 依次运行 `pnpm typecheck`、`pnpm lint`、`pnpm format:check`、`pnpm db:check`、`pnpm test`、`pnpm build`。
+- Pull Request 的 Quality 日志应显示项目使用 Node 26，且不再出现旧 Action 触发的 Node 20 弃用提示。
+
+### 7. 错误写法与正确写法
+
+错误：把项目 Node 版本误认为 Action Runtime，或用第二个缓存步骤掩盖 `setup-node` 的缓存错误。
+
+```yaml
+- uses: actions/setup-node@<old-sha>
+  with:
+    node-version: 26.7.0
+
+- uses: actions/cache@<another-sha>
+  with:
+    path: ~/.local/share/pnpm/store
+```
+
+正确：升级 Action 到 Node 24 Runtime 版本，只由 setup-node 管理 pnpm 缓存，并明确锁文件路径。
+
+```yaml
+- uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
+  with:
+    node-version: 26.7.0
+    cache: pnpm
+    cache-dependency-path: pnpm-lock.yaml
+```
+
 ## GitHub 配置与安全边界
 
 仓库 `Settings` -> `Environments` -> `Deployment`：Deployment branches and tags 只允许 `main`，不设置 Required reviewers，质量检查通过后直接发布。
@@ -38,7 +106,7 @@ workflow 使用 `BatchMode=yes`、`ConnectTimeout=15`、`StrictHostKeyChecking=y
 - Git 远端 `origin` 必须能读取 `main`。服务器 `.env.local` 必须存在、被 `.gitignore` 忽略且未被 Git 跟踪；不得复制或覆盖它。
 - 工作区必须完全干净，仅允许被忽略的 `.env.local` 存在。工作区内不得有任何未提交或未跟踪文件；构建白名单配置 `pnpm-workspace.yaml` 由版本库统一跟踪管理。
 - 远程先检查工作区和 `.env.local`，再 `git switch main`、`git fetch --prune origin main`。`origin/main` 必须等于本次 `github.sha`，服务器当前 `main` 必须是其祖先，禁止未推送提交或历史分叉。
-- 通过检查后才执行 `git merge --ff-only origin/main`，加载 `/home/deploy/.nvm/nvm.sh` 并切换到 Node.js `24.16.0`，安装依赖、执行 `pnpm db:migrate`、`pnpm db:verify` 与 `pnpm summary:sync`，再构建；只有成功后才 `sudo -n systemctl restart xdd-blog.service`。
+- 通过检查后才执行 `git merge --ff-only origin/main`，加载 `/home/deploy/.nvm/nvm.sh` 并切换到 Node.js `26.7.0`，安装依赖、执行 `pnpm db:migrate`、`pnpm db:verify` 与 `pnpm summary:sync`，再构建；只有成功后才 `sudo -n systemctl restart xdd-blog.service`。
 - 重启后检查 systemd active，再对 `http://127.0.0.1:4400/` 最多请求 15 次，单次 `curl --max-time 5`，失败轮次等待 1 秒，要求 HTTP `200`。这是重试次数限制，不是总计 15 秒的 deadline。
 
 ## 首次发布
@@ -54,7 +122,7 @@ ssh "deploy@$DEPLOY_HOST" 'cd /home/deploy/code/xdd/blog && test -f .env.local &
 ssh "deploy@$DEPLOY_HOST" 'sudo -n -l systemctl restart xdd-blog.service'
 ```
 
-Node/pnpm 版本应与 workflow 的 Node.js `24.16.0`、pnpm `11.5.0` 一致。工作区与分支历史必须满足上节契约，发现 `src/site.config.ts` 或其他文件改动时先确认来源，不自动覆盖。
+Node/pnpm 版本应与 workflow 的 Node.js `26.7.0`、pnpm `11.5.0` 一致。工作区与分支历史必须满足上节契约，发现 `src/site.config.ts` 或其他文件改动时先确认来源，不自动覆盖。
 
 需要手工完成首次服务器构建时，使用以下检查脚本。它发布当前 `origin/main`，不绑定 Actions 的 `github.sha`，不能替代日常自动发布。执行前必须确认该提交已经通过质量检查并获得发布授权。
 
@@ -87,7 +155,7 @@ if ! git merge-base --is-ancestor "$current_sha" origin/main; then
 fi
 git merge --ff-only origin/main
 source /home/deploy/.nvm/nvm.sh
-nvm use 24.16.0 >/dev/null
+nvm use 26.7.0 >/dev/null
 pnpm install --frozen-lockfile
 pnpm db:migrate
 pnpm db:verify
