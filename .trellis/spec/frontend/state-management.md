@@ -22,6 +22,7 @@ const posts = getAllBlogPosts().filter((post) => !post.draft)
 - 文章和笔记等构建期内容不写 API route 再自己 fetch；它们不需要绕网络。
 - 首页实时活动不参与 MDX 内容读取；Blog 的只读 `/api/presence` 从独立 Mac Presence Service 取公开状态，协议与配置见[活动规范](./presence-guidelines.md)。
 - 每次读全量再过滤是这个规模的正确做法，不做缓存层。
+- 需要客户端交互的构建期内容（如站内搜索）由 RSC 通过 props 下发纯数据，client 侧在内存里过滤，同样不建 API route；索引只在浏览器里建一次，参考 `src/app/(site)/_components/blog/blog-search.tsx`。
 
 ## 日期数据约定
 

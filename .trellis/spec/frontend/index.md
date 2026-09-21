@@ -16,6 +16,7 @@ Next.js 16（App Router）+ React 19 + TypeScript strict + Tailwind CSS 4 + MDX�
 | [组件规范](./component-guidelines.md)    | RSC / client 划分、props、Tailwind 用法、占位页约定 |
 | [状态与数据](./state-management.md)      | 主题机制、内容读取模式、为什么没有状态库            |
 | [本地活动接口](./presence-guidelines.md) | Mac 采集器、Herdr、API、TTL 与隐私边界              |
+| [站内搜索](./search-guidelines.md)       | 索引数据流、剥离口径、匹配打分与高亮契约            |
 | [类型安全](./type-safety.md)             | 类型定义位置、日期存 ISO 字符串、禁 any             |
 | [质量规范](./quality-guidelines.md)      | 检查命令、lint / format 关键规则、功能状态表维护    |
 | [Git 流程](./git-workflow.md)            | 分支管理、本地质量门、PR 协作与部署审批标准流程     |

@@ -12,6 +12,7 @@
 - `src/app/(site)/_components/blog/floating-action-group.tsx`（移动端抽屉唤出与返回顶部百分比计算）
 - `src/app/(site)/_components/comment/comment-section.tsx`（社交登录、评论树读取、平铺回复与前台管理）
 - `src/app/(site)/_components/home/presence.tsx`（活动接口轮询、在线状态和后台工具展开）
+- `src/app/(site)/_components/blog/blog-search.tsx`（搜索输入、内存索引过滤与结果渲染）
 
 MDX 渲染走异步 RSC（`mdx-content.tsx` 的 `compileMDX`），不需要 client。高频滚动联动场景使用 `requestAnimationFrame` 调度，直接更新对应节点的样式（如 TOC 进度条、SiteHeader 连续水膜插值），避免高频触发 React 整体组件树重新渲染。SiteHeader 不使用布尔阈值硬切与布局重排（如动态 margin），改用 0~80px 连续进度驱动独立背景水膜层透明度、渐进遮罩与微缩放；显隐判断加入滚动死区累积位移（向下 12px、向上 8px 缓冲及顶部 200px 常驻安全区），彻底避免慢拖滚动条时的方向震荡；显隐动画使用可中断的纯 GPU Transition（下滑 160ms ease-out 平滑微缩淡出，上滑 240ms 阻尼曲线聚显并带表面张力平息静止）。
 
@@ -46,7 +47,7 @@ MDX 渲染走异步 RSC（`mdx-content.tsx` 的 `compileMDX`），不需要 clie
 ## 通用模式与组件
 
 - 通用按钮组件 `Button`（`src/app/(site)/_components/blog/button.tsx`）：统一支持 `back`（向左动态展开箭头）、`pill`（圆角胶囊标签）、`ahead`（向右动态展开箭头）及普通样式。
-- 文章卡片 `PostCard`（`src/app/(site)/_components/blog/post-card.tsx`）：采用出版物排版与技术等宽眉标（`// ARTICLE / DATE / READING_TIME`），标题配备 SVG 动态伸缩展开箭头，底部标签组采用低饱和等宽微标（`#TAG`），替换通用圆角胶囊块。
+- 文章卡片 `PostCard`（`src/app/(site)/_components/blog/post-card.tsx`）：采用出版物排版与技术等宽眉标（`// ARTICLE / DATE / READING_TIME`），标题配备 SVG 动态伸缩展开箭头，底部标签组采用低饱和等宽微标（`#TAG`），替换通用圆角胶囊块。可选 `hit` prop 接收搜索命中区间，标题按区间高亮，正文命中片段替换摘要位；组件自身不感知搜索状态。
 - 目录导轨 `TableOfContents`（`src/app/(site)/_components/blog/toc.tsx`）：采用贯穿式 1px 细线垂直导轨与章节刻度锚点（Rail Wayfinding），当前视口对应章节高亮并带平滑缩放与文字明度反馈。
 - 字体排版体系：大标题（Hero 主标与文章详情页 H1）使用西文高切角锐度衬线体 `Newsreader`（`font-serif`），元数据使用打字机等宽体（`font-mono`），正文使用中性克制的现代无衬线体 `Satoshi`。
 - 列表渲染 key 用稳定业务键（`post.slug`、`tag`），不用数组下标。
@@ -99,14 +100,14 @@ MDX 渲染走异步 RSC（`mdx-content.tsx` 的 `compileMDX`），不需要 clie
   - 层级结构：顶级评论与平铺单层回复；回复回复时通过 `replyToId` 提示被回复人，不产生多级缩进。
   - 排序规则：默认置顶优先且时间倒序，最新模式纯倒序，最早模式正序；讨论下的回复始终按时间正序。
   - 容错与限制：评论去除首尾空白后限制 1 至 1000 字；支持软删除占位。
-- **客户端依赖边界**：评论等 client component 不直接 import `src/lib/content.ts`，因为该模块包含 `node:fs` 内容读取逻辑，会被 Turbopack 尝试打进浏览器包。客户端需要日期格式化时使用无 Node 依赖的 `src/lib/date.ts`；内容层从该文件 re-export `formatDate`，服务端页面仍可从 `src/lib/content.ts` 引用。
+- **客户端依赖边界**：评论等 client component 不直接 import `src/lib/content.ts`，因为该模块包含 `node:fs` 内容读取逻辑，会被 Turbopack 尝试打进浏览器包。客户端需要日期格式化时使用无 Node 依赖的 `src/lib/date.ts`，需要分类标签或阅读时间时使用 `src/lib/blog-meta.ts`；内容层从这两个文件 re-export，服务端页面仍可从 `src/lib/content.ts` 引用。
 - **邮件提醒与安全管理**：
   - 新评论触发 Resend 邮件投递至 `ADMIN_EMAIL`，包含 7 天有效期的一次性删除链接。
   - 确认页（`/comments/delete`）GET 只读，POST 经 SHA-256 哈希比对后执行软删除并销毁凭证。
 
 ## 占位页
 
-未实现的功能统一用 `src/app/(site)/_components/placeholder/empty-state.tsx`，页面注释里写实现方案（参考 `src/app/(site)/search/page.tsx`）。实现后删掉占位组件和注释，并把[功能状态](./feature-status.md)中的状态改成「已实现」。
+未实现的功能在页面注释里写实现方案，用一个临时占位组件渲染「待实现」状态，并登记到[功能状态](./feature-status.md)。实现后删掉占位组件和注释，把状态改成「已实现」。
 
 ## Metadata
 

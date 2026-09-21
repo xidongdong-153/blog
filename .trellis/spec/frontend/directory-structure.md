@@ -32,15 +32,14 @@ content/notes/               笔记，一条一个 .md
 
 页面私有组件放 `src/app/(site)/_components/<分组>/`，下划线开头让 Next.js 不把它当路由。分组按功能：
 
-| 分组           | 放什么               | 现有文件                                                                                              |
-| -------------- | -------------------- | ----------------------------------------------------------------------------------------------------- |
-| `site/`        | 页头、页脚、主题切换 | `site-header.tsx`、`site-footer.tsx`、`theme-toggle.tsx`                                              |
-| `home/`        | 首页简历与信息流展示 | `hero.tsx`、`presence.tsx`、`section.tsx`、`writing-timeline.tsx`、`skill-list.tsx`、`site-stats.tsx` |
-| `blog/`        | 文章相关             | `post-card.tsx`、`mdx-content.tsx`、`toc.tsx`                                                         |
-| `notes/`       | 笔记相关             | `note-card.tsx`                                                                                       |
-| `comment/`     | 评论                 | `comment-section.tsx`、`comment-composer.tsx`、`comment-item.tsx`、`comment-auth-card.tsx`、`comment-icons.tsx` |
-| `admin/`       | 管理面板             | `admin-header.tsx`、`admin-metrics.tsx`、`admin-pending-links.tsx`、`admin-recent-comments.tsx`、`admin-portal-matrix.tsx` |
-| `placeholder/` | 占位页通用内容       | `empty-state.tsx`                                                                                     |
+| 分组       | 放什么               | 现有文件                                                                                                                   |
+| ---------- | -------------------- | -------------------------------------------------------------------------------------------------------------------------- |
+| `site/`    | 页头、页脚、主题切换 | `site-header.tsx`、`site-footer.tsx`、`theme-toggle.tsx`                                                                   |
+| `home/`    | 首页简历与信息流展示 | `hero.tsx`、`presence.tsx`、`section.tsx`、`writing-timeline.tsx`、`skill-list.tsx`、`site-stats.tsx`                      |
+| `blog/`    | 文章相关             | `post-card.tsx`、`mdx-content.tsx`、`toc.tsx`                                                                              |
+| `notes/`   | 笔记相关             | `note-card.tsx`                                                                                                            |
+| `comment/` | 评论                 | `comment-section.tsx`、`comment-composer.tsx`、`comment-item.tsx`、`comment-auth-card.tsx`、`comment-icons.tsx`            |
+| `admin/`   | 管理面板             | `admin-header.tsx`、`admin-metrics.tsx`、`admin-pending-links.tsx`、`admin-recent-comments.tsx`、`admin-portal-matrix.tsx` |
 
 新增分组需要有新功能域才建，不要按组件类型（`ui/`、`common/`）分组。
 
@@ -66,4 +65,3 @@ content/notes/               笔记，一条一个 .md
 - 管理后台页面位于 `src/app/(site)/admin/page.tsx`，私有组件位于 `src/app/(site)/_components/admin/`。
 - 服务端鉴权守卫：在 Server Component 页面中直接读取请求 Headers 解析会话并校验站长邮箱（`getSession` + `isSiteAdmin`）。未登录或非站长统一调用 Next.js 原生 `notFound()` 渲染 404 页面，对外隐蔽管理路由。
 - 搜索引擎隔离：页面必须声明导出 `metadata: { robots: { index: false, follow: false, nocache: true } }`，禁止任何爬虫索引管理控制台。
-

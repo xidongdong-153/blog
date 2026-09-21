@@ -8,8 +8,8 @@
 
 <!-- @@@auto:current-status -->
 - **Active File**: `journal-1.md`
-- **Total Sessions**: 33
-- **Last Active**: 2026-09-18
+- **Total Sessions**: 34
+- **Last Active**: 2026-09-21
 <!-- @@@/auto:current-status -->
 
 ---
@@ -19,7 +19,7 @@
 <!-- @@@auto:active-documents -->
 | File | Lines | Status |
 |------|-------|--------|
-| `journal-1.md` | ~932 | Active |
+| `journal-1.md` | ~969 | Active |
 <!-- @@@/auto:active-documents -->
 
 ---
@@ -29,6 +29,7 @@
 <!-- @@@auto:session-history -->
 | # | Date | Title | Commits | Branch |
 |---|------|-------|---------|--------|
+| 34 | 2026-09-21 | 站内搜索：文章列表页内嵌搜索框与检索模块 | `53a8550`, `b3169d4`, `3e726fb` | `feat/site-search` |
 | 33 | 2026-09-18 | 升级 Trellis 0.6.16 至 0.6.17 | `d3b788d` | `main` |
 | 32 | 2026-09-17 | 精简顶栏头像菜单与管理面板文案 | `5568fb0` | `main` |
 | 31 | 2026-09-16 | 管理员管理面板与顶栏菜单联动 | `87b53c2` | `main` |
