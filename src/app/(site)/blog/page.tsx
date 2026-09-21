@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import type { BlogCategory, BlogSortOrder } from '@/lib/content'
 import { getAllBlogPosts, getAllBlogTags, sortBlogPosts } from '@/lib/content'
+import { BlogSearch } from '../_components/blog/blog-search'
 import { BlogSidebar } from '../_components/blog/blog-sidebar'
 import { BlogToolbar } from '../_components/blog/blog-toolbar'
 import { Paginator } from '../_components/blog/paginator'
@@ -99,29 +100,31 @@ export default async function BlogPage({ searchParams }: BlogPageProps) {
           <p className="text-sm text-muted-foreground">暂无文章。</p>
         ) : (
           <div className="flex flex-col gap-6">
-            {/* 分类筛选与多维排序工具栏 */}
-            <BlogToolbar currentCategory={activeCategory} currentSort={activeSort} categoryCounts={categoryCounts} />
+            <BlogSearch posts={allPosts}>
+              {/* 分类筛选与多维排序工具栏 */}
+              <BlogToolbar currentCategory={activeCategory} currentSort={activeSort} categoryCounts={categoryCounts} />
 
-            <div className="grid gap-y-16 sm:grid-cols-[3fr_1fr] sm:gap-x-8">
-              <section aria-label="文章列表" id="content">
-                {/* 文章列表 */}
-                {posts.length > 0 ? (
-                  <ul className="flex flex-col text-start">
-                    {posts.map((post) => (
-                      <PostCard key={post.slug} post={post} showUpdatedDate={activeSort === 'updated'} />
-                    ))}
-                  </ul>
-                ) : (
-                  <p className="py-12 text-sm text-muted-foreground">该分类下暂无文章。</p>
-                )}
+              <div className="grid gap-y-16 sm:grid-cols-[3fr_1fr] sm:gap-x-8">
+                <section aria-label="文章列表" id="content">
+                  {/* 文章列表 */}
+                  {posts.length > 0 ? (
+                    <ul className="flex flex-col text-start">
+                      {posts.map((post) => (
+                        <PostCard key={post.slug} post={post} showUpdatedDate={activeSort === 'updated'} />
+                      ))}
+                    </ul>
+                  ) : (
+                    <p className="py-12 text-sm text-muted-foreground">该分类下暂无文章。</p>
+                  )}
 
-                {/* 分页器 */}
-                <Paginator prevUrl={prevUrl} nextUrl={nextUrl} />
-              </section>
+                  {/* 分页器 */}
+                  <Paginator prevUrl={prevUrl} nextUrl={nextUrl} />
+                </section>
 
-              {/* 右侧标签侧边栏 */}
-              <BlogSidebar tags={tags} />
-            </div>
+                {/* 右侧标签侧边栏 */}
+                <BlogSidebar tags={tags} />
+              </div>
+            </BlogSearch>
           </div>
         )}
       </main>
