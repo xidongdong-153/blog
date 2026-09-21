@@ -930,3 +930,40 @@ trellis init -u xdd --pi 完成，填充 .trellis/spec/frontend 5 个规范文�
 ### Status
 
 [OK] **Completed**
+
+
+## Session 34: 站内搜索：文章列表页内嵌搜索框与检索模块
+<!-- trellis-session: v=2 fp=c6faf9ae06acfbd6 -->
+
+**Date**: 2026-09-21
+**Task**: 站内搜索：文章列表页内嵌搜索框与检索模块
+**Branch**: `feat/site-search`
+
+### Summary
+
+在 /blog 标题下方内嵌搜索框，输入即过滤，索引与匹配全在浏览器内存完成，不建 API route
+
+### Main Changes
+
+- 新增 src/lib/search.ts：stripNonText 剥离围栏代码块、公式、JSX 与图片，searchPosts 按字段权重打分并生成高亮片段
+- 新增 src/lib/blog-meta.ts：拆出无 Node 依赖的分类标签与阅读时间，PostCard 得以进入浏览器包，content.ts re-export 保持既有导入路径不变
+- 新增 BlogSearch 客户端组件与 PostCard 的可选 hit prop：标题按区间高亮，正文命中片段替换摘要位
+- 删除 /search 占位页与 placeholder/empty-state.tsx，robots 去掉 /search
+- 新增 search-guidelines.md，同步 feature-status、component-guidelines、directory-structure、state-management 与 index
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `53a8550` | feat(search): 新增站内搜索检索模块与单元测试 |
+| `b3169d4` | feat(search): 文章列表页内嵌搜索，移除搜索占位页 |
+| `3e726fb` | docs(search): 沉淀站内搜索规范与任务文档 |
+
+### Testing
+
+- [OK] pnpm typecheck、lint、format:check、build 全绿；pnpm test 149 项通过（含新增 17 项搜索单测）
+- [OK] 浏览器实测：正文独有词命中并高亮片段，代码块与公式标识符零命中，单字符不触发，清空输入恢复原列表
+
+### Status
+
+[OK] **Completed**
