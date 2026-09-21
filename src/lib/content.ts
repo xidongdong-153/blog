@@ -1,17 +1,9 @@
+import type { BlogCategory } from './blog-meta'
 import fs from 'node:fs'
 import path from 'node:path'
 import GithubSlugger from 'github-slugger'
 import matter from 'gray-matter'
-
-export type BlogCategory = 'tech' | 'tinkering' | 'thoughts'
-
-export const BLOG_CATEGORY_LABELS: Record<BlogCategory, string> = {
-  tech: '技术',
-  tinkering: '捣鼓',
-  thoughts: '随想',
-}
-
-export const BLOG_CATEGORIES: BlogCategory[] = ['tech', 'tinkering', 'thoughts']
+import { BLOG_CATEGORIES, BLOG_CATEGORY_LABELS } from './blog-meta'
 
 export type BlogSortOrder = 'newest' | 'oldest' | 'updated'
 
@@ -293,6 +285,8 @@ export function extractHeadings(content: string): Heading[] {
   return headings
 }
 
+export { BLOG_CATEGORIES, BLOG_CATEGORY_LABELS, calculateReadingTime } from './blog-meta'
+export type { BlogCategory } from './blog-meta'
 export { formatDate, formatRelativeTime } from './date'
 
 /** 首页最近写作时间线日期格式，输出 MM / DD（如 07 / 25）。 */
@@ -301,20 +295,4 @@ export function formatTimelineDate(iso: string): string {
   const month = String(date.getUTCMonth() + 1).padStart(2, '0')
   const day = String(date.getUTCDate()).padStart(2, '0')
   return `${month} / ${day}`
-}
-
-/**
- * 估算文章或笔记阅读时间（分钟），按中文 350 字/分钟、英文 160 词/分钟估算。
- * 格式如 "预计阅读 1 分钟"。
- */
-export function calculateReadingTime(content: string): string {
-  const clean = content.replace(/```[\s\S]*?```/g, '').replace(/<[^>]+>/g, '')
-  const cjkChars = (clean.match(/[\p{Script=Han}\p{Script=Hiragana}\p{Script=Katakana}\p{Script=Hangul}]/gu) ?? [])
-    .length
-  const words = (
-    clean.replace(/[\p{Script=Han}\p{Script=Hiragana}\p{Script=Katakana}\p{Script=Hangul}]/gu, ' ').match(/[-\w]+/g) ??
-    []
-  ).length
-  const minutes = Math.max(1, Math.ceil(cjkChars / 350 + words / 160))
-  return `预计阅读 ${minutes} 分钟`
 }
