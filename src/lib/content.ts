@@ -23,6 +23,8 @@ export interface BlogPostSeriesRef {
   id: string
   /** 在专栏中的排序编号（从 1 开始升序） */
   order: number
+  /** 所属大章节分类（如 '核心架构'、'桌面端开发'） */
+  group?: string
 }
 
 /**
@@ -145,6 +147,7 @@ function readSeries(data: Record<string, unknown>, filePath: string): BlogPostSe
   }
   const rawId = (seriesData as Record<string, unknown>).id
   const rawOrder = (seriesData as Record<string, unknown>).order
+  const rawGroup = (seriesData as Record<string, unknown>).group
 
   if (typeof rawId !== 'string' || !rawId.trim()) {
     return undefined
@@ -159,9 +162,12 @@ function readSeries(data: Record<string, unknown>, filePath: string): BlogPostSe
     console.warn(`[content] ${filePath} 引用的专栏 id "${seriesId}" 未在 REGISTERED_SERIES 中注册`)
   }
 
+  const group = typeof rawGroup === 'string' && rawGroup.trim() ? rawGroup.trim() : undefined
+
   return {
     id: seriesId,
     order: orderNum,
+    group,
   }
 }
 
@@ -412,6 +418,49 @@ export function getSeriesNav(currentPost: BlogPost): {
     currentIndex: currentPost.series.order,
     totalCount: detail.posts.length,
   }
+}
+
+/**
+ * 专栏大章节分类分组数据结构。
+ */
+export interface SeriesChapterGroup<T = BlogPost> {
+  name: string
+  posts: T[]
+}
+
+/**
+ * 将专栏文章按大章节分类分组。
+ * 若专栏注册了 groups，优先遵循 groups 顺序；未指定分类的文章归入“正文章节”。
+ */
+export function groupSeriesPosts<T extends { series?: { group?: string; order: number } }>(
+  posts: T[],
+  definedGroups?: string[],
+): Array<SeriesChapterGroup<T>> {
+  const groupMap = new Map<string, T[]>()
+
+  // 初始化预设大章节保证展示顺序
+  if (definedGroups) {
+    for (const g of definedGroups) {
+      groupMap.set(g, [])
+    }
+  }
+
+  const defaultGroupName = '正文章节'
+  for (const post of posts) {
+    const groupName = post.series?.group?.trim() || defaultGroupName
+    const list = groupMap.get(groupName) ?? []
+    list.push(post)
+    groupMap.set(groupName, list)
+  }
+
+  const result: Array<SeriesChapterGroup<T>> = []
+  for (const [name, list] of groupMap.entries()) {
+    if (list.length > 0) {
+      result.push({ name, posts: list })
+    }
+  }
+
+  return result
 }
 
 export { REGISTERED_SERIES, SERIES_STATUS_LABELS }

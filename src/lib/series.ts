@@ -23,6 +23,8 @@ export interface SeriesDefinition {
   tags: string[]
   /** 专栏主题氛围高光色 */
   heroColor?: string
+  /** 专栏预设大章节分类（按先后展示顺序编排） */
+  groups?: string[]
 }
 
 /**
@@ -46,5 +48,6 @@ export const REGISTERED_SERIES: Record<string, SeriesDefinition> = {
     repositoryUrl: 'https://github.com/xidongdong-153/blog',
     tags: ['Pi SDK', 'AI Agent', 'TypeScript', 'Desktop'],
     heroColor: '#659EB9',
+    groups: ['核心架构', '桌面端开发', '工程实战'],
   },
 }

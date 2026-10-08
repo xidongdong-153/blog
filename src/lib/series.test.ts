@@ -1,7 +1,7 @@
 /* eslint-disable test/no-import-node-test */
 import assert from 'node:assert/strict'
 import test from 'node:test'
-import { getAllSeries, getBlogPost, getSeriesDetail, getSeriesNav } from './content'
+import { getAllSeries, getBlogPost, getSeriesDetail, getSeriesNav, groupSeriesPosts } from './content'
 import { REGISTERED_SERIES } from './series'
 
 test('REGISTERED_SERIES 包含 pi-agent-desktop 且字段完整', () => {
@@ -58,4 +58,26 @@ test('getSeriesNav 正确计算第一篇与第二篇的上下文导轨', () => {
   assert.equal(nav2.currentIndex, 2)
   assert.ok(nav2.prev, '第 2 篇应该有上一篇')
   assert.equal(nav2.prev.slug, '20260901-pi-agent-desktop-architecture')
+})
+
+test('非专栏文章 getSeriesNav 返回 null，保持单栏排版无侧栏副作用', () => {
+  const normalPost = getBlogPost('20260615-hello-blog')
+  assert.ok(normalPost, '应该存在常规文章')
+  const nav = getSeriesNav(normalPost)
+  assert.equal(nav, null, '常规文章不应有专栏导轨')
+})
+
+test('groupSeriesPosts 正确将文章按大章节分类分组，并保留预设分组顺序', () => {
+  const detail = getSeriesDetail('pi-agent-desktop')
+  assert.ok(detail)
+  const groups = groupSeriesPosts(detail.posts, detail.series.groups)
+  assert.ok(groups.length >= 2, '应该包含至少两个大章节分类')
+
+  const group1 = groups.find((g) => g.name === '核心架构')
+  assert.ok(group1, '应该存在核心架构分组')
+  assert.ok(group1.posts.length >= 2, '核心架构应该包含至少两篇文章')
+
+  const group2 = groups.find((g) => g.name === '桌面端开发')
+  assert.ok(group2, '应该存在桌面端开发分组')
+  assert.ok(group2.posts.length >= 1, '桌面端开发应该包含至少一篇文章')
 })

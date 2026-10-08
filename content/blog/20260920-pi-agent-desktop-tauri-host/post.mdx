@@ -1,0 +1,42 @@
+---
+title: 从零构建 Agent Desktop（三）：Tauri 宿主与跨进程事件通信
+description: 将 Pi SDK 嵌入 Tauri 2.0 跨平台桌面端，设计高性能 IPC 通信管道与系统级托盘支持。
+category: tech
+date: 2026-09-20
+tags:
+  - Pi SDK
+  - Tauri
+  - IPC
+  - TypeScript
+series:
+  id: pi-agent-desktop
+  group: 桌面端开发
+  order: 3
+---
+
+完成核心会话模型与运行时设计后，我们需要一个轻量、低内存开销的桌面容器来承载 Agent 工作台。Tauri 2.0 凭借轻巧的原生 Webview 与 Rust 后端，成为了绝佳选择。
+
+本讲将介绍如何将 Node.js 驱动的 Pi SDK 与 Tauri IPC 进程间通信通道打通，构建稳定可控的桌面端宿主。
+
+## 架构职责划分
+
+1. **Rust 核心层**：负责窗口生命周期、系统托盘、文件系统沙盒与原生快捷键监听。
+2. **Sidecar / Node 服务进程**：托管 Pi SDK 实例与模型请求上下文。
+3. **前端界面层**：基于 React 19 构建沉浸式对话气泡、工具执行看板与终端回放。
+
+```typescript
+import { listen } from '@tauri-apps/api/event'
+
+export function useAgentStream() {
+  useEffect(() => {
+    const unlisten = listen('pi://agent-stream', (event) => {
+      console.log('收到 Agent 流事件:', event.payload)
+    })
+    return () => {
+      unlisten.then((fn) => fn())
+    }
+  }, [])
+}
+```
+
+通过这一层抽象，桌面端既享受到了原生操作系统的灵活性，又保有了 TypeScript 编写 Agent 逻辑的极佳研发体验。

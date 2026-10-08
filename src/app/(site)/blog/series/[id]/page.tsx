@@ -5,6 +5,7 @@ import {
   calculateReadingTime,
   formatDate,
   getSeriesDetail,
+  groupSeriesPosts,
   REGISTERED_SERIES,
   SERIES_STATUS_LABELS,
 } from '@/lib/content'
@@ -128,45 +129,56 @@ export default async function SeriesDetailPage({ params }: SeriesPageProps) {
               <p className="text-sm text-muted-foreground">该专栏筹备中，首篇章节即将发布。</p>
             </div>
           ) : (
-            <ol className="relative flex flex-col gap-4 border-l border-border/60 pl-6 ml-3">
-              {posts.map((post, index) => {
-                const chapterOrder = post.series?.order ?? index + 1
-                const formattedOrder = String(chapterOrder).padStart(2, '0')
-                const readingTime = calculateReadingTime(post.content)
+            <div className="flex flex-col gap-8">
+              {groupSeriesPosts(posts, series.groups).map((group) => (
+                <div key={group.name} className="flex flex-col gap-4">
+                  <div className="flex items-center justify-between border-b border-border/40 pb-2">
+                    <h3 className="font-sans text-sm font-semibold text-foreground/90">{group.name}</h3>
+                    <span className="font-mono text-xs text-muted-foreground/70">{group.posts.length} 篇</span>
+                  </div>
 
-                return (
-                  <li key={post.slug} className="group relative">
-                    {/* 时间轴刻度圆点 */}
-                    <span className="absolute -left-[31px] top-4.5 size-2 rounded-full border border-border bg-background transition-colors group-hover:border-primary group-hover:bg-primary" />
+                  <ol className="relative flex flex-col gap-4 border-l border-border/60 pl-6 ml-3">
+                    {group.posts.map((post, index) => {
+                      const chapterOrder = post.series?.order ?? index + 1
+                      const formattedOrder = String(chapterOrder).padStart(2, '0')
+                      const readingTime = calculateReadingTime(post.content)
 
-                    <div className="flex flex-col gap-2 rounded-lg border border-border/60 bg-card/30 p-5 transition-all hover:border-foreground/30 hover:bg-muted/30">
-                      <div className="flex flex-wrap items-center justify-between gap-2">
-                        <div className="flex items-center gap-2 font-mono text-xs text-muted-foreground">
-                          <span className="font-semibold text-foreground/80">第 {formattedOrder} 讲</span>
-                          <span>/</span>
-                          <time dateTime={post.date}>{formatDate(post.date)}</time>
-                          <span>/</span>
-                          <span>{readingTime}</span>
-                        </div>
-                        <span className="font-mono text-xs text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100">
-                          阅读文章 →
-                        </span>
-                      </div>
+                      return (
+                        <li key={post.slug} className="group relative">
+                          {/* 时间轴刻度圆点：精准锚定在垂直导轨中心线与第一行元数据中轴线 */}
+                          <span className="absolute -left-[24.5px] top-7 size-2 -translate-x-1/2 -translate-y-1/2 rounded-full border border-border bg-background transition-all duration-150 group-hover:scale-125 group-hover:border-primary group-hover:bg-primary" />
 
-                      <h3 className="font-serif text-lg font-medium tracking-tight text-foreground sm:text-xl">
-                        <Link href={`/blog/${post.slug}`} className="transition-colors hover:text-primary">
-                          {post.title}
-                        </Link>
-                      </h3>
+                          <div className="flex flex-col gap-2 rounded-lg border border-border/60 bg-card/30 p-5 transition-all hover:border-foreground/30 hover:bg-muted/30">
+                            <div className="flex flex-wrap items-center justify-between gap-2">
+                              <div className="flex items-center gap-2 font-mono text-xs text-muted-foreground">
+                                <span className="font-semibold text-foreground/80">第 {formattedOrder} 讲</span>
+                                <span>/</span>
+                                <time dateTime={post.date}>{formatDate(post.date)}</time>
+                                <span>/</span>
+                                <span>{readingTime}</span>
+                              </div>
+                              <span className="font-mono text-xs text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100">
+                                阅读文章 →
+                              </span>
+                            </div>
 
-                      {post.description && (
-                        <p className="text-sm leading-relaxed text-muted-foreground">{post.description}</p>
-                      )}
-                    </div>
-                  </li>
-                )
-              })}
-            </ol>
+                            <h4 className="font-serif text-lg font-medium tracking-tight text-foreground sm:text-xl">
+                              <Link href={`/blog/${post.slug}`} className="transition-colors hover:text-primary">
+                                {post.title}
+                              </Link>
+                            </h4>
+
+                            {post.description && (
+                              <p className="text-sm leading-relaxed text-muted-foreground">{post.description}</p>
+                            )}
+                          </div>
+                        </li>
+                      )
+                    })}
+                  </ol>
+                </div>
+              ))}
+            </div>
           )}
         </section>
       </main>
