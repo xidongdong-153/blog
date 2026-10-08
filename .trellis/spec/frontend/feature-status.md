@@ -7,6 +7,7 @@
 | 文章列表 / 详情 / 标签 / 归档      | 已实现 | `src/app/(site)/blog/`                                                                                                                                           |
 | 文章主题分类与多维时间排序         | 已实现 | `src/lib/content.ts`、`src/app/(site)/blog/`、`src/app/(site)/_components/blog/`                                                                                 |
 | 文章系列与专栏聚合 (/blog/series)  | 已实现 | `src/lib/series.ts`、`src/app/(site)/blog/series/[id]/`、`src/app/(site)/_components/blog/series-*`                                                              |
+| 专栏文章左侧章节侧栏与移动抽屉     | 已实现 | `src/app/(site)/_components/blog/series-chapter-sidebar.tsx`、`src/app/(site)/blog/[slug]/page.tsx`、`src/app/(site)/_components/blog/floating-action-group.tsx` |
 | 文章目录 TOC（滚动跟随高亮）       | 已实现 | `src/app/(site)/_components/blog/toc.tsx`                                                                                                                        |
 | 详情页右侧粘性 TOC 侧栏            | 已实现 | `src/app/(site)/blog/[slug]/page.tsx`                                                                                                                            |
 | Hero 图 + 更新日期                 | 已实现 | `src/lib/content.ts`、`src/app/(site)/blog/[slug]/page.tsx`                                                                                                      |

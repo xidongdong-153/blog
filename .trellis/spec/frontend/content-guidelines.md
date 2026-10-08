@@ -28,14 +28,14 @@ content/notes/
 | `heroImage`   | 否   | `public/` 下图片的站点路径，如 `/images/blog/hero.jpg`；未填写时为空字符串                       |
 | `heroColor`   | 否   | 文章高光色，如 `"#659EB9"` 或 `"hsl(195 85% 65%)"`；非空字符串会去掉首尾空白，否则为 `undefined` |
 | `disableAiSummary` | 否 | 只有布尔值 `true` 时关闭该文章的 AI 摘要生成与展示，哈希变化不触发模型调用                       |
-| `series`      | 否   | 专栏系列绑定对象，包含 `id`（专栏注册标识）和 `order`（章节序号，从 1 开始）；格式非法时忽略       |
+| `series`      | 否   | 专栏系列绑定对象，包含 `id`（专栏标识）、`order`（章节序号，从 1 开始）与可选的 `group`（大章节分类名称）；格式非法时忽略 |
 
 ## 专栏系列约定
 
-专栏全局元数据统一在 `src/lib/series.ts` 的 `REGISTERED_SERIES` 中定义（包含 `id`、`title`、`description`、`status`、`tags`、`repositoryUrl` 等），文章通过 frontmatter 的 `series.id` 进行关联。
+专栏全局元数据统一在 `src/lib/series.ts` 的 `REGISTERED_SERIES` 中定义（包含 `id`、`title`、`description`、`status`、`tags`、`repositoryUrl` 与可选的 `groups` 大章节顺序列表等），文章通过 frontmatter 的 `series.id` 进行关联。
 
-- 专栏专题主页为 `/blog/series/[id]`，展示大纲时间轴与配套资源。
-- 文章详情页顶部呈现专栏讲次微标，文末呈现上一讲/下一讲导轨卡片。
+- 专栏专题主页为 `/blog/series/[id]`，展示大纲分类时间轴与配套资源。
+- 文章详情页左侧常驻大章节目录侧栏（支持大章节手风琴折叠展开与即时检索），顶部呈现专栏讲次微标，文末呈现上一讲/下一讲导轨卡片。
 - 文章列表页 `/blog` 顶部在存在活跃专栏时展示精选专栏卡片。
 
 ## 笔记字段

@@ -10,6 +10,7 @@
 - `src/app/(site)/_components/site/site-header.tsx`（滚动感应与移动端菜单展开）
 - `src/app/(site)/_components/blog/toc.tsx`（TOC 目录展开折叠、点击互斥锁、侧栏自滚动与 RAF 进度更新）
 - `src/app/(site)/_components/blog/floating-action-group.tsx`（移动端抽屉唤出与返回顶部百分比计算）
+- `src/app/(site)/_components/blog/series-chapter-sidebar.tsx`（专栏章节大纲展示、当前讲激活高亮、目录过滤与折叠状态持久化）
 - `src/app/(site)/_components/comment/comment-section.tsx`（社交登录、评论树读取、平铺回复与前台管理）
 - `src/app/(site)/_components/home/presence.tsx`（活动接口轮询、在线状态和后台工具展开）
 - `src/app/(site)/_components/blog/blog-search.tsx`（搜索输入、内存索引过滤与结果渲染）
