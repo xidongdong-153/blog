@@ -1,5 +1,5 @@
 import type { MetadataRoute } from 'next'
-import { getAllBlogPosts, getAllBlogTags, getAllNotes } from '@/lib/content'
+import { getAllBlogPosts, getAllBlogTags, getAllNotes, getAllSeries } from '@/lib/content'
 import { siteConfig } from '@/site.config'
 
 export default function sitemap(): MetadataRoute.Sitemap {
@@ -26,6 +26,13 @@ export default function sitemap(): MetadataRoute.Sitemap {
       priority: 0.8,
     }))
 
+  const seriesRoutes: MetadataRoute.Sitemap = getAllSeries().map((series) => ({
+    url: `${baseUrl}/blog/series/${series.id}`,
+    lastModified: series.lastUpdated ? new Date(series.lastUpdated) : new Date(),
+    changeFrequency: 'weekly',
+    priority: 0.7,
+  }))
+
   const noteRoutes: MetadataRoute.Sitemap = getAllNotes()
     .filter((note) => !note.draft)
     .map((note) => ({
@@ -42,5 +49,5 @@ export default function sitemap(): MetadataRoute.Sitemap {
     priority: 0.5,
   }))
 
-  return [...staticRoutes, ...blogRoutes, ...noteRoutes, ...tagRoutes]
+  return [...staticRoutes, ...seriesRoutes, ...blogRoutes, ...noteRoutes, ...tagRoutes]
 }
