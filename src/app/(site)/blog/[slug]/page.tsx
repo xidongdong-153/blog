@@ -94,9 +94,7 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
                   href={`/blog/series/${seriesNav.series.id}`}
                   className="inline-flex items-center gap-1.5 font-mono text-xs text-primary transition-colors hover:underline"
                 >
-                  <span>
-                    // 专栏：{seriesNav.series.title} · 第 {seriesNav.currentIndex} 讲
-                  </span>
+                  <span>// 专栏：{seriesNav.series.title}</span>
                   <span>→</span>
                 </Link>
               </div>

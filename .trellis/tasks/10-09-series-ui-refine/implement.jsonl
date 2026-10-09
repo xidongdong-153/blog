@@ -1,0 +1,4 @@
+{"file": ".trellis/spec/frontend/component-guidelines.md", "reason": "RSC/client 划分、组件导出、Tailwind 语义 token 与注释规范"}
+{"file": ".trellis/spec/frontend/directory-structure.md", "reason": "页面与组件目录归属规则"}
+{"file": ".trellis/spec/frontend/quality-guidelines.md", "reason": "质量门命令与维护约定"}
+{"file": ".trellis/spec/frontend/type-safety.md", "reason": "类型定义位置与禁 any"}

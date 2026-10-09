@@ -16,10 +16,10 @@ export interface SeriesPaginatorProps {
 
 /**
  * 专栏文章详情页文末导轨组件。
- * 展示所属专栏、当前讲次进度，并提供上一讲、下一讲卡片与返回专栏完整大纲的链接。
+ * 展示所属专栏并提供上一讲、下一讲卡片与返回专栏完整大纲的链接。
  */
 export function SeriesPaginator({ nav }: SeriesPaginatorProps) {
-  const { series, prev, next, currentIndex, totalCount } = nav
+  const { series, prev, next } = nav
 
   return (
     <section
@@ -29,10 +29,6 @@ export function SeriesPaginator({ nav }: SeriesPaginatorProps) {
       <div className="flex flex-wrap items-center justify-between gap-2 border-b border-border/30 pb-3">
         <div className="flex items-center gap-2 font-mono text-xs tracking-wider text-muted-foreground">
           <span className="font-semibold text-foreground/80">// 专栏章节导轨</span>
-          <span>/</span>
-          <span>
-            第 {currentIndex} / {totalCount} 讲
-          </span>
         </div>
 
         <Link

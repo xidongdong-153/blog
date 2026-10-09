@@ -3,7 +3,6 @@
 import type { SeriesDefinition } from '@/lib/series'
 import Link from 'next/link'
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { SERIES_STATUS_LABELS } from '@/lib/series'
 
 export interface SeriesSidebarPost {
   slug: string
@@ -34,8 +33,9 @@ const STORAGE_KEY = 'blog_series_sidebar_collapsed'
  * 核心特性：
  * 1. 结构化大章节手风琴分类（Chapter Groups）：支持按模块展开/收起，当前阅读章节所在大章节默认展开。
  * 2. 状态激活：当前阅读讲次采用柔和微边框卡片高亮，并自动平滑居中滚入。
- * 3. 稳健折叠态：折叠后收起为轻量水平胶囊微标，彻底杜绝竖排溢出与视觉突兀。
- * 4. 即时过滤：支持专栏内章节标题实时搜索，过滤时自动展开包含命中章节的大类。
+ * 3. 聚焦大纲：仅保留搜索与章节列表，不含专栏标题、统计与返回入口。
+ * 4. 稳健折叠态：折叠后收起为纯图标按钮，点击即可重新展开。
+ * 5. 即时过滤：支持专栏内章节标题实时搜索，过滤时自动展开包含命中章节的大类。
  */
 export function SeriesChapterSidebar({ series, posts, currentSlug }: SeriesChapterSidebarProps) {
   const [isCollapsed, setIsCollapsed] = useState(false)
@@ -115,11 +115,6 @@ export function SeriesChapterSidebar({ series, posts, currentSlug }: SeriesChapt
     }))
   }
 
-  const currentIndex = posts.findIndex((p) => p.slug === currentSlug)
-  const activeOrder =
-    currentIndex >= 0 ? String(posts[currentIndex].series?.order ?? currentIndex + 1).padStart(2, '0') : '01'
-  const totalCountStr = String(posts.length).padStart(2, '0')
-
   // 搜索过滤后的分组
   const filteredGroups = useMemo(() => {
     const q = filterQuery.trim().toLowerCase()
@@ -134,7 +129,7 @@ export function SeriesChapterSidebar({ series, posts, currentSlug }: SeriesChapt
   }, [groups, filterQuery])
 
   // ----------------------------------------------------
-  // 1. 折叠状态：呈现精致水平微标按钮，无竖排字符与溢出问题
+  // 1. 折叠状态：呈现纯图标按钮，点击即可展开
   // ----------------------------------------------------
   if (isCollapsed) {
     return (
@@ -144,7 +139,7 @@ export function SeriesChapterSidebar({ series, posts, currentSlug }: SeriesChapt
           onClick={toggleCollapsed}
           aria-label="展开专栏大纲"
           title={`展开专栏目录（${series.title}）`}
-          className="group flex items-center gap-2 rounded-lg border border-border/60 bg-card/40 px-3 py-2 font-mono text-xs text-muted-foreground backdrop-blur-md transition-all hover:border-foreground/30 hover:bg-muted/40 hover:text-foreground shadow-xs"
+          className="group flex size-9 items-center justify-center rounded-md border border-border/60 bg-card/40 text-muted-foreground backdrop-blur-md transition-all hover:border-foreground/30 hover:bg-muted/40 hover:text-foreground shadow-xs"
         >
           <svg
             xmlns="http://www.w3.org/2000/svg"
@@ -160,9 +155,6 @@ export function SeriesChapterSidebar({ series, posts, currentSlug }: SeriesChapt
             <path d="M9 3v18" />
             <path d="m14 9 3 3-3 3" />
           </svg>
-          <span className="font-sans font-medium text-foreground">专栏大纲</span>
-          <span className="font-semibold text-primary tabular-nums">{activeOrder}</span>
-          <span className="text-[0.65rem] text-muted-foreground/60 tabular-nums">/ {totalCountStr}</span>
         </button>
       </aside>
     )
@@ -176,58 +168,11 @@ export function SeriesChapterSidebar({ series, posts, currentSlug }: SeriesChapt
       aria-label="专栏章节目录"
       className="sticky top-20 hidden max-h-[calc(100vh-6rem)] w-64 xl:w-72 shrink-0 flex-col rounded-lg border border-border/60 bg-card/20 lg:flex select-none transition-all duration-200 overflow-hidden"
     >
-      {/* 头部：专栏标题与收起开关 */}
-      <div className="flex flex-col gap-2.5 border-b border-border/40 p-3.5">
-        <div className="flex items-center justify-between gap-2">
-          <Link
-            href={`/blog/series/${series.id}`}
-            title={`查看专栏主页：${series.title}`}
-            className="line-clamp-1 font-serif text-sm font-medium text-foreground transition-colors hover:text-primary"
-          >
-            {series.title}
-          </Link>
-
-          <button
-            type="button"
-            onClick={toggleCollapsed}
-            aria-label="收起专栏目录"
-            title="收起专栏目录"
-            className="flex size-6 shrink-0 items-center justify-center rounded-md border border-border/40 text-muted-foreground transition-colors hover:border-foreground/30 hover:bg-muted/50 hover:text-foreground"
-          >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              className="size-3.5"
-            >
-              <rect width="18" height="18" x="3" y="3" rx="2" />
-              <path d="M9 3v18" />
-              <path d="m15 9-3 3 3 3" />
-            </svg>
-          </button>
-        </div>
-
-        {/* 统计微标与连载状态 */}
-        <div className="flex items-center justify-between font-mono text-[0.7rem] text-muted-foreground">
-          <span className="tracking-wider uppercase">// 大纲 · 共 {posts.length} 讲</span>
-          <span
-            className={`inline-flex items-center rounded px-1.5 py-0.5 text-[0.625rem] ${
-              series.status === 'in-progress'
-                ? 'border border-emerald-500/30 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400'
-                : 'border border-border/60 bg-muted/40 text-muted-foreground'
-            }`}
-          >
-            {SERIES_STATUS_LABELS[series.status]}
-          </span>
-        </div>
-
+      {/* 头部：搜索框与折叠开关同一行 */}
+      <div className="flex items-center gap-2 border-b border-border/40 p-3">
         {/* 章节即时搜索过滤 */}
         {posts.length > 2 && (
-          <div className="relative mt-0.5">
+          <div className="relative min-w-0 flex-1">
             <input
               type="text"
               value={filterQuery}
@@ -261,6 +206,29 @@ export function SeriesChapterSidebar({ series, posts, currentSlug }: SeriesChapt
             )}
           </div>
         )}
+
+        <button
+          type="button"
+          onClick={toggleCollapsed}
+          aria-label="收起专栏目录"
+          title="收起专栏目录"
+          className="ms-auto flex size-6 shrink-0 items-center justify-center rounded-md border border-border/40 text-muted-foreground transition-colors hover:border-foreground/30 hover:bg-muted/50 hover:text-foreground"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            className="size-3.5"
+          >
+            <rect width="18" height="18" x="3" y="3" rx="2" />
+            <path d="M9 3v18" />
+            <path d="m15 9-3 3 3 3" />
+          </svg>
+        </button>
       </div>
 
       {/* 章节手风琴列表区 */}
@@ -311,7 +279,6 @@ export function SeriesChapterSidebar({ series, posts, currentSlug }: SeriesChapt
                     <ol className="mt-1 flex flex-col gap-1 ps-3">
                       {group.posts.map((post, index) => {
                         const chapterOrder = post.series?.order ?? index + 1
-                        const formattedOrder = String(chapterOrder).padStart(2, '0')
                         const isActive = post.slug === currentSlug
 
                         if (isActive) {
@@ -322,7 +289,7 @@ export function SeriesChapterSidebar({ series, posts, currentSlug }: SeriesChapt
                                 className="flex items-start gap-2 rounded-md border border-border/80 bg-card/80 p-2 text-foreground shadow-2xs"
                               >
                                 <span className="font-mono text-xs font-semibold tabular-nums text-primary shrink-0 pt-0.5">
-                                  {formattedOrder}
+                                  {chapterOrder}
                                 </span>
                                 <span className="line-clamp-2 font-sans text-xs font-medium leading-snug">
                                   {post.title}
@@ -339,7 +306,7 @@ export function SeriesChapterSidebar({ series, posts, currentSlug }: SeriesChapt
                               className="group flex items-start gap-2 rounded-md border border-transparent p-2 text-muted-foreground transition-all hover:border-border/40 hover:bg-muted/30 hover:text-foreground"
                             >
                               <span className="font-mono text-xs tabular-nums text-muted-foreground/70 transition-colors group-hover:text-foreground shrink-0 pt-0.5">
-                                {formattedOrder}
+                                {chapterOrder}
                               </span>
                               <span className="line-clamp-2 font-sans text-xs leading-snug transition-colors group-hover:text-foreground">
                                 {post.title}
@@ -355,17 +322,6 @@ export function SeriesChapterSidebar({ series, posts, currentSlug }: SeriesChapt
             })}
           </div>
         )}
-      </div>
-
-      {/* 底部专栏归属快捷直达 */}
-      <div className="border-t border-border/40 p-2.5">
-        <Link
-          href={`/blog/series/${series.id}`}
-          className="flex items-center justify-between rounded px-2 py-1 font-mono text-[0.6875rem] text-muted-foreground transition-colors hover:bg-muted/30 hover:text-primary"
-        >
-          <span>// 查看系列完整大纲</span>
-          <span>→</span>
-        </Link>
       </div>
     </aside>
   )

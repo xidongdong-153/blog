@@ -207,28 +207,6 @@ export function FloatingActionGroup({ headings, series, seriesPosts, currentSlug
               {hasSeries && (!hasHeadings || activeTab === 'series') ? (
                 /* 专栏章节列表 */
                 <div className="flex flex-col gap-3">
-                  {series && (
-                    <div className="flex flex-col gap-1 border-b border-border/40 pb-3">
-                      <Link
-                        href={`/blog/series/${series.id}`}
-                        onClick={() => setIsDrawerOpen(false)}
-                        className="line-clamp-1 font-serif text-sm font-medium text-foreground hover:text-primary"
-                      >
-                        {series.title}
-                      </Link>
-                      <div className="flex items-center justify-between font-mono text-[0.6875rem] text-muted-foreground">
-                        <span>// 大纲 · 共 {seriesPosts?.length} 讲</span>
-                        <Link
-                          href={`/blog/series/${series.id}`}
-                          onClick={() => setIsDrawerOpen(false)}
-                          className="hover:text-primary"
-                        >
-                          专栏主页 →
-                        </Link>
-                      </div>
-                    </div>
-                  )}
-
                   {/* 分组章节列表 */}
                   <div className="flex flex-col gap-4">
                     {(() => {
@@ -262,7 +240,6 @@ export function FloatingActionGroup({ headings, series, seriesPosts, currentSlug
                           <ol className="flex flex-col gap-1">
                             {group.posts.map((post, index) => {
                               const chapterOrder = post.series?.order ?? index + 1
-                              const formattedOrder = String(chapterOrder).padStart(2, '0')
                               const isActive = post.slug === currentSlug
 
                               if (isActive) {
@@ -273,7 +250,7 @@ export function FloatingActionGroup({ headings, series, seriesPosts, currentSlug
                                       className="flex items-start gap-2.5 rounded-md border border-border/80 bg-card/80 p-2 text-foreground shadow-2xs"
                                     >
                                       <span className="font-mono text-xs font-semibold tabular-nums text-primary shrink-0 pt-0.5">
-                                        {formattedOrder}
+                                        {chapterOrder}
                                       </span>
                                       <span className="line-clamp-2 font-sans text-xs font-medium leading-snug">
                                         {post.title}
@@ -291,7 +268,7 @@ export function FloatingActionGroup({ headings, series, seriesPosts, currentSlug
                                     className="group flex items-start gap-2.5 rounded-md border border-transparent p-2 text-muted-foreground transition-all hover:border-border/40 hover:bg-muted/30 hover:text-foreground"
                                   >
                                     <span className="font-mono text-xs tabular-nums text-muted-foreground/70 transition-colors group-hover:text-foreground shrink-0 pt-0.5">
-                                      {formattedOrder}
+                                      {chapterOrder}
                                     </span>
                                     <span className="line-clamp-2 font-sans text-xs leading-snug transition-colors group-hover:text-foreground">
                                       {post.title}

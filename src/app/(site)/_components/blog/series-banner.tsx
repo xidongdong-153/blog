@@ -32,12 +32,9 @@ export function SeriesBanner({ series }: SeriesBannerProps) {
         <span className="font-mono text-xs text-muted-foreground">已更新 {series.postsCount} 讲</span>
       </div>
 
-      <div className="flex flex-col gap-2">
-        <h2 className="font-serif text-xl font-medium tracking-tight text-foreground transition-colors group-hover:text-primary sm:text-2xl">
-          <Link href={`/blog/series/${series.id}`}>{series.title}</Link>
-        </h2>
-        <p className="line-clamp-2 text-sm leading-relaxed text-muted-foreground">{series.description}</p>
-      </div>
+      <h2 className="font-serif text-xl font-medium tracking-tight text-foreground transition-colors group-hover:text-primary sm:text-2xl">
+        <Link href={`/blog/series/${series.id}`}>{series.title}</Link>
+      </h2>
 
       <div className="flex flex-wrap items-center justify-between gap-4 pt-2 border-t border-border/30">
         <div className="flex flex-wrap gap-2 font-mono text-xs text-muted-foreground">

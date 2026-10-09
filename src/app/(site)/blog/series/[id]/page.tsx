@@ -80,8 +80,6 @@ export default async function SeriesDetailPage({ params }: SeriesPageProps) {
             {series.title}
           </h1>
 
-          <p className="max-w-2xl text-base leading-relaxed text-muted-foreground">{series.description}</p>
-
           <div className="flex flex-wrap items-center gap-4 pt-2">
             <div className="flex flex-wrap gap-2 font-mono text-xs text-muted-foreground">
               {series.tags.map((tag) => (
@@ -140,7 +138,6 @@ export default async function SeriesDetailPage({ params }: SeriesPageProps) {
                   <ol className="relative flex flex-col gap-4 border-l border-border/60 pl-6 ml-3">
                     {group.posts.map((post, index) => {
                       const chapterOrder = post.series?.order ?? index + 1
-                      const formattedOrder = String(chapterOrder).padStart(2, '0')
                       const readingTime = calculateReadingTime(post.content)
 
                       return (
@@ -151,7 +148,7 @@ export default async function SeriesDetailPage({ params }: SeriesPageProps) {
                           <div className="flex flex-col gap-2 rounded-lg border border-border/60 bg-card/30 p-5 transition-all hover:border-foreground/30 hover:bg-muted/30">
                             <div className="flex flex-wrap items-center justify-between gap-2">
                               <div className="flex items-center gap-2 font-mono text-xs text-muted-foreground">
-                                <span className="font-semibold text-foreground/80">第 {formattedOrder} 讲</span>
+                                <span className="font-semibold text-foreground/80">{chapterOrder}</span>
                                 <span>/</span>
                                 <time dateTime={post.date}>{formatDate(post.date)}</time>
                                 <span>/</span>
