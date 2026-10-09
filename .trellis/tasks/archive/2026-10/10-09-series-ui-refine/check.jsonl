@@ -1,0 +1,6 @@
+{"file": ".trellis/spec/frontend/component-guidelines.md", "reason": "核对组件规范符合度"}
+{"file": ".trellis/spec/frontend/quality-guidelines.md", "reason": "核对质量门"}
+{"file": ".trellis/spec/frontend/feature-status.md", "reason": "功能状态清单同步"}
+{"file": ".trellis/spec/backend/directory-structure.md", "reason": "核对新增测试 helper 与服务端测试边界"}
+{"file": ".trellis/spec/frontend/content-guidelines.md", "reason": "核对临时文章 frontmatter 与内容清理"}
+{"file": ".trellis/spec/guides/code-reuse-thinking-guide.md", "reason": "核对测试 fixture 复用情况"}

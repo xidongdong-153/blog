@@ -1,9 +1,11 @@
 import type { BlogCategory } from './blog-meta'
+import type { SeriesDefinition, SeriesStatus } from './series'
 import fs from 'node:fs'
 import path from 'node:path'
 import GithubSlugger from 'github-slugger'
 import matter from 'gray-matter'
 import { BLOG_CATEGORIES, BLOG_CATEGORY_LABELS } from './blog-meta'
+import { REGISTERED_SERIES, SERIES_STATUS_LABELS } from './series'
 
 export type BlogSortOrder = 'newest' | 'oldest' | 'updated'
 
@@ -11,6 +13,18 @@ export const BLOG_SORT_LABELS: Record<BlogSortOrder, string> = {
   newest: '最新',
   oldest: '最早',
   updated: '最近更新',
+}
+
+/**
+ * 专栏归属声明，将文章与特定系列和排序绑定。
+ */
+export interface BlogPostSeriesRef {
+  /** 所属专栏唯一标识（对应 REGISTERED_SERIES 中的 key） */
+  id: string
+  /** 在专栏中的排序编号（从 1 开始升序） */
+  order: number
+  /** 所属大章节分类（如 '核心架构'、'桌面端开发'） */
+  group?: string
 }
 
 /**
@@ -33,6 +47,8 @@ export interface BlogPost {
   /** 文章专属氛围高光色，如 "#659EB9" 或 "hsl(195 85% 65%)" */
   heroColor?: string
   tags: string[]
+  /** 专栏归属信息，未配置时为 undefined */
+  series?: BlogPostSeriesRef
   /** true 时列表页不显示 */
   draft: boolean
   /** 严格为 true 时不生成也不展示 AI 摘要 */
@@ -123,6 +139,38 @@ function readOptionalDate(data: Record<string, unknown>, field: string): string 
   return ''
 }
 
+/** 读取可选的专栏关联信息。 */
+function readSeries(data: Record<string, unknown>, filePath: string): BlogPostSeriesRef | undefined {
+  const seriesData = data.series
+  if (!seriesData || typeof seriesData !== 'object') {
+    return undefined
+  }
+  const rawId = (seriesData as Record<string, unknown>).id
+  const rawOrder = (seriesData as Record<string, unknown>).order
+  const rawGroup = (seriesData as Record<string, unknown>).group
+
+  if (typeof rawId !== 'string' || !rawId.trim()) {
+    return undefined
+  }
+  const orderNum = typeof rawOrder === 'number' ? rawOrder : parseInt(String(rawOrder), 10)
+  if (Number.isNaN(orderNum)) {
+    return undefined
+  }
+
+  const seriesId = rawId.trim()
+  if (!REGISTERED_SERIES[seriesId]) {
+    console.warn(`[content] ${filePath} 引用的专栏 id "${seriesId}" 未在 REGISTERED_SERIES 中注册`)
+  }
+
+  const group = typeof rawGroup === 'string' && rawGroup.trim() ? rawGroup.trim() : undefined
+
+  return {
+    id: seriesId,
+    order: orderNum,
+    group,
+  }
+}
+
 /** 读取全部博客文章，按日期倒序；draft 的文章不出现在列表，但仍可直接访问。 */
 export function getAllBlogPosts(): BlogPost[] {
   const blogDir = path.join(CONTENT_DIR, 'blog')
@@ -149,6 +197,7 @@ export function getAllBlogPosts(): BlogPost[] {
       heroImage: typeof data.heroImage === 'string' ? data.heroImage : '',
       heroColor: typeof data.heroColor === 'string' && data.heroColor.trim() !== '' ? data.heroColor.trim() : undefined,
       tags: readTags(data),
+      series: readSeries(data, filePath),
       draft: data.draft === true,
       disableAiSummary: data.disableAiSummary === true,
       content,
@@ -285,6 +334,137 @@ export function extractHeadings(content: string): Heading[] {
   return headings
 }
 
+/**
+ * 获取所有已注册专栏的概要信息，包含各专栏已发布文章数与最近更新时间。
+ */
+export function getAllSeries(): Array<SeriesDefinition & { postsCount: number; lastUpdated: string }> {
+  const posts = getAllBlogPosts().filter((post) => !post.draft && post.series)
+
+  return Object.values(REGISTERED_SERIES).map((series) => {
+    const seriesPosts = posts.filter((p) => p.series?.id === series.id)
+    let lastUpdated = ''
+    for (const post of seriesPosts) {
+      const date = post.updatedDate || post.date
+      if (!lastUpdated || date.localeCompare(lastUpdated) > 0) {
+        lastUpdated = date
+      }
+    }
+
+    return {
+      ...series,
+      postsCount: seriesPosts.length,
+      lastUpdated,
+    }
+  })
+}
+
+/**
+ * 获取指定专栏的元数据及所有收录文章（按 order 升序排列）。
+ */
+export function getSeriesDetail(id: string): { series: SeriesDefinition; posts: BlogPost[] } | null {
+  const series = REGISTERED_SERIES[id]
+  if (!series) {
+    return null
+  }
+
+  const posts = getAllBlogPosts()
+    .filter((post) => !post.draft && post.series?.id === id)
+    .sort((a, b) => {
+      const orderA = a.series?.order ?? 0
+      const orderB = b.series?.order ?? 0
+      return orderA - orderB || a.date.localeCompare(b.date)
+    })
+
+  return {
+    series,
+    posts,
+  }
+}
+
+/**
+ * 为当前文章计算其所属专栏的上下文导轨信息（上一篇、下一篇、总讲数等）。
+ */
+export function getSeriesNav(currentPost: BlogPost): {
+  series: SeriesDefinition
+  prev?: BlogPost
+  next?: BlogPost
+  currentIndex: number
+  totalCount: number
+} | null {
+  if (!currentPost.series) {
+    return null
+  }
+
+  const detail = getSeriesDetail(currentPost.series.id)
+  if (!detail) {
+    return null
+  }
+
+  const postIndex = detail.posts.findIndex((p) => p.slug === currentPost.slug)
+  if (postIndex >= 0) {
+    return {
+      series: detail.series,
+      prev: detail.posts[postIndex - 1],
+      next: detail.posts[postIndex + 1],
+      currentIndex: postIndex + 1,
+      totalCount: detail.posts.length,
+    }
+  }
+
+  return {
+    series: detail.series,
+    prev: undefined,
+    next: undefined,
+    currentIndex: currentPost.series.order,
+    totalCount: detail.posts.length,
+  }
+}
+
+/**
+ * 专栏大章节分类分组数据结构。
+ */
+export interface SeriesChapterGroup<T = BlogPost> {
+  name: string
+  posts: T[]
+}
+
+/**
+ * 将专栏文章按大章节分类分组。
+ * 若专栏注册了 groups，优先遵循 groups 顺序；未指定分类的文章归入“正文章节”。
+ */
+export function groupSeriesPosts<T extends { series?: { group?: string; order: number } }>(
+  posts: T[],
+  definedGroups?: string[],
+): Array<SeriesChapterGroup<T>> {
+  const groupMap = new Map<string, T[]>()
+
+  // 初始化预设大章节保证展示顺序
+  if (definedGroups) {
+    for (const g of definedGroups) {
+      groupMap.set(g, [])
+    }
+  }
+
+  const defaultGroupName = '正文章节'
+  for (const post of posts) {
+    const groupName = post.series?.group?.trim() || defaultGroupName
+    const list = groupMap.get(groupName) ?? []
+    list.push(post)
+    groupMap.set(groupName, list)
+  }
+
+  const result: Array<SeriesChapterGroup<T>> = []
+  for (const [name, list] of groupMap.entries()) {
+    if (list.length > 0) {
+      result.push({ name, posts: list })
+    }
+  }
+
+  return result
+}
+
+export { REGISTERED_SERIES, SERIES_STATUS_LABELS }
+export type { SeriesDefinition, SeriesStatus }
 export { BLOG_CATEGORIES, BLOG_CATEGORY_LABELS, calculateReadingTime } from './blog-meta'
 export type { BlogCategory } from './blog-meta'
 export { formatDate, formatRelativeTime } from './date'

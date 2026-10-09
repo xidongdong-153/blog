@@ -1,11 +1,12 @@
 import type { Metadata } from 'next'
 import type { BlogCategory, BlogSortOrder } from '@/lib/content'
-import { getAllBlogPosts, getAllBlogTags, sortBlogPosts } from '@/lib/content'
+import { getAllBlogPosts, getAllBlogTags, getAllSeries, sortBlogPosts } from '@/lib/content'
 import { BlogSearch } from '../_components/blog/blog-search'
 import { BlogSidebar } from '../_components/blog/blog-sidebar'
 import { BlogToolbar } from '../_components/blog/blog-toolbar'
 import { Paginator } from '../_components/blog/paginator'
 import { PostCard } from '../_components/blog/post-card'
+import { SeriesBanner } from '../_components/blog/series-banner'
 
 export const metadata: Metadata = {
   title: '文章',
@@ -35,6 +36,7 @@ export default async function BlogPage({ searchParams }: BlogPageProps) {
 
   const allPosts = getAllBlogPosts().filter((post) => !post.draft)
   const tags = getAllBlogTags()
+  const featuredSeries = getAllSeries().find((s) => s.postsCount > 0)
 
   // 统计各分类文章数
   const categoryCounts: Record<BlogCategory, number> = {
@@ -95,6 +97,12 @@ export default async function BlogPage({ searchParams }: BlogPageProps) {
           <div className="mb-2 font-mono text-xs tracking-wider text-muted-foreground">// 写作与手记</div>
           <h1 className="font-serif text-3xl font-medium tracking-tight text-foreground sm:text-4xl">文章</h1>
         </div>
+
+        {featuredSeries && (
+          <div className="mb-8">
+            <SeriesBanner series={featuredSeries} />
+          </div>
+        )}
 
         {allPosts.length === 0 ? (
           <p className="text-sm text-muted-foreground">暂无文章。</p>

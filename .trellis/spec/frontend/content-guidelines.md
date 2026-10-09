@@ -14,6 +14,17 @@ content/notes/
 
 文章只读取子目录中的 `post.mdx`，笔记只读取 `.md` 文件。重命名文件夹或笔记文件等于换 URL，发布后不要随意改 slug。
 
+## 测试文章 fixture
+
+需要让 `getBlogPost` 返回有效文章的测试，从 `src/test/fixtures/content.ts` 导入 `createBlogPostFixture(slug)`，并把返回的清理函数注册到 Node 测试上下文的 `t.after`。fixture 在测试期间写入 `content/blog/<slug>/post.mdx`，清理时只删除自身创建的文件和仍为空的目录。
+
+```ts
+const cleanupFixture = createBlogPostFixture('test-article')
+t.after(cleanupFixture)
+```
+
+不要让评论、访客等测试依赖仓库内的示例文章；也不要绕过 `src/lib/content.ts` 的文章读取与校验。
+
 ## 文章字段
 
 | 字段          | 必填 | 说明                                                                                             |
@@ -28,6 +39,16 @@ content/notes/
 | `heroImage`   | 否   | `public/` 下图片的站点路径，如 `/images/blog/hero.jpg`；未填写时为空字符串                       |
 | `heroColor`   | 否   | 文章高光色，如 `"#659EB9"` 或 `"hsl(195 85% 65%)"`；非空字符串会去掉首尾空白，否则为 `undefined` |
 | `disableAiSummary` | 否 | 只有布尔值 `true` 时关闭该文章的 AI 摘要生成与展示，哈希变化不触发模型调用                       |
+| `series`      | 否   | 专栏系列绑定对象，包含 `id`（专栏标识）、`order`（章节序号，从 1 开始）与可选的 `group`（大章节分类名称）；格式非法时忽略 |
+
+## 专栏系列约定
+
+专栏全局元数据统一在 `src/lib/series.ts` 的 `REGISTERED_SERIES` 中定义（包含 `id`、`title`、`description`、`status`、`tags`、`repositoryUrl` 与可选的 `groups` 大章节顺序列表等），文章通过 frontmatter 的 `series.id` 进行关联。
+
+- 专栏专题主页为 `/blog/series/[id]`，展示大纲分类时间轴与配套资源；顶部不放专栏描述段，章节卡片保留日期、阅读时长与描述。
+- 文章详情页左侧常驻章节目录侧栏，只呈现搜索框、折叠按钮与分组章节大纲（大章节手风琴折叠展开、即时检索），不放专栏标题、统计与返回入口；顶部专栏微标只写专栏名，文末呈现上一讲/下一讲导轨卡片。
+- 章节序号统一取 `post.series.order` 直接渲染为纯数字（`1`、`2`…），不用 `01` 补零；界面不出现「第 N 讲」表述。
+- 文章列表页 `/blog` 顶部在存在活跃专栏时展示精选专栏卡片，卡片只保留标题、状态与讲次、标签和进入入口，不放专栏描述段。
 
 ## 笔记字段
 

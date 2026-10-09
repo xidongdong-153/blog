@@ -3,12 +3,18 @@
 import assert from 'node:assert/strict'
 import test from 'node:test'
 import { VISITOR_COOKIE_NAME } from '@/lib/visitor'
+import { createBlogPostFixture } from '@/test/fixtures/content'
 import { app } from '../../app.ts'
 import { resetBootstrapRateLimitMap } from './visitors.route.ts'
 
-const TEST_SLUG = '20260615-hello-blog'
+const TEST_SLUG = 'test-article'
 
 test('访客 Hono 路由测试', async (t) => {
+  let cleanupFixture: (() => void) | undefined
+  t.before(() => {
+    cleanupFixture = createBlogPostFixture(TEST_SLUG)
+  })
+  t.after(() => cleanupFixture?.())
   await t.test('POST /api/visitors/bootstrap 首次访问颁发 Cookie 并返回公开计数', async () => {
     const res = await app.request('/api/visitors/bootstrap', {
       method: 'POST',
