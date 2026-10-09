@@ -2,12 +2,18 @@
 
 import assert from 'node:assert/strict'
 import test from 'node:test'
+import { createBlogPostFixture } from '@/test/fixtures/content'
 import { app } from '../../app.ts'
 import { isCommentRateLimited, resetCommentRateLimit } from './comments.rate-limit.ts'
 
-const TEST_SLUG = '20260615-hello-blog'
+const TEST_SLUG = 'test-article'
 
 test('评论 Hono 路由与权限状态码测试', async (t) => {
+  let cleanupFixture: (() => void) | undefined
+  t.before(() => {
+    cleanupFixture = createBlogPostFixture(TEST_SLUG)
+  })
+  t.after(() => cleanupFixture?.())
   await t.test('GET /api/comments 参数校验', async () => {
     // 缺少 slug 返回 400
     const resNoSlug = await app.request('/api/comments')

@@ -2,7 +2,7 @@
   "id": "series-ui-refine",
   "name": "series-ui-refine",
   "title": "专栏渲染精简与左侧栏聚焦大纲",
-  "description": "精简专栏列表卡片/主页描述，左侧栏只保留大纲",
+  "description": "精简专栏列表卡片/主页描述，左侧栏只保留大纲；清空仓库测试文章与笔记，保持评论和访客测试自带临时内容 fixture。",
   "status": "in_progress",
   "dev_type": null,
   "scope": null,

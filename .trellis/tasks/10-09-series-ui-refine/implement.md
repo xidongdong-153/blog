@@ -29,7 +29,7 @@
 - [x] 5.1 专栏 Tab 删除专栏标题链接、`// 大纲 · 共 N 讲`、`专栏主页 →` 区块。
 - [x] 5.2 章节序号改纯数字。
 
-### 阶段 6：验证
+### 阶段 6：验证 UI 改动
 
 - [x] 6.1 `pnpm typecheck`
 - [x] 6.2 `pnpm lint`
@@ -37,9 +37,18 @@
 - [x] 6.4 `pnpm build`
 - [x] 6.5 dev 环境截图核对：列表页、专栏主页、专栏文章左侧栏（展开/折叠）、移动端抽屉。
 
+### 阶段 7：清理测试内容
+
+- [x] 7.1 删除 7 篇博客文章、1 篇笔记及依赖旧文章数据的 `src/lib/series.test.ts`。
+- [x] 7.2 从 `package.json` 的 `test` 命令移除已删除的系列测试文件。
+- [x] 7.3 增加测试期临时文章 fixture，并接入评论路由、评论服务、访客路由、访客 WebSocket 测试。
+- [x] 7.4 运行 `pnpm test`，确认 fixture 在测试后清理且内容目录没有持久化内容。
+- [x] 7.5 依次运行 `pnpm typecheck`、`pnpm lint`、`pnpm format:check`、`pnpm build`。
+
 ## 验证命令
 
 ```bash
+pnpm test
 pnpm typecheck
 pnpm lint
 pnpm format:check

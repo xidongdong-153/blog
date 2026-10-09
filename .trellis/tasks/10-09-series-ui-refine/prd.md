@@ -52,7 +52,13 @@
 
 - 非专栏文章详情页布局与右侧 TOC。
 - 左侧栏折叠态持久化、当前讲高亮、路由切换滚动居中。
-- 专栏数据结构 `SeriesDefinition` 与内容文件。
+- 专栏数据结构 `SeriesDefinition`。
+
+### R8 清除测试内容
+
+- 删除 `content/blog/` 下 7 篇测试文章与 `content/notes/first-note.md`。
+- 删除依赖这些固定文章的 `src/lib/series.test.ts`，并从 `package.json` 的 `test` 脚本移除。
+- 评论和访客模块的正向测试通过临时创建测试文章运行，测试结束后清理 fixture；仓库不保留文章或笔记内容文件。
 
 ## Acceptance Criteria
 
@@ -64,7 +70,9 @@
 - [x] 专栏主页章节卡片仍展示日期、阅读时长与描述段。
 - [x] 当前讲高亮、点击跳转、折叠展开、搜索过滤、路由切换滚动居中正常。
 - [x] 非专栏文章详情页布局无变化。
-- [x] `pnpm typecheck`、`pnpm lint`、`pnpm format:check` 全过；跑 `pnpm build` 通过。
+- [x] `content/` 下没有持久化的文章或笔记文件。
+- [x] `pnpm test` 不运行依赖已删除文章的专栏测试；评论与访客正向测试使用运行时 fixture，并在测试结束后清理。
+- [x] `pnpm typecheck`、`pnpm lint`、`pnpm format:check`、`pnpm test`、`pnpm build` 全过。
 
 ## Out of Scope
 

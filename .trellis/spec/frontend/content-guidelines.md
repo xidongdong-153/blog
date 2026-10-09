@@ -14,6 +14,17 @@ content/notes/
 
 文章只读取子目录中的 `post.mdx`，笔记只读取 `.md` 文件。重命名文件夹或笔记文件等于换 URL，发布后不要随意改 slug。
 
+## 测试文章 fixture
+
+需要让 `getBlogPost` 返回有效文章的测试，从 `src/test/fixtures/content.ts` 导入 `createBlogPostFixture(slug)`，并把返回的清理函数注册到 Node 测试上下文的 `t.after`。fixture 在测试期间写入 `content/blog/<slug>/post.mdx`，清理时只删除自身创建的文件和仍为空的目录。
+
+```ts
+const cleanupFixture = createBlogPostFixture('test-article')
+t.after(cleanupFixture)
+```
+
+不要让评论、访客等测试依赖仓库内的示例文章；也不要绕过 `src/lib/content.ts` 的文章读取与校验。
+
 ## 文章字段
 
 | 字段          | 必填 | 说明                                                                                             |

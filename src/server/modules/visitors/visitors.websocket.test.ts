@@ -6,12 +6,13 @@ import assert from 'node:assert/strict'
 import http from 'node:http'
 import test from 'node:test'
 import { WebSocket } from 'ws'
+import { createBlogPostFixture } from '@/test/fixtures/content'
 import { VisitorsService } from './visitors.service'
 import { VisitorWebSocketHub } from './visitors.websocket'
 
 const VALID_VISITOR_A = '00000000-0000-4000-8000-000000000001'
 const VALID_VISITOR_B = '00000000-0000-4000-8000-000000000002'
-const REAL_POST_SLUG = '20260615-hello-blog'
+const REAL_POST_SLUG = 'test-article'
 
 function waitForMessage<T>(ws: WebSocket): Promise<T> {
   return new Promise((resolve, reject) => {
@@ -71,6 +72,12 @@ function waitForSnapshot(
 }
 
 test('VisitorWebSocketHub 实时连接与协议测试', async (t) => {
+  let cleanupFixture: (() => void) | undefined
+  t.before(() => {
+    cleanupFixture = createBlogPostFixture(REAL_POST_SLUG)
+  })
+  t.after(() => cleanupFixture?.())
+
   let server: http.Server
   let hub: VisitorWebSocketHub
   let service: VisitorsService

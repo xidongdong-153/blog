@@ -146,3 +146,17 @@ flowchart TB
 - 左侧栏头部移除标题后，需保证头部布局在小宽度（`w-64`）下搜索框与折叠按钮不挤压换行。
 - 折叠态纯图标按钮需保留 `aria-label` 与 `title`，保证可访问性。
 - 移除「第 N 讲」后，章节顺序仅靠数字表达，需确认数字与标题的对齐在长标题换行时仍清晰。
+
+## 清除测试内容与测试数据
+
+仓库中的博客和笔记源内容全部删除。依赖文章存在性的评论与访客测试通过共享 helper 在测试期间临时写入有效 MDX 文章；测试结束后只删除自己创建的 fixture，并在原目录不存在时清理空目录。产品代码仍通过 `getBlogPost` 校验文章，测试不增加绕过校验的路径。
+
+```mermaid
+%%{init: {"theme": "dark"}}%%
+flowchart LR
+    Test["评论 / 访客测试"] --> Fixture["创建临时 MDX fixture"]
+    Fixture --> Reader["getBlogPost / getAllBlogPosts"]
+    Reader --> Assert["运行既有正向与错误路径断言"]
+    Assert --> Cleanup["删除临时 fixture"]
+    Empty["仓库 content/ 无文章"] --> Build["页面、RSS、sitemap 使用空内容结果"]
+```

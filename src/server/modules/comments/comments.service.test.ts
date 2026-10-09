@@ -6,6 +6,7 @@ import { eq } from 'drizzle-orm'
 import { db } from '@/server/infra/db/client'
 import { account, user } from '@/server/infra/db/schema/auth'
 import { comments } from '@/server/infra/db/schema/comments'
+import { createBlogPostFixture } from '@/test/fixtures/content'
 import {
   CommentServiceError,
   confirmDeleteCommentByToken,
@@ -16,7 +17,7 @@ import {
   togglePinComment,
 } from './comments.service'
 
-const TEST_SLUG = '20260615-hello-blog'
+const TEST_SLUG = 'test-article'
 const TEST_USER_ID = 'test-user-service-01'
 const TEST_ADMIN_USER_ID = 'test-admin-service-01'
 const ADMIN_EMAIL = 'admin-service@example.com'
@@ -24,6 +25,8 @@ const ADMIN_EMAIL = 'admin-service@example.com'
 test('评论 Service 综合测试', async (t) => {
   const originalAdmin = process.env.ADMIN_EMAIL
   process.env.ADMIN_EMAIL = ADMIN_EMAIL
+  const cleanupFixture = createBlogPostFixture(TEST_SLUG)
+  t.after(cleanupFixture)
 
   // 初始化测试用户
   await db.delete(comments).where(eq(comments.targetKey, TEST_SLUG))

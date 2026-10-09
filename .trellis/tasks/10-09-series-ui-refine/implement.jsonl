@@ -2,3 +2,6 @@
 {"file": ".trellis/spec/frontend/directory-structure.md", "reason": "页面与组件目录归属规则"}
 {"file": ".trellis/spec/frontend/quality-guidelines.md", "reason": "质量门命令与维护约定"}
 {"file": ".trellis/spec/frontend/type-safety.md", "reason": "类型定义位置与禁 any"}
+{"file": ".trellis/spec/backend/directory-structure.md", "reason": "测试 fixture 放置与服务端模块测试组织规范"}
+{"file": ".trellis/spec/frontend/content-guidelines.md", "reason": "临时文章 fixture 需满足内容 frontmatter 校验"}
+{"file": ".trellis/spec/guides/code-reuse-thinking-guide.md", "reason": "评论与访客测试共享 fixture helper"}
