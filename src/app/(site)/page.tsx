@@ -12,7 +12,13 @@ export default function HomePage() {
   const entries: WritingEntry[] = [
     ...getAllBlogPosts()
       .filter((post) => !post.draft)
-      .map((post) => ({ kind: 'article' as const, slug: post.slug, title: post.title, date: post.date })),
+      .map((post) => ({
+        kind: 'article' as const,
+        slug: post.slug,
+        title: post.title,
+        date: post.date,
+        aiGenerated: post.aiGenerated,
+      })),
     ...getAllNotes()
       .filter((note) => !note.draft)
       .map((note) => ({ kind: 'note' as const, slug: note.slug, title: note.title, date: note.date })),

@@ -14,6 +14,7 @@ import {
   getSeriesNav,
 } from '@/lib/content'
 import { getArticleSummaryBySlug } from '@/server/modules/ai/summary.service'
+import { AiGeneratedLabel } from '../../_components/blog/ai-generated-label'
 import { AiSummary } from '../../_components/blog/ai-summary'
 import { CopyrightCard } from '../../_components/blog/copyright-card'
 import { FloatingActionGroup } from '../../_components/blog/floating-action-group'
@@ -118,6 +119,12 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
               )}
               <span>/</span>
               <span>{readingTime}</span>
+              {post.aiGenerated && (
+                <>
+                  <span>/</span>
+                  <AiGeneratedLabel aiGenerated={post.aiGenerated} />
+                </>
+              )}
               <span>/</span>
               <ArticleViewerCount slug={post.slug} mode="detailed" />
             </div>

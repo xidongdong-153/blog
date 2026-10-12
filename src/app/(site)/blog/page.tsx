@@ -1,8 +1,11 @@
 import type { Metadata } from 'next'
+import type { BlogSourceFilter } from '@/lib/blog-meta'
 import type { BlogCategory, BlogSortOrder } from '@/lib/content'
-import { getAllBlogPosts, getAllBlogTags, getAllSeries, sortBlogPosts } from '@/lib/content'
+import { buildBlogListUrl } from '@/lib/blog-meta'
+import { getAllBlogPosts, getAllBlogTags, getAllSeries, getBlogListData } from '@/lib/content'
 import { BlogSearch } from '../_components/blog/blog-search'
 import { BlogSidebar } from '../_components/blog/blog-sidebar'
+import { BlogSourceSwitch } from '../_components/blog/blog-source-switch'
 import { BlogToolbar } from '../_components/blog/blog-toolbar'
 import { Paginator } from '../_components/blog/paginator'
 import { PostCard } from '../_components/blog/post-card'
@@ -12,13 +15,12 @@ export const metadata: Metadata = {
   title: '文章',
 }
 
-const PAGE_SIZE = 8
-
 interface BlogPageProps {
   searchParams?: Promise<{
     page?: string
     category?: string
     sort?: string
+    source?: string
   }>
 }
 
@@ -33,45 +35,19 @@ export default async function BlogPage({ searchParams }: BlogPageProps) {
 
   const rawSort = resolvedSearchParams.sort
   const activeSort: BlogSortOrder = rawSort === 'oldest' || rawSort === 'updated' ? rawSort : 'newest'
+  const activeSource: BlogSourceFilter = resolvedSearchParams.source === 'human' ? 'human' : 'all'
 
-  const allPosts = getAllBlogPosts().filter((post) => !post.draft)
+  const { sourcePosts, categoryCounts, posts, totalPages } = getBlogListData(getAllBlogPosts(), {
+    source: activeSource,
+    category: activeCategory,
+    sort: activeSort,
+    page: currentPage,
+  })
   const tags = getAllBlogTags()
   const featuredSeries = getAllSeries().find((s) => s.postsCount > 0)
 
-  // 统计各分类文章数
-  const categoryCounts: Record<BlogCategory, number> = {
-    tech: 0,
-    tinkering: 0,
-    thoughts: 0,
-  }
-  for (const post of allPosts) {
-    categoryCounts[post.category] = (categoryCounts[post.category] ?? 0) + 1
-  }
-
-  // 筛选分类
-  const filteredPosts = activeCategory ? allPosts.filter((post) => post.category === activeCategory) : allPosts
-
-  // 排序
-  const sortedPosts = sortBlogPosts(filteredPosts, activeSort)
-  const totalPosts = sortedPosts.length
-  const totalPages = Math.ceil(totalPosts / PAGE_SIZE) || 1
-
-  const startIndex = (currentPage - 1) * PAGE_SIZE
-  const posts = sortedPosts.slice(startIndex, startIndex + PAGE_SIZE)
-
   function getPageUrl(pageNum: number): string {
-    const params = new URLSearchParams()
-    if (activeCategory) {
-      params.set('category', activeCategory)
-    }
-    if (activeSort !== 'newest') {
-      params.set('sort', activeSort)
-    }
-    if (pageNum > 1) {
-      params.set('page', String(pageNum))
-    }
-    const query = params.toString()
-    return query ? `/blog?${query}` : '/blog'
+    return buildBlogListUrl({ source: activeSource, category: activeCategory, sort: activeSort, page: pageNum })
   }
 
   const prevUrl =
@@ -104,37 +80,44 @@ export default async function BlogPage({ searchParams }: BlogPageProps) {
           </div>
         )}
 
-        {allPosts.length === 0 ? (
-          <p className="text-sm text-muted-foreground">暂无文章。</p>
-        ) : (
-          <div className="flex flex-col gap-6">
-            <BlogSearch posts={allPosts}>
-              {/* 分类筛选与多维排序工具栏 */}
-              <BlogToolbar currentCategory={activeCategory} currentSort={activeSort} categoryCounts={categoryCounts} />
+        <div className="flex flex-col gap-6">
+          <BlogSourceSwitch currentSource={activeSource} currentCategory={activeCategory} currentSort={activeSort} />
+          <BlogSearch posts={sourcePosts} currentSource={activeSource}>
+            {/* 分类筛选与多维排序工具栏 */}
+            <BlogToolbar
+              currentCategory={activeCategory}
+              currentSort={activeSort}
+              currentSource={activeSource}
+              categoryCounts={categoryCounts}
+            />
 
-              <div className="grid gap-y-16 sm:grid-cols-[3fr_1fr] sm:gap-x-8">
-                <section aria-label="文章列表" id="content">
-                  {/* 文章列表 */}
-                  {posts.length > 0 ? (
-                    <ul className="flex flex-col text-start">
-                      {posts.map((post) => (
-                        <PostCard key={post.slug} post={post} showUpdatedDate={activeSort === 'updated'} />
-                      ))}
-                    </ul>
-                  ) : (
-                    <p className="py-12 text-sm text-muted-foreground">该分类下暂无文章。</p>
-                  )}
+            <div className="grid gap-y-16 sm:grid-cols-[3fr_1fr] sm:gap-x-8">
+              <section aria-label="文章列表" id="content">
+                {/* 文章列表 */}
+                {posts.length > 0 ? (
+                  <ul className="flex flex-col text-start">
+                    {posts.map((post) => (
+                      <PostCard
+                        key={post.slug}
+                        post={post}
+                        showUpdatedDate={activeSort === 'updated'}
+                        currentSource={activeSource}
+                      />
+                    ))}
+                  </ul>
+                ) : (
+                  <p className="py-12 text-sm text-muted-foreground">当前条件下暂无文章。</p>
+                )}
 
-                  {/* 分页器 */}
-                  <Paginator prevUrl={prevUrl} nextUrl={nextUrl} />
-                </section>
+                {/* 分页器 */}
+                <Paginator prevUrl={prevUrl} nextUrl={nextUrl} />
+              </section>
 
-                {/* 右侧标签侧边栏 */}
-                <BlogSidebar tags={tags} />
-              </div>
-            </BlogSearch>
-          </div>
-        )}
+              {/* 右侧标签侧边栏 */}
+              <BlogSidebar tags={tags} />
+            </div>
+          </BlogSearch>
+        </div>
       </main>
     </div>
   )

@@ -6,6 +6,9 @@
 # testing
 /coverage
 
+# 本地文章草稿
+/content/drafts/
+
 # next.js
 /.next/
 /out/

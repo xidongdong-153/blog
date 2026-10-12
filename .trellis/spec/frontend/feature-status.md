@@ -6,6 +6,8 @@
 | ---------------------------------- | ------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | 文章列表 / 详情 / 标签 / 归档      | 已实现 | `src/app/(site)/blog/`                                                                                                                                           |
 | 文章主题分类与多维时间排序         | 已实现 | `src/lib/content.ts`、`src/app/(site)/blog/`、`src/app/(site)/_components/blog/`                                                                                 |
+| AI 文章来源标记与主列表 / 搜索过滤 | 已实现 | `src/lib/content.ts`、`src/lib/blog-meta.ts`、`src/app/(site)/_components/blog/`                                                                                 |
+| 仓库 AI 写作与本地草稿             | 已实现 | `$HOME/.agents/skills/xdd-blog-writing/SKILL.md`、`content/drafts/`（仅本地，Git 忽略）                                                                          |
 | 文章系列与专栏聚合 (/blog/series)  | 已实现 | `src/lib/series.ts`、`src/app/(site)/blog/series/[id]/`、`src/app/(site)/_components/blog/series-*`                                                              |
 | 专栏文章左侧章节侧栏与移动抽屉     | 已实现 | `src/app/(site)/_components/blog/series-chapter-sidebar.tsx`、`src/app/(site)/blog/[slug]/page.tsx`、`src/app/(site)/_components/blog/floating-action-group.tsx` |
 | 文章目录 TOC（滚动跟随高亮）       | 已实现 | `src/app/(site)/_components/blog/toc.tsx`                                                                                                                        |

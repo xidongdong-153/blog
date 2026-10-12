@@ -1,13 +1,11 @@
-import type { BlogCategory } from './blog-meta'
+import type { BlogCategory, BlogSortOrder, BlogSourceFilter } from './blog-meta'
 import type { SeriesDefinition, SeriesStatus } from './series'
 import fs from 'node:fs'
 import path from 'node:path'
 import GithubSlugger from 'github-slugger'
 import matter from 'gray-matter'
-import { BLOG_CATEGORIES, BLOG_CATEGORY_LABELS } from './blog-meta'
+import { BLOG_CATEGORIES, BLOG_CATEGORY_LABELS, filterBlogPostsBySource } from './blog-meta'
 import { REGISTERED_SERIES, SERIES_STATUS_LABELS } from './series'
-
-export type BlogSortOrder = 'newest' | 'oldest' | 'updated'
 
 export const BLOG_SORT_LABELS: Record<BlogSortOrder, string> = {
   newest: '最新',
@@ -47,6 +45,8 @@ export interface BlogPost {
   /** 文章专属氛围高光色，如 "#659EB9" 或 "hsl(195 85% 65%)" */
   heroColor?: string
   tags: string[]
+  /** 严格为 true 时标记为 AI 生成，与主题标签和 AI 摘要设置独立。 */
+  aiGenerated: boolean
   /** 专栏归属信息，未配置时为 undefined */
   series?: BlogPostSeriesRef
   /** true 时列表页不显示 */
@@ -197,6 +197,7 @@ export function getAllBlogPosts(): BlogPost[] {
       heroImage: typeof data.heroImage === 'string' ? data.heroImage : '',
       heroColor: typeof data.heroColor === 'string' && data.heroColor.trim() !== '' ? data.heroColor.trim() : undefined,
       tags: readTags(data),
+      aiGenerated: data.aiGenerated === true,
       series: readSeries(data, filePath),
       draft: data.draft === true,
       disableAiSummary: data.disableAiSummary === true,
@@ -295,6 +296,47 @@ export function sortBlogPosts(posts: BlogPost[], sort: BlogSortOrder = 'newest')
     })
   }
   return cloned.sort((a, b) => b.date.localeCompare(a.date))
+}
+
+/** 生成主列表数据：排除草稿、筛选来源，再统计分类、排序并按八篇分页。 */
+export function getBlogListData(
+  allPosts: BlogPost[],
+  {
+    source = 'all',
+    category,
+    sort = 'newest',
+    page = 1,
+  }: {
+    source?: BlogSourceFilter
+    category?: BlogCategory
+    sort?: BlogSortOrder
+    page?: number
+  } = {},
+) {
+  const pageSize = 8
+  const sourcePosts = filterBlogPostsBySource(
+    allPosts.filter((post) => !post.draft),
+    source,
+  )
+  const categoryCounts: Record<BlogCategory, number> = {
+    tech: 0,
+    tinkering: 0,
+    thoughts: 0,
+  }
+  for (const post of sourcePosts) {
+    categoryCounts[post.category] = (categoryCounts[post.category] ?? 0) + 1
+  }
+
+  const filteredPosts = category ? sourcePosts.filter((post) => post.category === category) : sourcePosts
+  const sortedPosts = sortBlogPosts(filteredPosts, sort)
+  const startIndex = (page - 1) * pageSize
+
+  return {
+    sourcePosts,
+    categoryCounts,
+    posts: sortedPosts.slice(startIndex, startIndex + pageSize),
+    totalPages: Math.ceil(sortedPosts.length / pageSize) || 1,
+  }
 }
 
 export interface Heading {
@@ -466,7 +508,7 @@ export function groupSeriesPosts<T extends { series?: { group?: string; order: n
 export { REGISTERED_SERIES, SERIES_STATUS_LABELS }
 export type { SeriesDefinition, SeriesStatus }
 export { BLOG_CATEGORIES, BLOG_CATEGORY_LABELS, calculateReadingTime } from './blog-meta'
-export type { BlogCategory } from './blog-meta'
+export type { BlogCategory, BlogSortOrder } from './blog-meta'
 export { formatDate, formatRelativeTime } from './date'
 
 /** 首页最近写作时间线日期格式，输出 MM / DD（如 07 / 25）。 */

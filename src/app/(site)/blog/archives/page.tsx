@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { formatDate, getAllBlogPosts } from '@/lib/content'
+import { AiGeneratedLabel } from '../../_components/blog/ai-generated-label'
 
 export const metadata: Metadata = {
   title: '归档',
@@ -35,10 +36,11 @@ export default function ArchivesPage() {
           <h2 className="font-serif text-2xl font-medium text-foreground">{year}</h2>
           <ul className="flex flex-col gap-2.5">
             {group.map((post) => (
-              <li key={post.slug} className="flex items-baseline gap-4 text-sm">
+              <li key={post.slug} className="flex flex-wrap items-baseline gap-x-4 gap-y-1 text-sm">
                 <time dateTime={post.date} className="shrink-0 font-mono text-xs text-muted-foreground tabular-nums">
                   {formatDate(post.date)}
                 </time>
+                <AiGeneratedLabel aiGenerated={post.aiGenerated} />
                 <Link href={`/blog/${post.slug}`} className="hover:underline">
                   {post.title}
                 </Link>
