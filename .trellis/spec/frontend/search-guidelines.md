@@ -8,14 +8,25 @@
 
 ## 数据流
 
-RSC 页面把已发布文章数组交给 `BlogSearch`（client 组件），索引与匹配全在浏览器内存里完成：
+RSC 页面先排除草稿、再按 URL 来源筛选，把完整结果交给 `BlogSearch`（client 组件），索引与匹配全在浏览器内存里完成：
 
 ```tsx
 // src/app/(site)/blog/page.tsx
-<BlogSearch posts={allPosts}>…工具栏、列表、分页器…</BlogSearch>
+<BlogSourceSwitch currentSource={activeSource} currentCategory={activeCategory} currentSort={activeSort} />
+<BlogSearch posts={sourcePosts} currentSource={activeSource}>…分类工具栏、列表、分页器…</BlogSearch>
 ```
 
 不建搜索 API route，不引入搜索库。索引在 `useMemo` 里按 `posts` 引用建一次，输入变化只重跑匹配；未输入时渲染 `children`（服务端渲染的原列表）。
+
+```mermaid
+%%{init: {"theme": "dark"}}%%
+flowchart TD
+  A["已发布文章"] --> B["URL 来源筛选"]
+  B --> C["客户端搜索索引"]
+  B --> D["分类、排序、分页"]
+  E["保留的搜索词"] --> C
+  C --> F["带来源标记的搜索结果"]
+```
 
 ## 剥离口径
 
@@ -57,11 +68,16 @@ RSC 页面把已发布文章数组交给 `BlogSearch`（client 组件），索�
 ## 列表页行为
 
 - 搜索框在 `/blog` 标题下方，输入即过滤，没有提交按钮。
-- 搜索态整块替换工具栏、列表与分页器，清空后恢复；搜索期间不发网络请求。
-- 搜索范围固定为全部已发布文章，不受当前分类筛选与排序影响。
+- 搜索态替换分类工具栏、列表与分页器，清空后恢复；搜索输入期间不发网络请求。
+- 搜索范围为当前来源筛选下的全部已发布文章，不受当前分类筛选与排序影响。
+- 来源切换放在 `BlogSearch` 的 `children` 外，在搜索态和零结果时都可见。切换是同 `/blog` 路由的 Next Link 导航，会更新服务端传入的文章集合。
+- 同路由切换来源时保持 `BlogSearch` 位置与 key 不变，保留其 `useState` 搜索词；不要因来源集合为空而卸载组件。
+- 搜索结果向 `PostCard` 透传当前来源，分类眉标链接保留来源。来源切换清除页码并保留当前分类和排序，分页链接也保留来源。
 
 ## 测试要求
 
 `src/lib/search.test.ts` 覆盖剥离、匹配、打分排序、片段与区间切分，已列入 `package.json` 的 `test` 脚本。改动 `src/lib/search.ts` 后运行 `pnpm test`。
 
 验收至少覆盖这两对：正文命中的词能搜到（证明正文进索引），只出现在代码块或公式里的标识符搜不到（证明已剥离）；高亮区间能用 `text.slice(range.start, range.end)` 还原关键词。
+
+来源过滤验收：同一词同时命中人工与 AI 文章，切到非 AI 后仅保留人工命中，输入框不清空；当所有命中都是 AI 时，零结果仍可切回全部；分类、排序和分页链接不会丢失 `source=human`。

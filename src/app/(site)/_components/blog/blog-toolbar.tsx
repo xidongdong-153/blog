@@ -1,32 +1,22 @@
-import type { BlogCategory, BlogSortOrder } from '@/lib/content'
+import type { BlogCategory, BlogSortOrder, BlogSourceFilter } from '@/lib/blog-meta'
 import Link from 'next/link'
+import { buildBlogListUrl } from '@/lib/blog-meta'
 import { BLOG_CATEGORIES, BLOG_CATEGORY_LABELS, BLOG_SORT_LABELS } from '@/lib/content'
 
 export interface BlogToolbarProps {
   currentCategory?: BlogCategory
   currentSort: BlogSortOrder
+  currentSource: BlogSourceFilter
   categoryCounts?: Record<BlogCategory, number>
 }
 
 const SORT_OPTIONS: BlogSortOrder[] = ['newest', 'oldest', 'updated']
 
-function buildQueryString(category?: BlogCategory, sort?: BlogSortOrder): string {
-  const params = new URLSearchParams()
-  if (category) {
-    params.set('category', category)
-  }
-  if (sort && sort !== 'newest') {
-    params.set('sort', sort)
-  }
-  const query = params.toString()
-  return query ? `/blog?${query}` : '/blog'
-}
-
 /**
  * 博客分类筛选与排序工具栏组件。
  * 提供具体分类切换（不设“全部”选项，点击已选项反选还原全部）与多维时间排序。
  */
-export function BlogToolbar({ currentCategory, currentSort, categoryCounts }: BlogToolbarProps) {
+export function BlogToolbar({ currentCategory, currentSort, currentSource, categoryCounts }: BlogToolbarProps) {
   return (
     <div className="flex flex-col gap-4 border-b border-border/40 pb-5 sm:flex-row sm:items-center sm:justify-between">
       {/* 分类切换组 */}
@@ -35,7 +25,7 @@ export function BlogToolbar({ currentCategory, currentSort, categoryCounts }: Bl
         {BLOG_CATEGORIES.map((category) => {
           const isActive = currentCategory === category
           const nextCategory = isActive ? undefined : category
-          const href = buildQueryString(nextCategory, currentSort)
+          const href = buildBlogListUrl({ source: currentSource, category: nextCategory, sort: currentSort })
           const label = BLOG_CATEGORY_LABELS[category]
           const count = categoryCounts?.[category]
 
@@ -75,7 +65,7 @@ export function BlogToolbar({ currentCategory, currentSort, categoryCounts }: Bl
           <div className="flex items-center gap-1">
             {SORT_OPTIONS.map((sortKey, index) => {
               const isActive = currentSort === sortKey
-              const href = buildQueryString(currentCategory, sortKey)
+              const href = buildBlogListUrl({ source: currentSource, category: currentCategory, sort: sortKey })
               const label = BLOG_SORT_LABELS[sortKey]
 
               return (

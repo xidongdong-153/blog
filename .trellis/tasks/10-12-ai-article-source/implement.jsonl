@@ -1,0 +1,4 @@
+{"file": ".trellis/spec/frontend/content-guidelines.md", "reason": "文章格式、来源字段和草稿边界"}
+{"file": ".trellis/spec/frontend/component-guidelines.md", "reason": "现有组件、MDX 与浏览器边界"}
+{"file": ".trellis/spec/frontend/search-guidelines.md", "reason": "内存搜索与筛选契约"}
+{"file": ".trellis/spec/frontend/quality-guidelines.md", "reason": "质量门和检查范围"}

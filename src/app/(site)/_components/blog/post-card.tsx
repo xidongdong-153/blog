@@ -1,10 +1,12 @@
+import type { BlogSourceFilter } from '@/lib/blog-meta'
 import type { BlogPost } from '@/lib/content'
 import type { TextRange } from '@/lib/search'
 import Link from 'next/link'
-import { BLOG_CATEGORY_LABELS, calculateReadingTime } from '@/lib/blog-meta'
+import { BLOG_CATEGORY_LABELS, buildBlogListUrl, calculateReadingTime } from '@/lib/blog-meta'
 import { formatDate } from '@/lib/date'
 import { splitByRanges } from '@/lib/search'
 import { ArticleViewerCount } from '../visitor/article-viewer-count'
+import { AiGeneratedLabel } from './ai-generated-label'
 
 /** 搜索命中信息：标题按区间高亮，snippet 替换摘要位 */
 export interface PostCardHit {
@@ -23,6 +25,8 @@ export interface PostCardProps {
   as?: 'li' | 'article' | 'div'
   /** 是否突出显示更新时间（如按最近更新排序时） */
   showUpdatedDate?: boolean
+  /** 分类链接保留当前主列表来源筛选。 */
+  currentSource?: BlogSourceFilter
   /** 站内搜索传入的命中信息；不传时渲染行为与列表完全一致 */
   hit?: PostCardHit
 }
@@ -58,6 +62,7 @@ export function PostCard({
   className = '',
   as: Component = 'li',
   showUpdatedDate = false,
+  currentSource = 'all',
   hit,
 }: PostCardProps) {
   const readingTime = calculateReadingTime(post.content)
@@ -80,7 +85,7 @@ export function PostCard({
           <span className="font-semibold text-foreground/80">// 草稿</span>
         ) : (
           <Link
-            href={`/blog?category=${post.category}`}
+            href={buildBlogListUrl({ source: currentSource, category: post.category })}
             className="font-semibold text-foreground/80 transition-colors hover:text-primary hover:underline"
           >
             // {categoryLabel}
@@ -98,6 +103,12 @@ export function PostCard({
           <>
             <span className="text-border">/</span>
             <span>{readingTime}</span>
+          </>
+        )}
+        {post.aiGenerated && (
+          <>
+            <span className="text-border">/</span>
+            <AiGeneratedLabel aiGenerated={post.aiGenerated} />
           </>
         )}
         <ArticleViewerCount slug={post.slug} mode="compact" />

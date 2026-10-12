@@ -9,6 +9,7 @@ import {
   REGISTERED_SERIES,
   SERIES_STATUS_LABELS,
 } from '@/lib/content'
+import { AiGeneratedLabel } from '../../../_components/blog/ai-generated-label'
 
 interface SeriesPageProps {
   params: Promise<{ id: string }>
@@ -147,12 +148,18 @@ export default async function SeriesDetailPage({ params }: SeriesPageProps) {
 
                           <div className="flex flex-col gap-2 rounded-lg border border-border/60 bg-card/30 p-5 transition-all hover:border-foreground/30 hover:bg-muted/30">
                             <div className="flex flex-wrap items-center justify-between gap-2">
-                              <div className="flex items-center gap-2 font-mono text-xs text-muted-foreground">
+                              <div className="flex flex-wrap items-center gap-2 font-mono text-xs text-muted-foreground">
                                 <span className="font-semibold text-foreground/80">{chapterOrder}</span>
                                 <span>/</span>
                                 <time dateTime={post.date}>{formatDate(post.date)}</time>
                                 <span>/</span>
                                 <span>{readingTime}</span>
+                                {post.aiGenerated && (
+                                  <>
+                                    <span>/</span>
+                                    <AiGeneratedLabel aiGenerated={post.aiGenerated} />
+                                  </>
+                                )}
                               </div>
                               <span className="font-mono text-xs text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100">
                                 阅读文章 →

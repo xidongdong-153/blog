@@ -1,5 +1,6 @@
 import Link from 'next/link'
 import { formatTimelineDate } from '@/lib/content'
+import { AiGeneratedLabel } from '../blog/ai-generated-label'
 
 /** 最近写作时间线条目，kind 决定链接路由与类型徽章文案。 */
 export interface WritingEntry {
@@ -8,6 +9,8 @@ export interface WritingEntry {
   title: string
   /** ISO 日期字符串 */
   date: string
+  /** 文章的 AI 来源；笔记不填写。 */
+  aiGenerated?: boolean
 }
 
 /**
@@ -30,6 +33,7 @@ export function WritingTimeline({ entries }: { entries: WritingEntry[] }) {
           <span className="flex-1 truncate text-sm font-medium text-foreground transition-colors group-hover/link:text-primary">
             {entry.title}
           </span>
+          <AiGeneratedLabel aiGenerated={entry.kind === 'article' && entry.aiGenerated === true} />
           {entry.kind === 'note' && <span className="shrink-0 font-mono text-xs text-muted-foreground/60">#笔记</span>}
           <svg
             xmlns="http://www.w3.org/2000/svg"

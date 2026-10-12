@@ -1,0 +1,29 @@
+{
+  "id": "ai-article-source",
+  "name": "ai-article-source",
+  "title": "AI 文章来源过滤与仓库写作",
+  "description": "为文章增加 AI 来源标记和主列表过滤，并提供本地草稿写作技能",
+  "status": "in_progress",
+  "dev_type": null,
+  "scope": "frontend",
+  "package": null,
+  "priority": "P2",
+  "creator": "xdd",
+  "assignee": "xdd",
+  "createdAt": "2026-10-12",
+  "completedAt": null,
+  "branch": "feat/ai-article-source",
+  "base_branch": "main",
+  "worktree_path": null,
+  "commit": null,
+  "pr_url": null,
+  "subtasks": [],
+  "children": [],
+  "parent": null,
+  "relatedFiles": [],
+  "notes": "",
+  "meta": {
+    "implementation_verified": "true",
+    "awaiting": "pr-ci"
+  }
+}

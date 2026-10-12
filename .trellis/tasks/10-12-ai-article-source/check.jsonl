@@ -1,0 +1,4 @@
+{"file": ".trellis/spec/frontend/content-guidelines.md", "reason": "字段读取兼容与草稿隔离"}
+{"file": ".trellis/spec/frontend/search-guidelines.md", "reason": "来源过滤及搜索输入保留"}
+{"file": ".trellis/spec/frontend/type-safety.md", "reason": "服务端客户端类型与值导入安全"}
+{"file": ".trellis/spec/frontend/quality-guidelines.md", "reason": "检查命令和格式要求"}

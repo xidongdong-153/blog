@@ -1,6 +1,7 @@
 'use client'
 
 import type { ReactNode } from 'react'
+import type { BlogSourceFilter } from '@/lib/blog-meta'
 import type { BlogPost } from '@/lib/content'
 import { useMemo, useState } from 'react'
 import { buildSearchIndex, searchPosts } from '@/lib/search'
@@ -11,10 +12,19 @@ import { PostCard } from './post-card'
  *
  * 索引构建与检索全部在浏览器内完成：文章数据由 Server Component 通过 props 下发，
  * 输入时只在内存里过滤，不产生网络请求。
+ * posts 已按来源筛选，搜索不受分类和列表排序影响；来源切换保留现有输入。
  * 未输入关键词时渲染 `children`（服务端渲染的原列表），输入后整块替换为结果列表，
  * 分类工具栏与分页器随之隐藏；清空输入即恢复原列表。
  */
-export function BlogSearch({ posts, children }: { posts: BlogPost[]; children: ReactNode }) {
+export function BlogSearch({
+  posts,
+  currentSource,
+  children,
+}: {
+  posts: BlogPost[]
+  currentSource: BlogSourceFilter
+  children: ReactNode
+}) {
   const [query, setQuery] = useState('')
   const documents = useMemo(() => buildSearchIndex(posts), [posts])
   const hits = useMemo(() => searchPosts(query, documents), [query, documents])
@@ -57,7 +67,7 @@ export function BlogSearch({ posts, children }: { posts: BlogPost[]; children: R
               </p>
               <ul className="flex flex-col text-start">
                 {hits.map((hit) => (
-                  <PostCard key={hit.post.slug} post={hit.post} hit={hit} />
+                  <PostCard key={hit.post.slug} post={hit.post} hit={hit} currentSource={currentSource} />
                 ))}
               </ul>
             </>

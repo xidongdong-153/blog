@@ -2,6 +2,7 @@
 import type { BlogPost } from './content'
 import assert from 'node:assert/strict'
 import test from 'node:test'
+import { filterBlogPostsBySource } from './blog-meta'
 import { buildSearchIndex, searchPosts, splitByRanges, stripNonText } from './search'
 
 function makePost(overrides: Partial<BlogPost> = {}): BlogPost {
@@ -14,6 +15,7 @@ function makePost(overrides: Partial<BlogPost> = {}): BlogPost {
     updatedDate: '',
     heroImage: '',
     tags: [],
+    aiGenerated: false,
     draft: false,
     disableAiSummary: false,
     content: '正文内容',
@@ -25,6 +27,21 @@ function makePost(overrides: Partial<BlogPost> = {}): BlogPost {
 function runSearch(query: string, posts: BlogPost[]) {
   return searchPosts(query, buildSearchIndex(posts))
 }
+
+test('搜索索引遵循文章来源，切回全部后同一关键词恢复 AI 命中', () => {
+  const posts = [
+    makePost({ slug: 'human', title: 'TypeScript 人工文章' }),
+    makePost({ slug: 'ai', title: 'TypeScript AI 文章', aiGenerated: true }),
+  ]
+  const query = 'TypeScript'
+
+  assert.deepEqual(
+    runSearch(query, filterBlogPostsBySource(posts, 'human')).map((hit) => hit.post.slug),
+    ['human'],
+  )
+  assert.equal(runSearch(query, filterBlogPostsBySource(posts, 'all')).length, 2)
+  assert.deepEqual(runSearch(query, filterBlogPostsBySource([posts[1]], 'human')), [])
+})
 
 test('stripNonText 丢弃围栏代码块，保留块外正文', () => {
   const mdx = '正文开始\n\n```ts\nconst startAppInitialization = 1\n```\n\n正文结束'

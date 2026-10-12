@@ -1,16 +1,20 @@
 import fs from 'node:fs'
 import path from 'node:path'
+import matter from 'gray-matter'
 
 /**
  * 创建测试用博客文章，并返回只删除该文章及本次创建空目录的清理函数。
  */
-export function createBlogPostFixture(slug: string): () => void {
+export function createBlogPostFixture(
+  slug: string,
+  options?: { frontmatter?: Record<string, unknown>; content?: string; directory?: 'blog' | 'drafts' },
+): () => void {
   if (!slug || slug === '.' || slug === '..' || /[\\/]/.test(slug) || path.basename(slug) !== slug) {
     throw new Error(`无效的测试文章 slug: ${slug}`)
   }
 
   const contentDir = path.join(process.cwd(), 'content')
-  const blogDir = path.join(contentDir, 'blog')
+  const blogDir = path.join(contentDir, options?.directory ?? 'blog')
   const postDir = path.join(blogDir, slug)
   const postPath = path.join(postDir, 'post.mdx')
   if (fs.existsSync(postPath)) {
@@ -28,7 +32,13 @@ export function createBlogPostFixture(slug: string): () => void {
 
     fs.writeFileSync(
       postPath,
-      `---\ntitle: 测试文章\ndate: 2026-10-09\ncategory: tech\ndescription: 测试用文章\n---\n\n测试正文。\n`,
+      matter.stringify(options?.content ?? '\n测试正文。\n', {
+        title: '测试文章',
+        date: '2026-10-09',
+        category: 'tech',
+        description: '测试用文章',
+        ...options?.frontmatter,
+      }),
       { flag: 'wx' },
     )
   } catch (error) {
