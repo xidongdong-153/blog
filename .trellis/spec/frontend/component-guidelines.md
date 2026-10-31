@@ -38,15 +38,17 @@ MDX 渲染走异步 RSC（`mdx-content.tsx` 的 `compileMDX`），不需要 clie
 
 ## Tailwind
 
-- 色系统一使用 HSL 语义 token（`background`、`foreground`、`muted`、`muted-foreground`、`primary`、`border` 等），组件禁止硬编码 `stone-*` 或其他原色阶。
+- 常规色系统一使用 HSL 语义 token（`background`、`foreground`、`muted`、`muted-foreground`、`primary`、`border` 等），不硬编码底色。既有状态色是设计规范列明的例外，必须伴随文字并检查对比度。
 - 正文排版用 `prose prose-stone dark:prose-invert`（@tailwindcss/typography），见 `mdx-content.tsx`。
-- 圆角约定：控件用 `rounded-md`，卡片和列表项用 `rounded-lg` 或 `rounded-2xl`，头像与 pill 用 `rounded-full`。
+- 颜色、字号、间距、圆角与页面宽度以[设计规范](../../../DESIGN.md)为准。五页卡片用 `rounded-lg`，控件用 `rounded-md`；头像、页头和弹窗等例外见设计规范。
 - 提示框与卡片避免使用 `border-l-4` 等单侧粗边框（side-tab 反模式），采用完整微边框 `rounded-xl border` 配合语义背景色。
-- 内容宽度：首页使用宽布局 `md:w-4/5 lg:w-5/6`；博客列表页使用双列宽布局 `max-w-5xl`（左侧 3fr 文章、右侧 1fr 标签栏）；详情页与笔记内页内部使用 `mx-auto w-full max-w-3xl`。
+- 五个一级内容页使用 `max-w-5xl` 外框；窄阅读区在外框内左对齐。文章列表 lg 起双栏，搜索前后列宽一致。首页、普通文章详情、专栏详情与笔记详情保留各自阅读布局，不在共享 main 上限制最大宽度。
 - 不写自定义组件 CSS 类，样式全部走 Tailwind 工具类与 data 变体（如 `data-[scrolled=true]:`、`theme-system:` 等）；`src/app/globals.css` 仅用于存放设计 token、keyframes 和变体定义。
 
 ## 通用模式与组件
 
+- 一级页面标题 `PageHeader`（`src/app/(site)/_components/site/page-header.tsx`）：接收 `eyebrow`、`title`、`description`，输出统一眉标、H1、说明和分隔线，保持 Server Component。页面负责外框和标题到内容的间距。
+- 文章搜索 `BlogSearch` 接收 RSC 的 `sourceSwitch`、`toolbar`、`sidebar` 和列表 `children`；不把整个页面改成 client，详情见[搜索规范](./search-guidelines.md)。
 - 通用按钮组件 `Button`（`src/app/(site)/_components/blog/button.tsx`）：统一支持 `back`（向左动态展开箭头）、`pill`（圆角胶囊标签）、`ahead`（向右动态展开箭头）及普通样式。
 - 文章卡片 `PostCard`（`src/app/(site)/_components/blog/post-card.tsx`）：采用出版物排版与技术等宽眉标（`// ARTICLE / DATE / READING_TIME`），标题配备 SVG 动态伸缩展开箭头，底部标签组采用低饱和等宽微标（`#TAG`），替换通用圆角胶囊块。可选 `hit` prop 接收搜索命中区间，标题按区间高亮，正文命中片段替换摘要位；组件自身不感知搜索状态。
 - 目录导轨 `TableOfContents`（`src/app/(site)/_components/blog/toc.tsx`）：采用贯穿式 1px 细线垂直导轨与章节刻度锚点（Rail Wayfinding），当前视口对应章节高亮并带平滑缩放与文字明度反馈。
@@ -54,7 +56,7 @@ MDX 渲染走异步 RSC（`mdx-content.tsx` 的 `compileMDX`），不需要 clie
 - 列表渲染 key 用稳定业务键（`post.slug`、`tag`），不用数组下标。
 - 日期显示统一 `<time dateTime={post.date}>{formatDate(post.date)}</time>`，见 `post-card.tsx` 和详情页。
 - 链接用 `next/link` 的 `Link`，站内跳转不写 `<a>`。
-- 空列表要给文案兜底（`No posts yet.` 或 `还没有文章。`）。
+- 空列表使用中文说明，区分没有内容和筛选无匹配；保留适用的清除、来源切换或申请入口。
 
 ## 动态路由页
 
@@ -123,21 +125,14 @@ MDX 渲染走异步 RSC（`mdx-content.tsx` 的 `compileMDX`），不需要 clie
 - 常驻组件（`header`、`footer`、`#global-ambient-backdrop`）留在 `src/app/(site)/layout.tsx`，通过 `view-transition-name: persistent-site-chrome` 配合 `animation: none;` 隔离，避免页面切换时导航栏与背景发生晃动。
 - 必须包含 `@media (prefers-reduced-motion: reduce)` 无障碍媒体查询，在用户开启减少动态效果时回退至即时切换。
 
-## 全站出版物设计语言与排版规范
+## 页面设计约定
 
-- **圆角规范收敛**：
-  - 容器与卡片统一采用 `rounded-lg`（`border border-border/60 bg-card/30`），微交互悬浮态为 `hover:border-foreground/30 hover:bg-muted/30`。
-  - 交互按钮与小徽标统一收敛至 `rounded-md`。
-  - 严禁在页面卡片、列表行或标签云中使用 `rounded-2xl` 或 `rounded-full` 胶囊，杜绝通用消费级 App 质感。
-- **全大写等宽技术微标（Mono Metadata System）**：
-  - 文章分类、笔记状态、日期、阅读耗时、分类索引、小标题一律采用 `font-mono text-xs uppercase tracking-wider text-muted-foreground`。
-  - 结构前缀统一采用双斜杠，如 `// ARTICLE / DATE / READ_TIME`、`// NOTE / STATUS: READY`、`// TAGS`。
-  - 标签一律统一为 `#TAG` 无实心背景微标格式。
-- **全域贯通西文衬线排版（Serif Headline System）**：
-  - 全站所有一级路由 H1 标题与文章详情 H1 统一挂载 `font-serif` 衬线字体（Newsreader），字重采用 `font-medium tracking-tight text-foreground`。
-  - 页面顶部标题统一由技术等宽眉标、衬线大标题与描述段落三层结构组成。
-- **结构化页面规范**：
-  - 项目页（`/projects`）、关于页（`/about`）、友链页（`/links`）、联系页（`/contact`）必须具备结构化内容与响应式网格排版，不得退回粗糙的泛用型 EmptyState。
+五个一级页面的视觉值统一见[设计规范](../../../DESIGN.md)。这里仅保留组件行为与首页特有结构：
+
+- 文章和笔记的标题、摘要组成主要链接，分类及可点击标签独立；不嵌套链接。
+- 项目卡片不假设整卡可点击，只为真实目的地提供反馈；友链为单一目标，整卡链接。
+- 元信息保留等宽字体和必要的 `//`，不重复页面或模块标题。纯展示技术标签与可点击标签区分；筛选控件可以用边框，不强制所有标签为同一种文本样式。
+- `SiteHeader` 的移动菜单关闭时使用 `inert`，Escape 关闭并恢复按钮焦点；展开时保持页头可见，路由切换后关闭。
 - **Hero 无界融入全站顶光规范**：
   - 首页 Hero 采用完全无边框的自然沉浸结构，不设容器外围边框、实色背景与卡片阴影，保持正文出版物排版纯净无界。
   - 背景动效 Canvas（`SpatialField`）突破父容器限制横向全宽铺展（`w-screen left-1/2 -translate-x-1/2`），通过大椭圆径向 CSS `mask-image` / `-webkit-mask-image` 衰减 Alpha 通道向四周柔和羽化；严禁在 Canvas 上方叠加使用 `--background` 实色的纯色或半透渐变层，让全站底层 `AmbientBackdrop` 的漫射顶光无界贯通。

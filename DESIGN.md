@@ -2,210 +2,149 @@
 name: 喜东东小站
 description: 个人技术沉淀和成长记录
 colors:
-  background-light: "#fbfbfd"
-  foreground-light: "#4e5264"
-  primary-light: "#3478f6"
-  muted-light: "#f1f1f4"
-  muted-foreground-light: "#6a6e80"
-  border-light: "#dddde2"
-  background-dark: "#0f1019"
-  foreground-dark: "#c4cde0"
-  primary-dark: "#8db4f8"
-  muted-dark: "#1a1b24"
-  muted-foreground-dark: "#9da3b8"
-  border-dark: "#2e2f38"
-  destructive: "#d63a3a"
-  emerald-accent: "#10b981"
+  background-light: 'hsl(40 20% 97.5%)'
+  foreground-light: 'hsl(30 8% 15%)'
+  primary-light: 'hsl(215 85% 45%)'
+  muted-light: 'hsl(40 14% 92%)'
+  muted-foreground-light: 'hsl(30 6% 42%)'
+  border-light: 'hsl(35 10% 86%)'
+  background-dark: 'hsl(30 6% 8%)'
+  foreground-dark: 'hsl(40 15% 90%)'
+  primary-dark: 'hsl(215 75% 72%)'
+  muted-dark: 'hsl(30 5% 15%)'
+  muted-foreground-dark: 'hsl(35 8% 65%)'
+  border-dark: 'hsl(30 5% 20%)'
+  page-highlight: '#b4befe'
 typography:
   display:
-    fontFamily: "Satoshi Variable, sans-serif"
-    fontSize: "clamp(1.875rem, 5vw, 3rem)"
-    fontWeight: 600
-    lineHeight: 1.1
-    letterSpacing: "-0.025em"
+    fontFamily: 'Newsreader, Georgia, serif'
+    fontSize: '2.25rem'
+    fontWeight: 500
+    lineHeight: 1.2
+    letterSpacing: '-0.025em'
   heading:
-    fontFamily: "Satoshi Variable, sans-serif"
-    fontSize: "1.25rem"
-    fontWeight: 600
+    fontFamily: 'Newsreader, Georgia, serif'
+    fontSize: '1.5rem'
+    fontWeight: 500
     lineHeight: 1.3
-    letterSpacing: "-0.025em"
+    letterSpacing: '-0.025em'
+  entry:
+    fontFamily: 'Newsreader, Georgia, serif'
+    fontSize: '1.25rem'
+    fontWeight: 500
+    lineHeight: 1.4
   body:
-    fontFamily: "Satoshi Variable, sans-serif"
-    fontSize: "0.875rem"
+    fontFamily: 'Satoshi Variable, sans-serif'
+    fontSize: '1rem'
+    fontWeight: 400
+    lineHeight: 1.75
+  summary:
+    fontFamily: 'Satoshi Variable, sans-serif'
+    fontSize: '0.875rem'
     fontWeight: 400
     lineHeight: 1.625
   label:
-    fontFamily: "Satoshi Variable, sans-serif"
-    fontSize: "0.75rem"
-    fontWeight: 500
+    fontFamily: 'monospace'
+    fontSize: '0.75rem'
+    fontWeight: 400
     lineHeight: 1.5
 rounded:
-  sm: "0.25rem"
-  md: "0.5rem"
-  lg: "0.75rem"
-  xl: "1rem"
-  full: "9999px"
+  control: '0.375rem'
+  card: '0.5rem'
 spacing:
-  xs: "0.25rem"
-  sm: "0.5rem"
-  md: "1rem"
-  lg: "1.5rem"
-  xl: "2rem"
-  section: "3rem"
-components:
-  button-primary:
-    backgroundColor: "{colors.foreground-light}"
-    textColor: "{colors.background-light}"
-    rounded: "{rounded.xl}"
-    padding: "10px 20px"
-  button-secondary:
-    backgroundColor: "{colors.muted-light}"
-    textColor: "{colors.foreground-light}"
-    rounded: "{rounded.xl}"
-    padding: "10px 20px"
-  card-entry:
-    backgroundColor: "{colors.background-light}"
-    textColor: "{colors.foreground-light}"
-    rounded: "{rounded.xl}"
-    padding: "10px 20px"
-  chip-skill:
-    backgroundColor: "{colors.muted-light}"
-    textColor: "{colors.foreground-light}"
-    rounded: "{rounded.full}"
-    padding: "4px 12px"
+  inline: '0.5rem'
+  grid: '1rem'
+  card: '1.25rem'
+  header: '1.5rem'
+  section-mobile: '2rem'
+  section-desktop: '2.5rem'
 ---
 
-# Design System: 喜东东小站
+# 设计规范
 
-## Overview
+## 适用范围
 
-**Creative North Star: "静处手记"**
+本文件是公开页面视觉规则的主入口。主要约束文章、笔记、项目、友链、关于五个一级页面。组件边界和路径见[组件规范](.trellis/spec/frontend/component-guidelines.md)，功能状态见[功能状态表](.trellis/spec/frontend/feature-status.md)。
 
-安静、克制、留白充裕的阅读空间。不追求视觉冲击，让文字自己传达重量。整个界面像一本干净的技术手记 -- 信息清晰可寻，版面宽松舒展，装饰只在必要时出现。
+保留暖纸色背景、衬线标题、无衬线正文和少量等宽元信息。页面通过字号、留白和细分隔线建立层级。`//` 仅用于页面眉标或有用的内容分类，不在每张卡片重复页面名称，不在同一模块重复标题。
 
-Satoshi 的 geometric sans 特质提供了技术感但不冷硬，可变字重让标题和正文之间的对比自然而不突兀。配色策略以近白和深灰蓝为底色，唯一的色彩强调来自蓝色 primary 和极少量的 emerald 状态指示。
+## 颜色
 
-**Key Characteristics:**
-- 留白充裕，段落和模块之间的空间大于模块内部
-- 文字层次通过字重和字号区分，不依赖颜色差异
-- 装饰性元素近乎为零，所有视觉元素都承载信息
-- 暗色模式与亮色模式同等重视，token 完整对称
+运行时颜色定义在 [globals.css](src/app/globals.css) 的 `:root` 与 `.dark`。上方元数据记录主要颜色；卡片、弹窗、代码块和错误状态使用同一文件中的对应语义 token。修改颜色时同步实际 token 与本文件，不另建色值配置。
 
-## Colors
+- 页面使用 `background`，主要文字使用 `foreground`，说明、日期与标签使用 `muted-foreground`。
+- 链接与选中状态使用 `primary`；容器使用 `border` 与 `card`，不增加大块强调色背景。
+- 项目、笔记与系列状态允许语义色，并始终显示状态文字：浅色的绿、琥珀使用 700 档，暗色使用 400 档；待补充状态沿用 rose 600/400。普通文字对比度至少 4.5:1，大字至少 3:1。
+- 重要操作和说明不叠加低透明度。浅色和暗色都需要核验，不能只看其中一种。
+- `AmbientBackdrop` 的淡紫顶光是既有背景例外，不用于文字强调；保留其低透明度与渐隐。
 
-柔和的蓝灰色调，亮暗模式下色彩温度一致。
+## 字体与层级
 
-### Primary
-- **静蓝** (#3478f6 light / #8db4f8 dark): 链接、按钮主色、hover 强调。用于引导视线到可交互元素。
+字体加载在 [fonts.ts](src/app/fonts.ts)：Satoshi 为本地字体，Newsreader 通过 Next 字体加载器加载。Newsreader 配置为 latin 子集；中文使用系统回退字形，不宣称中文使用 Newsreader 或 Satoshi 字形。
 
-### Neutral
-- **近白纸面** (#fbfbfd light): 页面背景，微带冷调避免纯白刺眼。
-- **深夜蓝** (#0f1019 dark): 暗色背景，带蓝调的深色。
-- **墨色** (#4e5264 light / #c4cde0 dark): 正文色。亮色下偏灰蓝而非纯黑。
-- **哑光灰** (#6a6e80 light / #9da3b8 dark): 次要文字、日期、标签。
-- **细线灰** (#dddde2 light / #2e2f38 dark): 边框和分割线。
-- **薄雾灰** (#f1f1f4 light / #1a1b24 dark): 卡片底色、芯片底色、muted 背景。
+| 用途               | 手机             | 桌面 | 字体与颜色                                              |
+| ------------------ | ---------------- | ---- | ------------------------------------------------------- |
+| 五页 H1            | 30px             | 36px | `font-serif font-medium tracking-tight text-foreground` |
+| 大模块标题         | 24px             | 24px | 衬线、medium                                            |
+| 文章与笔记条目标题 | 18px             | 20px | 衬线、medium                                            |
+| 项目标题           | 20px             | 20px | 衬线、medium                                            |
+| 关于简介、申请说明 | 16px / 28px 行高 | 同左 | 无衬线、正文色                                          |
+| 页面说明、条目摘要 | 14px             | 14px | 无衬线、次要文字色                                      |
+| 日期、状态、标签   | 12px             | 12px | 等宽                                                    |
 
-### Semantic
-- **危险红** (#d63a3a): destructive 操作和 important 提示框。
-- **状态绿** (#10b981): 在线状态指示点。
+连续文字不使用等宽字体。摘要最多两至三行；长标题自然换行，不为齐高截断关键标题。主要文字靠字号和字重区分，不把正文全部降为辅助文字。
 
-**The Quiet Palette Rule.** Primary 蓝以外的色相不出现在界面中。所有强调通过字重、字号或 primary 蓝实现，不引入第三色。
+## 容器与间距
 
-## Typography
+- 五个一级页面外框统一 `mx-auto w-full max-w-5xl`，最大内容宽度为 1024px。
+- `(site)/layout.tsx` 提供两侧 24px 安全留白。页面内不重复添加相同水平 padding。
+- 窄阅读区在外框内左对齐，最大 `46rem`（736px），不再次居中。
+- 页头品牌、页面 H1、页脚主要内容对齐同一条左边界。页头右侧为独立账号入口预留空间，胶囊背景可向外延伸，不改变内容边界。
+- 五页标题使用 `PageHeader`：眉标、H1、说明依次排列，内部间距 8px，底部 24px 与一条细线。
+- 标题区到内容、主要模块间隔：手机 32px，sm 起 40px。需要独立分节时使用上分隔线与 32px 内边距。
+- 网格间隔 16px，文章双栏间隔 32px。卡片内边距 20px，项目和友链桌面为 24px。
 
-**Display / Body / Label Font:** Satoshi Variable (self-hosted, woff2)
+| 页面 | 结构                                                                                         |
+| ---- | -------------------------------------------------------------------------------------------- |
+| 文章 | lg 起主列与标签侧栏约 3:1，间隔 32px；窄屏单列。搜索前后使用同一列结构，无标签也不扩展主列。 |
+| 笔记 | 单列阅读区最大 736px；不添加占位侧栏。                                                       |
+| 项目 | sm 起两列，手机单列。                                                                        |
+| 友链 | sm 起两列站点；申请说明最大 736px，申请入口位于推荐站点标题旁。                              |
+| 关于 | 简介最大 736px；技术栈 sm 起三列，手机单列；联系区域沿外框左对齐。                           |
 
-**Character:** Geometric sans，字形均匀利落。可变字重 300-900 覆盖从细体标签到粗体标题的所有需求，单一字体家族减少视觉噪音。
+### 既有页面例外
 
-### Hierarchy
-- **Display** (600, clamp(1.875rem, 5vw, 3rem), 1.1): Hero 主标题，tracking -0.025em。
-- **Heading** (600, 1.25rem, 1.3): Section 标题（关于、文章、技能等），tracking -0.025em。
-- **Body** (400-500, 0.875rem, 1.625): 正文和描述。medium(500) 用于列表项标题。
-- **Label** (500, 0.75rem, 1.5): 日期、标签、统计标签、辅助信息。
+- 首页保持 `md:w-4/5 lg:w-5/6` 的宽布局。Section 标题在内容上方；Hero 背景可横向延展。首页的编号、对齐与动态背景不由本轮五页规则覆盖。
+- 普通文章详情最大 `max-w-5xl`，专栏详情最大 `max-w-7xl`，分别为 TOC 和章节导航保留空间；不在公共 main 上强制 1024px。
+- 笔记详情保留最大 `max-w-3xl` 的居中阅读布局。
+- 详情页、首页 Hero 的特殊标题尺寸保留；这里的 H1 阶梯仅约束五个一级页面。
 
-**The One Family Rule.** 整站只用 Satoshi 一个字体家族。代码块使用浏览器默认 monospace，不引入第二套显示字体。
+## 列表与卡片
 
-## Layout
+- 文章和笔记使用底部分隔线，不给每条内容加卡片背景。标题与摘要组成主要链接，分类与文章标签保持独立链接，禁止嵌套链接。
+- 项目卡片有源码和教程等多个目标，只在真实链接上显示交互反馈。未配置目标地址的项目标题保持普通文本，整卡不变色。
+- 友链为单一目标，整卡可点击，支持边框与背景反馈。
+- 纯展示技术标签使用 `#标签` 文本；文章标签用下划线、侧栏筛选标签用细边框表达可点击，不能让所有标签看起来都是按钮。
+- 页面卡片 `rounded-lg`（8px），控件 `rounded-md`（6px），默认无阴影。头像、页头胶囊、弹窗和现有详情提示框是用途明确的例外，不做全站替换。
 
-首页采用双列 Section 布局：左侧固定宽度标题（md:min-w-36），右侧弹性内容区。移动端堆叠为单列。
+## 搜索与筛选
 
-页面容器 `mx-auto w-full px-6`，桌面端 `md:w-4/5 lg:w-5/6`，内容不会铺满全宽。
-
-Hero 区域是例外：负边距全宽延展（-mx-6 到 -mx-16），占据 70vh-82vh，包含动态 SpatialField 背景。
-
-模块间距 `gap-12`（3rem），模块内元素间距 `gap-2.5` 到 `gap-4`（0.625rem-1rem）。模块间空间约为模块内空间的 3-4 倍。
-
-**The Breathing Room Rule.** 模块之间的间距始终大于模块内元素的间距。标题上方空间大于标题下方空间。
-
-## Elevation & Depth
-
-系统整体扁平。shadow 仅在两处出现：
-
-- `shadow-sm` 用于头像和少数卡片的 hover 状态
-- SpatialField 动态背景通过渐变遮罩营造深度感，而非阴影
-
-深度通过色调分层表达：`muted/30` → `muted/60` → `background` 三级不透明度。
-
-**The Flat-By-Default Rule.** 元素静止时无阴影。shadow-sm 只在 hover 状态短暂出现，作为交互反馈而非装饰。
-
-## Shapes
-
-圆角策略温和统一：
-
-- 按钮和入口列表项：`rounded-xl`（1rem），手感柔软
-- 统计卡片和头像：`rounded-xl` 到 `rounded-2xl`（1rem-1.25rem）
-- 技能标签和徽章：`rounded-full`（药丸形），与方角容器形成对比
-- 代码块和内联代码：`rounded`（0.25-0.5rem），保持紧凑
-
-边框 1px，使用 `border-border` token。hover 时 `border-foreground/25` 微微加深。
-
-## Components
-
-### Buttons
-- **Shape:** 柔和圆角 (rounded-xl, 1rem)
-- **Primary:** 反色（bg-foreground, text-background），hover 降低 opacity 至 90%
-- **Secondary:** 半透明 muted 底色（bg-muted/65），hover 加深至 bg-muted
-- **Ghost:** 无底色，hover 时出现 muted/60 底色（GitHub 链接按钮）
-
-### Entry List Item
-- **Style:** 圆角边框卡片（rounded-2xl, border, bg-background），hover 时 bg-muted/50
-- **Layout:** 左侧日期（tabular-nums），右侧标题（truncate），右端箭头
-- **Motion:** hover 时箭头从隐藏状态向右滑出（duration-300, ease-in-out），motion-reduce 时静态
-
-### Link Card
-- **Style:** 圆角边框卡片（rounded-2xl, border, bg-muted/30）
-- **Hover:** border-foreground/25 + shadow-sm，过渡自然
-
-### Skill Chip
-- **Style:** 药丸形（rounded-full），border + bg-muted/60
-- **Motion:** 入场交错淡入（animate-skill-fade-in, 28ms 间隔），hover 时微上浮 + 微放大
-
-### Stats Card
-- **Style:** 圆角边框（rounded-xl, border, bg-muted/30）
-- **Layout:** 3 列网格，数字居中，标签在下
-
-### Callout
-- **Style:** 圆角卡片（rounded-r-xl），左侧 2px 语义色细线
-- **Variants:** note (muted-foreground), tip (primary), warning (accent), important (destructive)
-
-## Do's and Don'ts
-
-### Do:
-- **Do** 用 CSS 变量（`hsl(var(--xxx))`）引用颜色，保持暗色模式一致性。
-- **Do** 用 `text-muted-foreground` 处理次要文字，用 `text-foreground` 处理主要内容。
-- **Do** 用 `transition-colors` 或 `transition-all` 做状态切换，保持 hover/focus 过渡平滑。
-- **Do** 用 `motion-reduce:` 前缀为动画提供无障碍降级。
-
-### Don't:
-- **Don't** 使用 `border-l-4` 或更粗的侧边装饰线（side-tab 反模式），用 `border-l-2` 或纯背景色区分。
-- **Don't** 引入 primary 蓝以外的强调色。
-- **Don't** 在正文区域使用 Satoshi 以外的显示字体。
-- **Don't** 给静止状态的元素加阴影（shadow 只在 hover 时出现）。
-- **Don't** 用硬编码的颜色值替代语义 token。
-
-## 文章筛选文字导航与动效
+搜索和来源选项属于同一工具区，手机堆叠、sm 起同排。分类、排序和归档组成下一组，不为压缩高度隐藏已有功能。
 
 文章分类使用无边框、无底色的等宽文字导航，分类间距 24px。选中项用正文色和名称下方的短下划线标记，数量保持次要文字色；保留至少 44px 点击高度与键盘焦点，不使用方框按钮或胶囊底色。
 
 分类、排序和来源共用 `FilterLabel`：悬停或键盘聚焦时，细线在 220ms 内从左向右展开，未选中为 40% 透明度，选中为完整强调色；离开时收回。按下链接在 150ms 内下沉 1px，松开恢复。选中变化通过 transform 与 opacity 过渡，不改变布局、不添加客户端动画库。减少动态效果时关闭空间和时间过渡，保留静态选中线与焦点。
+
+`BlogSearch` 接收来源、工具栏和侧栏槽位，保留 RSC 提供的内容。搜索只替换主列表，来源和标签侧栏常驻；分类、排序和分页在搜索态隐藏。React 位置和 key 保持稳定，切换来源不清空输入。完整行为见[站内搜索规范](.trellis/spec/frontend/search-guidelines.md)。
+
+## 空态、触控与键盘
+
+- 空态使用 14px 次要文字与 32px 上下留白；说明无内容或筛选无匹配，不重复堆放眉标、标题与同义提示。
+- 搜索零结果保留清除和来源切换入口；友链空态保留申请入口。
+- 主要控件和移动菜单按钮触控高度至少 44px，图标本身不必放大。
+- 范围内交互元素提供可见 focus-visible 轮廓。移动菜单关闭时 inert，Escape 关闭并把焦点还给菜单按钮；路由切换关闭菜单。
+- 不依赖 hover 或颜色传达唯一信息。沿用现有减少动画支持，不为五页统一新增动画库或进场动效。
+
+## 验收
+
+五页检查明暗主题与 390、768、1024、1440px，补查 320px 无横向溢出。核对标题位置、正文行宽、真实链接反馈、长标题与长 URL、空态与非空态。文章同时验证来源切换保留输入、搜索前后列宽稳定及分页 URL。共享页头页脚和 PostCard 改动后回归首页、详情、标签、归档和专栏。

@@ -15,14 +15,14 @@ export interface SeriesBannerProps {
  */
 export function SeriesBanner({ series }: SeriesBannerProps) {
   return (
-    <div className="group relative flex flex-col gap-4 rounded-lg border border-border/60 bg-card/30 p-6 transition-all hover:border-foreground/30 hover:bg-muted/30">
+    <div className="flex flex-col gap-3 rounded-lg border border-border/60 bg-card/30 p-5">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <div className="flex items-center gap-2 font-mono text-xs tracking-wider text-muted-foreground">
           <span className="font-semibold text-foreground/80">// 精选系列</span>
           <span>/</span>
           <span
             className={
-              series.status === 'in-progress' ? 'text-emerald-600 dark:text-emerald-400' : 'text-muted-foreground'
+              series.status === 'in-progress' ? 'text-emerald-700 dark:text-emerald-400' : 'text-muted-foreground'
             }
           >
             {SERIES_STATUS_LABELS[series.status]}
@@ -32,11 +32,16 @@ export function SeriesBanner({ series }: SeriesBannerProps) {
         <span className="font-mono text-xs text-muted-foreground">已更新 {series.postsCount} 讲</span>
       </div>
 
-      <h2 className="font-serif text-xl font-medium tracking-tight text-foreground transition-colors group-hover:text-primary sm:text-2xl">
-        <Link href={`/blog/series/${series.id}`}>{series.title}</Link>
+      <h2 className="font-serif text-xl font-medium tracking-tight text-foreground">
+        <Link
+          href={`/blog/series/${series.id}`}
+          className="rounded-sm hover:text-primary focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-ring"
+        >
+          {series.title}
+        </Link>
       </h2>
 
-      <div className="flex flex-wrap items-center justify-between gap-4 pt-2 border-t border-border/30">
+      <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
         <div className="flex flex-wrap gap-2 font-mono text-xs text-muted-foreground">
           {series.tags.map((tag) => (
             <span key={tag} className="select-none">
@@ -47,7 +52,7 @@ export function SeriesBanner({ series }: SeriesBannerProps) {
 
         <Link
           href={`/blog/series/${series.id}`}
-          className="inline-flex items-center gap-1 font-mono text-xs text-primary transition-transform group-hover:translate-x-0.5"
+          className="inline-flex min-h-11 items-center gap-1 rounded-sm font-mono text-xs text-primary hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
         >
           <span>浏览专栏大纲</span>
           <span>→</span>

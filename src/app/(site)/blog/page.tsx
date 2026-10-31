@@ -10,6 +10,7 @@ import { BlogToolbar } from '../_components/blog/blog-toolbar'
 import { Paginator } from '../_components/blog/paginator'
 import { PostCard } from '../_components/blog/post-card'
 import { SeriesBanner } from '../_components/blog/series-banner'
+import { PageHeader } from '../_components/site/page-header'
 
 export const metadata: Metadata = {
   title: '文章',
@@ -67,58 +68,47 @@ export default async function BlogPage({ searchParams }: BlogPageProps) {
       : undefined
 
   return (
-    <div className="mx-auto w-full max-w-5xl">
-      <main>
-        <div id="content-header" className="mb-6">
-          <div className="mb-2 font-mono text-xs tracking-wider text-muted-foreground">// 写作与手记</div>
-          <h1 className="font-serif text-3xl font-medium tracking-tight text-foreground sm:text-4xl">文章</h1>
-        </div>
+    <div className="mx-auto flex w-full max-w-5xl flex-col gap-8 sm:gap-10">
+      <PageHeader eyebrow="写作与手记" title="文章" description="技术实践、折腾记录与日常思考。" />
 
-        {featuredSeries && (
-          <div className="mb-8">
-            <SeriesBanner series={featuredSeries} />
-          </div>
-        )}
-
-        <div className="flex flex-col gap-6">
+      {featuredSeries && <SeriesBanner series={featuredSeries} />}
+      <BlogSearch
+        posts={sourcePosts}
+        currentSource={activeSource}
+        sourceSwitch={
           <BlogSourceSwitch currentSource={activeSource} currentCategory={activeCategory} currentSort={activeSort} />
-          <BlogSearch posts={sourcePosts} currentSource={activeSource}>
-            {/* 分类筛选与多维排序工具栏 */}
-            <BlogToolbar
-              currentCategory={activeCategory}
-              currentSort={activeSort}
-              currentSource={activeSource}
-              categoryCounts={categoryCounts}
-            />
+        }
+        toolbar={
+          <BlogToolbar
+            currentCategory={activeCategory}
+            currentSort={activeSort}
+            currentSource={activeSource}
+            categoryCounts={categoryCounts}
+          />
+        }
+        sidebar={<BlogSidebar tags={tags} />}
+      >
+        <section aria-label="文章列表" id="content" className="min-w-0">
+          {/* 文章列表 */}
+          {posts.length > 0 ? (
+            <ul className="flex flex-col text-start">
+              {posts.map((post) => (
+                <PostCard
+                  key={post.slug}
+                  post={post}
+                  showUpdatedDate={activeSort === 'updated'}
+                  currentSource={activeSource}
+                />
+              ))}
+            </ul>
+          ) : (
+            <p className="py-8 text-sm text-muted-foreground">当前条件下暂无文章。</p>
+          )}
 
-            <div className="grid gap-y-16 sm:grid-cols-[3fr_1fr] sm:gap-x-8">
-              <section aria-label="文章列表" id="content">
-                {/* 文章列表 */}
-                {posts.length > 0 ? (
-                  <ul className="flex flex-col text-start">
-                    {posts.map((post) => (
-                      <PostCard
-                        key={post.slug}
-                        post={post}
-                        showUpdatedDate={activeSort === 'updated'}
-                        currentSource={activeSource}
-                      />
-                    ))}
-                  </ul>
-                ) : (
-                  <p className="py-12 text-sm text-muted-foreground">当前条件下暂无文章。</p>
-                )}
-
-                {/* 分页器 */}
-                <Paginator prevUrl={prevUrl} nextUrl={nextUrl} />
-              </section>
-
-              {/* 右侧标签侧边栏 */}
-              <BlogSidebar tags={tags} />
-            </div>
-          </BlogSearch>
-        </div>
-      </main>
+          {/* 分页器 */}
+          <Paginator prevUrl={prevUrl} nextUrl={nextUrl} />
+        </section>
+      </BlogSearch>
     </div>
   )
 }

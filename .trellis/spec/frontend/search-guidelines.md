@@ -12,8 +12,24 @@ RSC 页面先排除草稿、再按 URL 来源筛选，把完整结果交给 `Blo
 
 ```tsx
 // src/app/(site)/blog/page.tsx
-<BlogSourceSwitch currentSource={activeSource} currentCategory={activeCategory} currentSort={activeSort} />
-<BlogSearch posts={sourcePosts} currentSource={activeSource}>…分类工具栏、列表、分页器…</BlogSearch>
+<BlogSearch
+  posts={sourcePosts}
+  currentSource={activeSource}
+  sourceSwitch={
+    <BlogSourceSwitch currentSource={activeSource} currentCategory={activeCategory} currentSort={activeSort} />
+  }
+  toolbar={
+    <BlogToolbar
+      currentCategory={activeCategory}
+      currentSort={activeSort}
+      currentSource={activeSource}
+      categoryCounts={categoryCounts}
+    />
+  }
+  sidebar={<BlogSidebar tags={tags} />}
+>
+  {/* 普通列表与分页器 */}
+</BlogSearch>
 ```
 
 不建搜索 API route，不引入搜索库。索引在 `useMemo` 里按 `posts` 引用建一次，输入变化只重跑匹配；未输入时渲染 `children`（服务端渲染的原列表）。
@@ -68,9 +84,10 @@ flowchart TD
 ## 列表页行为
 
 - 搜索框在 `/blog` 标题下方，输入即过滤，没有提交按钮。
-- 搜索态替换分类工具栏、列表与分页器，清空后恢复；搜索输入期间不发网络请求。
+- 搜索态隐藏分类工具栏，用结果替换列表与分页器，清空后恢复；搜索输入期间不发网络请求。
+- 普通列表和搜索结果处于同一个响应式网格主列，lg 起约 3:1 双栏；标签侧栏常驻。无标签时仍保留主列宽度，防止搜索或数据变化导致阅读行宽跳动。
 - 搜索范围为当前来源筛选下的全部已发布文章，不受当前分类筛选与排序影响。
-- 来源切换放在 `BlogSearch` 的 `children` 外，在搜索态和零结果时都可见。切换是同 `/blog` 路由的 Next Link 导航，会更新服务端传入的文章集合。
+- 来源切换通过 `sourceSwitch` 槽位传入，放在 `children` 外、搜索框旁，在搜索态和零结果时都可见。切换是同 `/blog` 路由的 Next Link 导航，会更新服务端传入的文章集合。
 - 同路由切换来源时保持 `BlogSearch` 位置与 key 不变，保留其 `useState` 搜索词；不要因来源集合为空而卸载组件。
 - 搜索结果向 `PostCard` 透传当前来源，分类眉标链接保留来源。来源切换清除页码并保留当前分类和排序，分页链接也保留来源。
 

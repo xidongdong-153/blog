@@ -20,6 +20,7 @@ export function SiteHeader() {
   const [expanded, setExpanded] = useState(false)
 
   const headerRef = useRef<HTMLElement>(null)
+  const menuButtonRef = useRef<HTMLButtonElement>(null)
   const backdropRef = useRef<HTMLDivElement>(null)
   const capsuleRef = useRef<HTMLDivElement>(null)
 
@@ -119,8 +120,18 @@ export function SiteHeader() {
       }
     }
 
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key !== 'Escape') return
+      setExpanded(false)
+      menuButtonRef.current?.focus()
+    }
+
     document.addEventListener('pointerdown', handlePointerDown)
-    return () => document.removeEventListener('pointerdown', handlePointerDown)
+    document.addEventListener('keydown', handleKeyDown)
+    return () => {
+      document.removeEventListener('pointerdown', handlePointerDown)
+      document.removeEventListener('keydown', handleKeyDown)
+    }
   }, [expanded])
 
   useEffect(() => {
@@ -131,18 +142,18 @@ export function SiteHeader() {
     <>
       <header
         ref={headerRef}
-        data-visible={visible}
-        className="sticky top-4 z-[70] w-full px-4 transition-[transform,opacity] will-change-[transform,opacity] motion-reduce:transition-opacity motion-reduce:transform-none sm:px-6 data-[visible=false]:pointer-events-none data-[visible=false]:-translate-y-1.5 data-[visible=false]:scale-[0.98] data-[visible=false]:opacity-0 data-[visible=false]:duration-160 data-[visible=false]:ease-out data-[visible=true]:pointer-events-auto data-[visible=true]:translate-y-0 data-[visible=true]:scale-100 data-[visible=true]:opacity-100 data-[visible=true]:duration-[240ms] data-[visible=true]:ease-out"
+        data-visible={visible || expanded}
+        className="sticky top-4 z-[70] w-full px-6 transition-[transform,opacity] will-change-[transform,opacity] motion-reduce:transition-opacity motion-reduce:transform-none sm:px-6 data-[visible=false]:pointer-events-none data-[visible=false]:-translate-y-1.5 data-[visible=false]:scale-[0.98] data-[visible=false]:opacity-0 data-[visible=false]:duration-160 data-[visible=false]:ease-out data-[visible=true]:pointer-events-auto data-[visible=true]:translate-y-0 data-[visible=true]:scale-100 data-[visible=true]:opacity-100 data-[visible=true]:duration-[240ms] data-[visible=true]:ease-out"
       >
         <div
           ref={capsuleRef}
-          className="relative mx-auto flex h-14 max-w-5xl items-center justify-between pl-4 pr-12 sm:px-4 sm:rounded-2xl will-change-transform motion-reduce:transform-none"
+          className="relative mx-auto flex h-14 max-w-5xl items-center justify-between pr-10 sm:rounded-2xl will-change-transform motion-reduce:transform-none"
         >
           {/* 液体融合水膜背景层 */}
           <div
             ref={backdropRef}
             aria-hidden="true"
-            className="pointer-events-none absolute inset-0 -z-10 rounded-xl border border-border bg-background/80 shadow-[0_0_0_1px_hsl(var(--foreground)/0.06),0_10px_15px_-3px_hsl(var(--foreground)/0.06),0_4px_6px_-4px_hsl(var(--foreground)/0.06)] backdrop-blur-md will-change-[opacity] sm:rounded-2xl dark:bg-muted/80"
+            className="pointer-events-none absolute -inset-x-3 inset-y-0 -z-10 rounded-xl border border-border bg-background/80 shadow-[0_0_0_1px_hsl(var(--foreground)/0.06),0_10px_15px_-3px_hsl(var(--foreground)/0.06),0_4px_6px_-4px_hsl(var(--foreground)/0.06)] backdrop-blur-md will-change-[opacity] sm:rounded-2xl dark:bg-muted/80"
             style={{
               opacity: 0,
               WebkitMaskImage: 'linear-gradient(to bottom, black calc(100% - 6px), transparent 100%)',
@@ -158,21 +169,21 @@ export function SiteHeader() {
                 <Link
                   key={item.href}
                   href={item.href}
-                  className={
-                    isActive(item.href) ? 'font-medium text-foreground' : 'text-muted-foreground hover:text-primary'
-                  }
+                  aria-current={isActive(item.href) ? 'page' : undefined}
+                  className={`inline-flex min-h-11 items-center rounded-sm focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-ring ${isActive(item.href) ? 'font-medium text-foreground' : 'text-muted-foreground hover:text-primary'}`}
                 >
                   {item.name}
                 </Link>
               ))}
             </nav>
             <button
+              ref={menuButtonRef}
               type="button"
               aria-label="切换菜单"
               aria-expanded={expanded}
               aria-controls="mobile-nav"
               onClick={() => setExpanded((prev) => !prev)}
-              className="rounded-md border border-border p-1.5 transition-colors hover:bg-muted sm:hidden"
+              className="flex size-11 items-center justify-center rounded-md border border-border transition-colors hover:bg-muted focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring sm:hidden"
             >
               <svg
                 xmlns="http://www.w3.org/2000/svg"
@@ -195,6 +206,7 @@ export function SiteHeader() {
           <div
             id="mobile-nav"
             data-expanded={expanded}
+            inert={!expanded}
             className="absolute left-0 right-0 top-[calc(100%+0.5rem)] grid rounded-xl border border-border bg-background/95 shadow-lg backdrop-blur-md transition-[grid-template-rows,opacity] duration-300 dark:bg-muted/95 data-[expanded=false]:pointer-events-none data-[expanded=false]:grid-rows-[0fr] data-[expanded=false]:opacity-0 data-[expanded=true]:pointer-events-auto data-[expanded=true]:grid-rows-[1fr] data-[expanded=true]:opacity-100 sm:hidden"
           >
             <div className="overflow-hidden p-2">
@@ -203,7 +215,8 @@ export function SiteHeader() {
                   <Link
                     key={item.href}
                     href={item.href}
-                    className={`rounded-md px-3 py-2 font-medium transition-colors ${
+                    aria-current={isActive(item.href) ? 'page' : undefined}
+                    className={`flex min-h-11 items-center rounded-md px-3 py-2 font-medium transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring ${
                       isActive(item.href)
                         ? 'bg-muted text-foreground'
                         : 'text-muted-foreground hover:bg-muted/50 hover:text-primary'

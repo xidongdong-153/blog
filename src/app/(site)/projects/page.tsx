@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
+import { PageHeader } from '../_components/site/page-header'
 
 export const metadata: Metadata = {
   title: '项目',
@@ -17,9 +18,9 @@ interface Project {
 }
 
 const STATUS_CONFIG: Record<Project['status'], { label: string; className: string }> = {
-  active: { label: '活跃', className: 'text-emerald-600 dark:text-emerald-400' },
+  active: { label: '活跃', className: 'text-emerald-700 dark:text-emerald-400' },
   maintained: { label: '维护中', className: 'text-primary' },
-  experimental: { label: '实验性', className: 'text-amber-600 dark:text-amber-400' },
+  experimental: { label: '实验性', className: 'text-amber-700 dark:text-amber-400' },
   archived: { label: '已归档', className: 'text-muted-foreground' },
 }
 
@@ -51,12 +52,8 @@ const PROJECTS: Project[] = [
 
 export default function ProjectsPage() {
   return (
-    <div className="mx-auto flex w-full max-w-4xl flex-col gap-10">
-      <div className="flex flex-col gap-2 border-b border-border/40 pb-6">
-        <div className="font-mono text-xs tracking-wider text-muted-foreground">// 作品与开源</div>
-        <h1 className="font-serif text-3xl font-medium tracking-tight text-foreground sm:text-4xl">项目</h1>
-        <p className="text-sm leading-relaxed text-muted-foreground">开源工具、Web 应用与 AI Agent 实践项目。</p>
-      </div>
+    <div className="mx-auto flex w-full max-w-5xl flex-col gap-8 sm:gap-10">
+      <PageHeader eyebrow="作品与开源" title="项目" description="开源工具、Web 应用与 AI Agent 实践项目。" />
 
       <div className="grid gap-4 sm:grid-cols-2">
         {PROJECTS.map((project) => {
@@ -64,17 +61,19 @@ export default function ProjectsPage() {
           return (
             <div
               key={project.title}
-              className="group flex flex-col justify-between rounded-lg border border-border/60 bg-card/30 p-5 transition-all hover:border-foreground/30 hover:bg-muted/30"
+              className="flex min-w-0 flex-col justify-between rounded-lg border border-border/60 bg-card/30 p-5 sm:p-6"
             >
               <div className="flex flex-col gap-2.5">
-                <div className="flex items-center justify-between font-mono text-xs tracking-wider text-muted-foreground">
-                  <span>// 项目</span>
+                <div className="font-mono text-xs tracking-wider text-muted-foreground">
                   <span className={status.className}>状态: {status.label}</span>
                 </div>
 
-                <h2 className="font-serif text-xl font-medium tracking-tight text-foreground transition-colors group-hover:text-primary">
+                <h2 className="font-serif text-xl font-medium tracking-tight text-foreground">
                   {project.href ? (
-                    <Link href={project.href} className="hover:underline">
+                    <Link
+                      href={project.href}
+                      className="rounded-sm hover:text-primary hover:underline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-ring"
+                    >
                       {project.title}
                     </Link>
                   ) : (
@@ -101,7 +100,7 @@ export default function ProjectsPage() {
                         href={project.github}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="inline-flex items-center gap-1.5 font-mono text-xs text-muted-foreground transition-colors hover:text-foreground"
+                        className="inline-flex min-h-11 items-center gap-1.5 rounded-sm font-mono text-xs text-muted-foreground transition-colors hover:text-primary focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-ring"
                       >
                         <svg
                           xmlns="http://www.w3.org/2000/svg"
@@ -123,7 +122,7 @@ export default function ProjectsPage() {
                     {project.seriesId && (
                       <Link
                         href={`/blog/series/${project.seriesId}`}
-                        className="inline-flex items-center gap-1 font-mono text-xs text-primary transition-colors hover:underline"
+                        className="inline-flex min-h-11 items-center gap-1 rounded-sm font-mono text-xs text-primary transition-colors hover:underline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-ring"
                       >
                         <span>配套系列教程</span>
                         <span>→</span>

@@ -19,7 +19,7 @@ const SORT_OPTIONS: BlogSortOrder[] = ['newest', 'oldest', 'updated']
  */
 export function BlogToolbar({ currentCategory, currentSort, currentSource, categoryCounts }: BlogToolbarProps) {
   return (
-    <div className="flex flex-col gap-4 border-b border-border/40 pb-5 sm:flex-row sm:items-center sm:justify-between">
+    <div className="flex flex-col gap-2 border-b border-border/40 pb-3 lg:flex-row lg:items-center lg:justify-between">
       {/* 分类切换组 */}
       <nav aria-label="文章分类筛选" className="flex flex-wrap items-center gap-x-6 gap-y-1">
         {BLOG_CATEGORIES.map((category) => {
@@ -48,9 +48,9 @@ export function BlogToolbar({ currentCategory, currentSort, currentSource, categ
       </nav>
 
       {/* 排序模式与时间线入口 */}
-      <div className="flex flex-wrap items-center gap-3 font-mono text-xs sm:justify-end">
+      <div className="flex flex-wrap items-center gap-x-3 font-mono text-xs lg:justify-end">
         <div className="flex items-center gap-2">
-          <span className="tracking-wider text-muted-foreground">// 排序</span>
+          <span className="sr-only">排序</span>
           <div className="flex items-center gap-1">
             {SORT_OPTIONS.map((sortKey, index) => {
               const isActive = currentSort === sortKey
@@ -82,7 +82,7 @@ export function BlogToolbar({ currentCategory, currentSort, currentSource, categ
         <Link
           href="/blog/archives"
           aria-label="按时间线查看全部文章"
-          className="inline-flex items-center gap-1 rounded-md border border-border/60 bg-muted/20 px-2 py-0.5 text-muted-foreground transition-colors hover:border-foreground/30 hover:bg-muted/50 hover:text-foreground"
+          className="inline-flex min-h-11 items-center gap-1 rounded-md px-2 py-0.5 text-muted-foreground transition-colors hover:bg-muted/50 hover:text-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
         >
           <span>时间线</span>
           <span className="text-xs">↗</span>

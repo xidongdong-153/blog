@@ -3,7 +3,7 @@ import Link from 'next/link'
 import { formatDate, NOTE_STATUS_LABELS } from '@/lib/content'
 
 const STATUS_TEXT_COLORS: Record<Note['status'], string> = {
-  'in-progress': 'text-amber-600 dark:text-amber-400',
+  'in-progress': 'text-amber-700 dark:text-amber-400',
   incomplete: 'text-rose-600 dark:text-rose-400',
   ready: 'text-primary',
   archived: 'text-muted-foreground',
@@ -11,7 +11,7 @@ const STATUS_TEXT_COLORS: Record<Note['status'], string> = {
 
 export function NoteCard({ note }: { note: Note }) {
   return (
-    <article className="group flex flex-col gap-2.5 border-b border-border/50 pb-8 pt-2 transition-colors">
+    <article className="flex min-w-0 flex-col gap-2 border-b border-border/40 pb-7 pt-4">
       <div className="flex flex-wrap items-center gap-2 font-mono text-xs tracking-wider text-muted-foreground">
         <span>// 笔记</span>
         <span>/</span>
@@ -20,15 +20,19 @@ export function NoteCard({ note }: { note: Note }) {
         <span className={STATUS_TEXT_COLORS[note.status]}>状态: {NOTE_STATUS_LABELS[note.status]}</span>
       </div>
 
-      <h2 className="font-serif text-xl font-medium tracking-tight text-foreground transition-colors group-hover:text-primary sm:text-2xl">
-        <Link href={`/notes/${note.slug}`} className="hover:underline">
+      <Link
+        href={`/notes/${note.slug}`}
+        className="group/link flex flex-col gap-2 rounded-sm focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-ring"
+      >
+        <h2 className="font-serif text-lg font-medium tracking-tight text-foreground transition-colors group-hover/link:text-primary sm:text-xl">
           {note.title}
-        </Link>
-      </h2>
-
-      {note.description && (
-        <p className="line-clamp-3 text-sm leading-relaxed text-muted-foreground">{note.description}</p>
-      )}
+        </h2>
+        {note.description && (
+          <p className="line-clamp-2 text-sm leading-relaxed text-muted-foreground sm:line-clamp-3">
+            {note.description}
+          </p>
+        )}
+      </Link>
 
       {note.tags.length > 0 && (
         <div className="mt-1 flex flex-wrap gap-2 font-mono text-xs text-muted-foreground">
