@@ -7,8 +7,8 @@ export function SiteFooter() {
   const year = new Date().getFullYear()
 
   return (
-    <footer className="mt-28 border-t border-border/40 pb-12 pt-12 text-xs text-muted-foreground">
-      <div className="mx-auto max-w-5xl px-6">
+    <footer className="mt-16 border-t border-border/40 px-6 pb-12 pt-12 text-xs text-muted-foreground sm:mt-20">
+      <div className="mx-auto w-full max-w-5xl">
         {/* 上层：品牌信息与关于导航 */}
         <div className="flex flex-col justify-between gap-8 md:flex-row">
           <div className="space-y-3">
@@ -19,7 +19,7 @@ export function SiteFooter() {
               >
                 {siteConfig.title}
               </Link>
-              <div className="text-[11px] text-muted-foreground/60">
+              <div className="text-xs text-muted-foreground">
                 © {year} {siteConfig.author}. 使用 Next.js 构建。
               </div>
             </div>
@@ -28,7 +28,7 @@ export function SiteFooter() {
           </div>
 
           <div>
-            <div className="mb-3 text-[11px] font-medium uppercase tracking-wider text-foreground">关于</div>
+            <div className="mb-3 text-xs font-medium tracking-wider text-foreground">关于</div>
             <ul className="space-y-2 text-xs">
               <li>
                 <Link href="/about" className="transition-colors hover:text-foreground">
@@ -74,7 +74,7 @@ export function SiteFooter() {
             <ThemeToggle />
           </div>
 
-          <div className="text-[11px] text-muted-foreground/60" title="我们行常人不可行之事 —— 黑锋骑士团">
+          <div className="text-xs text-muted-foreground" title="我们行常人不可行之事 —— 黑锋骑士团">
             We do what the living cannot.
           </div>
         </div>

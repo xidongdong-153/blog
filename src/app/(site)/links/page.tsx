@@ -4,6 +4,7 @@ import { CopyInviteButton } from '@/app/(site)/_components/links/copy-invite-but
 import { FriendApplyButton } from '@/app/(site)/_components/links/friend-apply-button'
 import { getApprovedFriendLinks } from '@/server/modules/links/links.service'
 import { siteConfig } from '@/site.config'
+import { PageHeader } from '../_components/site/page-header'
 
 export const metadata: Metadata = {
   title: '友链',
@@ -13,17 +14,15 @@ export default async function LinksPage() {
   const friendLinksList = await getApprovedFriendLinks()
 
   return (
-    <div className="mx-auto flex w-full max-w-3xl flex-col gap-12">
-      {/* 页面主标题 */}
-      <div className="flex flex-col gap-2 border-b border-border/40 pb-6">
-        <div className="font-mono text-xs tracking-wider text-muted-foreground">// 友情链接</div>
-        <h1 className="font-serif text-3xl font-medium tracking-tight text-foreground sm:text-4xl">友链</h1>
-        <p className="text-sm leading-relaxed text-muted-foreground">志同道合的技术伙伴、独立博客与设计探索者。</p>
-      </div>
+    <div className="mx-auto flex w-full max-w-5xl flex-col gap-8 sm:gap-10">
+      <PageHeader eyebrow="友情链接" title="友链" description="志同道合的技术伙伴、独立博客与设计探索者。" />
 
       {/* 友链网格 */}
       <section className="flex flex-col gap-4">
-        <div className="font-mono text-xs tracking-wider text-muted-foreground">// 01. 推荐站点</div>
+        <div className="flex flex-wrap items-center justify-between gap-4">
+          <h2 className="font-serif text-2xl font-medium tracking-tight text-foreground">推荐站点</h2>
+          <FriendApplyButton className="inline-flex min-h-11 items-center gap-1.5 rounded-md border border-border/60 bg-muted/30 px-3 py-2 font-mono text-xs text-foreground transition-colors hover:border-foreground/30 hover:bg-muted/60 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring" />
+        </div>
         {friendLinksList.length > 0 ? (
           <div className="grid gap-4 sm:grid-cols-2">
             {friendLinksList.map((link) => (
@@ -32,7 +31,7 @@ export default async function LinksPage() {
                 href={link.url}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="group flex flex-col justify-between rounded-lg border border-border/60 bg-card/30 p-4 transition-all hover:border-foreground/30 hover:bg-muted/30"
+                className="group flex min-w-0 flex-col justify-between rounded-lg border border-border/60 bg-card/30 p-5 transition-colors hover:border-foreground/30 hover:bg-muted/30 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-ring sm:p-6"
               >
                 <div className="flex flex-col gap-1.5">
                   <div className="flex items-center justify-between">
@@ -56,7 +55,7 @@ export default async function LinksPage() {
                 </div>
 
                 <div className="mt-4 border-t border-border/30 pt-2">
-                  <span className="font-mono text-[0.7rem] text-muted-foreground/70">
+                  <span className="break-all font-mono text-xs text-muted-foreground">
                     {link.url.replace(/^https?:\/\//, '')}
                   </span>
                 </div>
@@ -64,29 +63,18 @@ export default async function LinksPage() {
             ))}
           </div>
         ) : (
-          <div className="flex flex-col gap-5 rounded-lg border border-border/60 bg-card/30 p-5 sm:p-6">
-            <div className="flex flex-col gap-2">
-              <div className="font-mono text-xs tracking-wider text-muted-foreground">// 当前暂无友链</div>
-              <h3 className="font-serif text-xl font-medium tracking-tight text-foreground">这里还没有友链</h3>
-              <p className="max-w-2xl text-sm leading-relaxed text-muted-foreground">
-                友链会在双方确认交换后展示在这里。
-              </p>
-            </div>
-
-            <div className="border-t border-border/40 pt-4">
-              <div className="font-mono text-xs tracking-wider text-muted-foreground">// 这个人还没有朋友</div>
-            </div>
-          </div>
+          <p className="py-8 text-sm leading-relaxed text-muted-foreground">
+            暂无友链。双方确认交换后，站点会展示在这里。
+          </p>
         )}
       </section>
 
       {/* 互换规则契约 */}
-      <section className="flex flex-col gap-4 border-t border-border/40 pt-8">
-        <div className="font-mono text-xs tracking-wider text-muted-foreground">// 02. 友链互换</div>
+      <section className="flex max-w-[46rem] flex-col gap-4 border-t border-border/40 pt-8">
         <h2 className="font-serif text-2xl font-medium tracking-tight text-foreground">友链申请约定</h2>
-        <div className="flex flex-col gap-3 text-sm leading-relaxed text-muted-foreground">
+        <div className="flex flex-col gap-3 text-base leading-7 text-foreground">
           <p>欢迎原创技术博客、独立开发者或数字花园交换链接。为保证阅读体验，希望你的站点：</p>
-          <ul className="flex flex-col gap-1.5 font-mono text-xs text-muted-foreground ps-4">
+          <ul className="flex flex-col gap-1.5 ps-5">
             <li className="list-disc">具有独立域名并保持稳定访问</li>
             <li className="list-disc">以原创技术、设计或开发实践为主</li>
             <li className="list-disc">排版整洁，无低俗推广与广告干扰</li>
@@ -95,14 +83,13 @@ export default async function LinksPage() {
 
         <div className="mt-2 flex flex-col gap-3 rounded-lg border border-border/60 bg-card/40 p-4 font-mono text-xs text-muted-foreground">
           <div>
-            <div className="text-foreground font-semibold mb-1.5">// 本站信息参考：</div>
+            <div className="text-foreground font-semibold mb-1.5">本站信息</div>
             <div>名称：{siteConfig.title}</div>
             <div>简介：{siteConfig.description}</div>
             <div>作者：{siteConfig.author}</div>
-            <div>网址：{siteConfig.url}</div>
+            <div className="break-all">网址：{siteConfig.url}</div>
           </div>
           <div className="flex flex-wrap items-center gap-3 border-t border-border/30 pt-3">
-            <FriendApplyButton />
             <CopyInviteButton />
           </div>
         </div>

@@ -20,26 +20,26 @@ web
 
 ## Operating Context
 
-作者使用 TypeScript 技术栈，偏好 Next.js + React。内容用 MDX 文件管理，不依赖数据库或后端服务。博客同时承载文章、笔记、项目展示、友链和个人简介。
+作者使用 TypeScript 技术栈，偏好 Next.js + React。文章和笔记由仓库内容文件管理，动态功能通过应用内服务端模块与 libSQL/Turso 数据库提供。博客同时承载文章、笔记、项目展示、友链和个人简介。
 
 ## Capabilities and Constraints
 
-- 静态内容站点，无数据库、无后端、无用户登录
+- Next.js App Router，开发端口 4400，页面包含静态内容与动态服务
 - MDX 内容管理，支持 KaTeX 数学公式和代码高亮
-- App Router 架构，开发端口 4400
-- RSS、搜索、评论、OG 图等功能尚未实现
+- 登录、评论、友链申请、AI 摘要和访客状态由服务端模块提供
+- 浏览器内搜索、RSS 等功能的实现状态统一见[功能状态表](.trellis/spec/frontend/feature-status.md)，不在这里维护第二份清单
 
 ## Brand Commitments
 
 - 站点名称：喜东东小站
 - 中文优先
-- 视觉风格简洁克制，不用花哨装饰
+- 保留暖色背景、衬线标题与技术手记风格，具体规则见[设计规范](DESIGN.md)
 
 ## Evidence on Hand
 
 - 真实内容存放在 content/blog/ 和 content/notes/
 - 个人经历和技能信息在 src/profile.config.ts
-- 无真实用户数据、无流量统计
+- 已有访客统计与实时在线能力；是否有实际数据取决于当前环境，不据此推断访问量或用户规模
 
 ## Product Principles
 

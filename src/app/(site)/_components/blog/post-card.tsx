@@ -86,7 +86,7 @@ export function PostCard({
         ) : (
           <Link
             href={buildBlogListUrl({ source: currentSource, category: post.category })}
-            className="font-semibold text-foreground/80 transition-colors hover:text-primary hover:underline"
+            className="rounded-sm font-semibold text-foreground transition-colors hover:text-primary hover:underline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-ring"
           >
             // {categoryLabel}
           </Link>
@@ -114,7 +114,10 @@ export function PostCard({
         <ArticleViewerCount slug={post.slug} mode="compact" />
       </div>
 
-      <Link href={`/blog/${post.slug}`} className="group/link flex w-full flex-col">
+      <Link
+        href={`/blog/${post.slug}`}
+        className="group/link flex w-full flex-col rounded-sm focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-ring"
+      >
         {/* 标题与平滑展开箭头 */}
         <div className="z-10 flex-grow">
           <div className="flex items-center justify-between gap-3">
@@ -146,12 +149,12 @@ export function PostCard({
       {/* 底部元数据：标签 */}
       {detailed && post.tags.length > 0 && (
         <div className="mt-3.5 flex flex-wrap items-center gap-x-2 gap-y-1 font-mono text-xs text-muted-foreground">
-          <ul className="flex flex-wrap items-center gap-x-2 gap-y-1">
+          <ul className="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1">
             {post.tags.map((tag) => (
-              <li key={tag}>
+              <li key={tag} className="min-w-0 max-w-full [overflow-wrap:anywhere]">
                 <Link
                   href={`/blog/tags/${tag}`}
-                  className="text-muted-foreground/85 transition-colors hover:text-foreground hover:underline"
+                  className="rounded-sm text-muted-foreground underline decoration-border underline-offset-4 transition-colors hover:text-foreground focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-ring"
                 >
                   #{tag}
                 </Link>

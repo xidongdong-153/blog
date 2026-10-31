@@ -18,6 +18,7 @@
 | 三态主题切换（明 / 系统 / 暗）     | 已实现 | `src/app/(site)/_components/site/theme-toggle.tsx`（页脚工具条）                                                                                                 |
 | sticky 胶囊页头                    | 已实现 | `src/app/(site)/_components/site/site-header.tsx`                                                                                                                |
 | 项目 / 友链 / 关于 / 联系          | 已实现 | `src/app/(site)/` 对应目录                                                                                                                                       |
+| 五个一级页面统一布局与标题区       | 已实现 | `src/app/(site)/_components/site/page-header.tsx`，文章、笔记、项目、友链、关于页面；设计值见 `DESIGN.md`                                                        |
 | 友链申请与邮件一键审批             | 已实现 | `src/app/(site)/links/`、`src/server/modules/links/`、`src/server/infra/email.ts`                                                                                |
 | 站内搜索                           | 已实现 | `src/app/(site)/_components/blog/blog-search.tsx`、`src/lib/search.ts`                                                                                           |
 | Better Auth 社交评论               | 已实现 | `src/app/(site)/_components/comment/`、`src/server/modules/comments/`、`src/server/modules/auth/`                                                                |

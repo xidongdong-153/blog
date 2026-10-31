@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import { getAllNotes } from '@/lib/content'
 import { NoteCard } from '../_components/notes/note-card'
+import { PageHeader } from '../_components/site/page-header'
 
 export const metadata: Metadata = {
   title: '笔记',
@@ -10,23 +11,17 @@ export default function NotesPage() {
   const notes = getAllNotes().filter((note) => !note.draft)
 
   return (
-    <div className="mx-auto w-full max-w-3xl flex flex-col gap-10">
-      <div className="flex flex-col gap-2 border-b border-border/40 pb-6">
-        <div className="font-mono text-xs tracking-wider text-muted-foreground">// 数字花园</div>
-        <h1 className="font-serif text-3xl font-medium tracking-tight text-foreground sm:text-4xl">笔记</h1>
-        <p className="text-sm leading-relaxed text-muted-foreground">
-          短笔记与研究记录，状态包含：进行中、待补充、已整理、已归档。
-        </p>
-      </div>
+    <div className="mx-auto flex w-full max-w-5xl flex-col gap-8 sm:gap-10">
+      <PageHeader eyebrow="数字花园" title="笔记" description="短笔记与研究记录，记录实践过程与待完善的想法。" />
 
       {notes.length > 0 ? (
-        <div className="flex flex-col gap-8">
+        <div className="flex max-w-[46rem] flex-col">
           {notes.map((note) => (
             <NoteCard key={note.slug} note={note} />
           ))}
         </div>
       ) : (
-        <p className="text-sm text-muted-foreground">还没有笔记。</p>
+        <p className="py-8 text-sm text-muted-foreground">还没有笔记。</p>
       )}
     </div>
   )
