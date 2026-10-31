@@ -2,6 +2,7 @@ import type { BlogCategory, BlogSortOrder, BlogSourceFilter } from '@/lib/blog-m
 import Link from 'next/link'
 import { buildBlogListUrl } from '@/lib/blog-meta'
 import { BLOG_CATEGORIES, BLOG_CATEGORY_LABELS, BLOG_SORT_LABELS } from '@/lib/content'
+import { FilterLabel } from './filter-label'
 
 export interface BlogToolbarProps {
   currentCategory?: BlogCategory
@@ -20,8 +21,7 @@ export function BlogToolbar({ currentCategory, currentSort, currentSource, categ
   return (
     <div className="flex flex-col gap-4 border-b border-border/40 pb-5 sm:flex-row sm:items-center sm:justify-between">
       {/* 分类切换组 */}
-      <nav aria-label="文章分类筛选" className="flex flex-wrap items-center gap-2">
-        <span className="mr-1 font-mono text-xs tracking-wider text-muted-foreground">// 分类</span>
+      <nav aria-label="文章分类筛选" className="flex flex-wrap items-center gap-x-6 gap-y-1">
         {BLOG_CATEGORIES.map((category) => {
           const isActive = currentCategory === category
           const nextCategory = isActive ? undefined : category
@@ -34,25 +34,14 @@ export function BlogToolbar({ currentCategory, currentSort, currentSource, categ
               key={category}
               href={href}
               scroll={false}
-              aria-pressed={isActive}
+              aria-current={isActive ? 'true' : undefined}
               className={[
-                'inline-flex items-center gap-1.5 rounded-md px-2.5 py-1 font-mono text-xs transition-all duration-150',
-                isActive
-                  ? 'border border-primary/50 bg-primary/10 font-medium text-primary shadow-xs'
-                  : 'border border-border/60 bg-muted/20 text-muted-foreground hover:border-foreground/30 hover:bg-muted/50 hover:text-foreground',
+                'group/filter inline-flex min-h-11 items-center gap-1.5 rounded-sm py-1 font-mono text-xs transition-[color,transform] duration-150 ease-out active:translate-y-px motion-reduce:transform-none motion-reduce:transition-none focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-ring',
+                isActive ? 'font-medium text-foreground' : 'text-muted-foreground hover:text-foreground',
               ].join(' ')}
             >
-              <span>{label}</span>
-              {count !== undefined && (
-                <span
-                  className={[
-                    'text-[0.65rem] tabular-nums',
-                    isActive ? 'text-primary/75' : 'text-muted-foreground/60',
-                  ].join(' ')}
-                >
-                  ({count})
-                </span>
-              )}
+              <FilterLabel active={isActive}>{label}</FilterLabel>
+              {count !== undefined && <span className="tabular-nums text-muted-foreground">({count})</span>}
             </Link>
           )
         })}
@@ -76,13 +65,11 @@ export function BlogToolbar({ currentCategory, currentSort, currentSource, categ
                     scroll={false}
                     aria-current={isActive ? 'true' : undefined}
                     className={[
-                      'px-1 py-0.5 transition-colors',
-                      isActive
-                        ? 'font-medium text-foreground underline underline-offset-4 decoration-primary'
-                        : 'text-muted-foreground hover:text-foreground',
+                      'group/filter inline-flex min-h-11 items-center rounded-sm px-1 py-0.5 transition-[color,transform] duration-150 ease-out active:translate-y-px motion-reduce:transform-none motion-reduce:transition-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring',
+                      isActive ? 'font-medium text-foreground' : 'text-muted-foreground hover:text-foreground',
                     ].join(' ')}
                   >
-                    {label}
+                    <FilterLabel active={isActive}>{label}</FilterLabel>
                   </Link>
                 </span>
               )

@@ -1,6 +1,7 @@
 import type { BlogCategory, BlogSortOrder, BlogSourceFilter } from '@/lib/blog-meta'
 import Link from 'next/link'
 import { buildBlogListUrl } from '@/lib/blog-meta'
+import { FilterLabel } from './filter-label'
 
 const SOURCE_OPTIONS = [
   { value: 'all', label: '全部文章' },
@@ -30,13 +31,9 @@ export function BlogSourceSwitch({
             href={buildBlogListUrl({ source: value, category: currentCategory, sort: currentSort })}
             scroll={false}
             aria-current={currentSource === value ? 'page' : undefined}
-            className={
-              currentSource === value
-                ? 'py-1 text-foreground underline underline-offset-4 decoration-primary'
-                : 'py-1 text-muted-foreground transition-colors hover:text-foreground'
-            }
+            className={`group/filter inline-flex min-h-11 items-center rounded-sm py-1 transition-[color,transform] duration-150 ease-out active:translate-y-px motion-reduce:transform-none motion-reduce:transition-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring ${currentSource === value ? 'text-foreground' : 'text-muted-foreground hover:text-foreground'}`}
           >
-            {label}
+            <FilterLabel active={currentSource === value}>{label}</FilterLabel>
           </Link>
         </span>
       ))}
