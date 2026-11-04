@@ -55,13 +55,7 @@ node --experimental-strip-types --test src/lib/presence.test.ts
 
 ## UI 设计与反模式检查
 
-项目集成了 Impeccable 设计系统检查工具。运行：
-
-```bash
-node .agent/skills/impeccable/scripts/detect.mjs --json src/
-```
-
-可扫描代码中可能存在的 AI slop（如 side-tab 单侧粗边框等反模式）及设计系统偏离。退出码为 0 表示无阻断性缺陷。
+仓库不再内置 Impeccable 技能和检测脚本。界面改动按 [DESIGN.md](../../../DESIGN.md) 核对，并使用浏览器检查布局、交互、响应式和无障碍行为。
 
 ## 功能状态表
 
@@ -73,11 +67,11 @@ node .agent/skills/impeccable/scripts/detect.mjs --json src/
 
 ## Git
 
-- 详细分支管理、PR 提交与环境审批见[Git 流程规范](./git-workflow.md)。
-- 严禁在 `main` 分支上直接开发、提交或推送；每次任务从最新 `origin/main` 切出独立分支。
+- 日常开发与手动发布见[Git 流程规范](./git-workflow.md)。
+- 允许直接开发和推送 `main`；开始任务先获取最新 `origin/main`，独立分支和 Pull Request 按需使用。
 - 不擅自 `git commit` / `git push` / `git merge`，提交与推送前把改动摘要给用户确认。
 - 提交信息遵循 Conventional Commits：`feat(scope): 说明`、`fix(scope): 说明`。
-- 代码必须通过 Pull Request 合入 `main`，并在合并后执行生产环境审批与本地分支清理。
+- 推送 `main` 和目标为 `main` 的 PR 自动检查，不自动发布；手动在 `main` 运行 `CI/CD` 后，检查通过即部署，无需人工审批。生产发布必须另获明确授权。
 
 ## 内容文件改动
 

@@ -1,109 +1,57 @@
-# Git 开发与发布流程规范
+# Git 开发与发布流程
 
-## 1. 范围与触发
+## 日常开发
 
-在本项目（blog）中进行任何代码开发、缺陷修复、配置调整或依赖升级时，必须遵守本规范。
-远端仓库对 `main` 分支开启了分支保护（禁止直接推送、禁止删除分支、禁止非 fast-forward 合并），所有代码必须通过 Pull Request 流程合并。
+个人站点允许直接开发、提交和推送 `main`，不强制使用分支或 Pull Request。较大改动需要隔离或评审时，可使用 `feat/*`、`fix/*` 或 `chore/*` 分支。
 
-## 2. 标准 6 步开发流程
-
-### 步骤 1：本地准备（拉取最新代码并切出分支）
-
-开始任何新任务前，确保本地 `main` 分支与远端同步，然后切出独立特性或修复分支。严禁直接在 `main` 分支上开发或提交。
+开始任务前先检查工作区并获取远端状态。工作区干净时，在 `main` 上快进更新：
 
 ```bash
-git checkout main
-git pull origin main
-git checkout -b <type>/<slug>
+git status --short --branch
+git fetch origin main
+git switch main
+git pull --ff-only origin main
 ```
 
-分支命名规则：
-- 新增功能：`feat/<slug>`（例如：`feat/visitor-analytics`）
-- 问题修复：`fix/<slug>`（例如：`fix/server-websocket-hub`）
-- 基础设施与维护：`chore/<slug>`（例如：`chore/deps-upgrade`）
+已有未提交改动时先保留并确认来源，不使用 reset、clean 或强制推送覆盖。发现本地与远端分叉时先处理分叉，不自动合并历史。
 
-### 步骤 2：本地开发与质量门检查
+## 检查、提交与推送
 
-完成代码修改后，在提交前必须在本地依次运行以下质量门检查。前一项通过后方可执行下一项：
+代码修改后依次执行，前一项通过后再运行下一项：
 
 ```bash
-# 1. 类型检查（必须零错误）
 pnpm typecheck
-
-# 2. Lint 代码规范检查（必须零错误）
 pnpm lint
-
-# 3. 格式化检查（代码与配置文件必须符合 Prettier 规范）
 pnpm format:check
-
-# 4. 自动化测试（若涉及业务服务、服务端路由、加密或核心工具层）
-pnpm test
 ```
 
-### 步骤 3：本地核验与提交
+涉及服务端业务或核心工具时还需运行 `pnpm test`；部署逻辑改动的完整验证见[部署规范](./deployment-guidelines.md)。纯文档修改按[质量规范](./quality-guidelines.md)检查。
 
-提交前先检查工作区状态，确认无意外遗留的临时文件或未跟踪文件：
+AI 执行 `git commit`、`git push` 或 `git merge` 前，必须展示改动摘要并获得用户明确确认；已有授权不重复询问。只暂存本次确认的文件，提交信息遵循 Conventional Commits。
 
 ```bash
-# 检查工作区状态
-git status
-
-# 暂存并提交（遵循 Conventional Commits 规范）
+git diff --check
 git add <改动文件>
-git commit -m "<type>(<scope>): <简明中文描述>"
+git commit -m "<type>(<scope>): 简明说明"
+git push origin main
 ```
 
-### 步骤 4：推送分支与创建 Pull Request
+推送 `main` 会自动运行 `CI/CD` 的 `Quality`，不会发布生产环境。使用 Pull Request 时，目标为 `main` 的 PR 同样自动检查，确认检查通过后再合并。
 
-将本地分支推送到远端仓库，并创建目标为 `main` 的 Pull Request：
+## 手动发布
 
-```bash
-# 首次推送到远端
-git push -u origin <type>/<slug>
+代码已推送到 `main` 后，在 GitHub 打开 `Actions` → `CI/CD` → `Run workflow`，选择 `main` 并运行。手动运行会重新执行 `Quality`，通过后进入 `Deploy production`，无需额外人工审批。
 
-# 创建 Pull Request
-gh pr create --base main --head <type>/<slug> --title "<type>: 简明说明" --body "## 变更说明\n具体改动内容\n\n## 验证\n测试结果"
-```
+- 只有 `workflow_dispatch` 事件且分支为 `main` 才能部署；其他分支手动运行只执行检查。
+- `Deployment` 环境保留密钥和变量，允许部署的分支明确限定为 `main`，不配置 Required reviewers 或等待时间。
+- AI 只有获得生产发布授权后才能点击 `Run workflow`；提交、推送和合并的授权不包含发布。
+- 若发布检查期间 `main` 又有新提交，服务器会因目标 SHA 与最新 `origin/main` 不一致而停止部署。需要发布最新代码时，重新手动运行工作流。
+- 在 Actions 确认检查、部署和健康检查通过，才算完成发布。
 
-### 步骤 5：等待 CI Quality 检查并合并 PR
+使用独立分支时，合入后在工作区干净的前提下切回 `main` 并快进更新，可删除已经合并的开发分支。
 
-PR 创建后，GitHub Actions 会自动触发 `Quality` 工作流，运行依赖检查、静态分析、迁移校验、测试和生产构建。
+## 失败与回滚
 
-1. 检查状态：运行 `gh pr checks` 或在 GitHub PR 页面观察。
-2. 确认所有检查显示通过后，执行合并并自动删除远端分支：
-   ```bash
-   gh pr merge --merge --delete-branch
-   ```
+`Quality` 失败时先修复并重新推送；推送不会自动重试生产发布。发布失败按[部署规范](./deployment-guidelines.md)查看日志。
 
-### 步骤 6：生产发布审批与本地环境对齐
-
-PR 合并到 `main` 分支后，会自动触发生产环境部署流水线：
-
-1. **生产环境审批**：
-   - 合并触发的流水线会复验 `Quality`。
-   - 通过后，由于 `Deployment` 环境配置了部署保护规则，`Deploy production` 任务会进入待审批状态。
-   - 打开 GitHub Actions 页面，点击当前运行中的 **Review deployments**，勾选 **Deployment** 并点击 **Approve and deploy**；或通过 GitHub CLI 审批：
-     ```bash
-     gh api -X POST repos/xidongdong-153/blog/actions/runs/<RUN_ID>/pending_deployments \
-       -F "environment_ids[]=21228460532" \
-       -F "state=approved"
-     ```
-   - 批准后，工作流通过 SSH 登录服务器，自动执行代码拉取、环境更新、依赖安装、数据库迁移、服务重启及本机与公网健康检查。
-2. **本地环境对齐**：
-   ```bash
-   # 切回 main 并拉取最新已合并提交
-   git checkout main
-   git pull origin main
-
-   # 删除本地特性分支
-   git branch -d <type>/<slug>
-   ```
-
-## 3. 常见错误与防范对策
-
-| 错误行为 | 导致的后果 | 正确做法 |
-| -------- | ---------- | -------- |
-| 在 `main` 分支直接修改并执行 `git push origin main` | 触发 GitHub 规则拦截 `GH013: Repository rule violations`，推送失败 | 编码前通过 `git checkout -b <branch>` 建立独立分支 |
-| 本地未跑 `pnpm typecheck` / `lint` / `format:check` 即提交 | PR 的 CI `Quality` job 失败，阻塞合并流程 | 本地修改完毕后，严格按顺序跑通三项质量门检查 |
-| PR 合并后未进行 `Deployment` 环境审批 | 部署流水线挂起在 `waiting` 状态，生产服务器不会更新上线 | 合并后主动在 Actions 页面或通过 CLI 批准部署并观察结果 |
-| 合并后未拉取 `main` 就在旧提交基础上继续开发 | 后续切出的分支缺少最新主干提交，产生冲突或分叉 | 每次开发前先 `git checkout main && git pull origin main` |
+回滚通过 `git revert` 创建新的回滚提交，检查并推送到 `main` 后，再手动运行发布。不在服务器强制重置历史。

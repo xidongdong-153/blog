@@ -4,14 +4,14 @@
 
 修改 CI/CD、GitHub `Deployment` Environment 或服务器发布操作时遵守本文件。正式发布由 [ci-cd.yml](../../../.github/workflows/ci-cd.yml) 完成，不使用 Vercel。
 
-- 目标为 `main` 的 Pull Request 只运行 `quality`。`main` push 的 `quality` 成功后才运行 `deploy`，不要从 Fork Pull Request 触发生产发布。
+- 目标为 `main` 的 Pull Request 和 `main` push 只运行 `quality`，不自动发布。只有在 `main` 上通过 `workflow_dispatch` 手动运行时，`quality` 成功后才运行 `deploy`；其他分支手动运行只检查，不部署。
 - `quality` 依次运行 `pnpm install --frozen-lockfile`、`pnpm typecheck`、`pnpm lint`、`pnpm format:check`、`pnpm db:migrate`、`pnpm test`、`pnpm build`；测试和构建使用 runner 上的 `file:ci.db` 与临时 token，不访问生产数据库；`build` 只注入固定的非生产 `BETTER_AUTH_SECRET` 和 `http://localhost:4400`，不读取生产认证密钥或 AI 凭据。
 - 仓库根目录跟踪 `pnpm-workspace.yaml`，配置 `@prisma/client`、`better-sqlite3`、`esbuild` 与 `sharp` 的依赖构建白名单（`allowBuilds`），统一本地、CI 与生产服务器的依赖构建策略。
 - `deploy` 使用 `Deployment` Environment，通过 SSH 执行 `bash -s -- <target-sha>`，工作目录为 `/home/deploy/code/xdd/blog`。
 - 同一分支的 workflow 串行执行，不取消正在运行的发布。只有服务器安装、构建、重启和健康检查全部通过才算发布成功。
 - 运行服务为 `xdd-blog.service`，监听 `127.0.0.1:4400`；启动入口必须通过 `pnpm start`（执行 `tsx server.ts`），同时承载 Next.js 页面请求与 `/api/visitors/socket` 的 WebSocket 升级分流；生产环境不使用 `output: 'standalone'`，`tsx` 与 `ws` 声明为直接运行时依赖；公网入口由 Caddy 提供 `https://blog.xdd.ink` 并自动转发 WebSocket 升级。
 
-以下操作是维护手册，不表示已执行。本次文档整理只核对仓库 workflow，未连接服务器或核验 GitHub Environment、分支保护和线上服务状态。
+以下服务器命令是维护手册，不表示已执行。修改配置不等于授权生产发布，执行发布前需另获明确授权。
 
 ## Node.js 与 Action Runtime 契约
 
@@ -37,12 +37,12 @@
 
 ### 4. 校验与错误处理
 
-| 条件 | 结果 | 处理 |
-| --- | --- | --- |
-| Action 仍使用旧版 Node 20 Runtime | 日志出现 Node 20 弃用提示 | 升级 Action 的固定 SHA，不设置 Node 20 兼容开关 |
-| pnpm 缓存恢复返回 400 | 记录 cache miss，继续执行依赖安装 | 保证 `pnpm install --frozen-lockfile` 独立可用 |
-| `pnpm-lock.yaml` 与依赖声明不一致 | frozen install 失败 | 修正锁文件后重新运行 Quality，不跳过 frozen 检查 |
-| 服务器没有 Node `26.7.0` | `nvm use` 失败，部署在安装依赖前停止 | 先完成服务器 Node 安装，再重新发布 |
+| 条件                              | 结果                                 | 处理                                             |
+| --------------------------------- | ------------------------------------ | ------------------------------------------------ |
+| Action 仍使用旧版 Node 20 Runtime | 日志出现 Node 20 弃用提示            | 升级 Action 的固定 SHA，不设置 Node 20 兼容开关  |
+| pnpm 缓存恢复返回 400             | 记录 cache miss，继续执行依赖安装    | 保证 `pnpm install --frozen-lockfile` 独立可用   |
+| `pnpm-lock.yaml` 与依赖声明不一致 | frozen install 失败                  | 修正锁文件后重新运行 Quality，不跳过 frozen 检查 |
+| 服务器没有 Node `26.7.0`          | `nvm use` 失败，部署在安装依赖前停止 | 先完成服务器 Node 安装，再重新发布               |
 
 ### 5. 正常、降级和错误配置
 
@@ -83,7 +83,7 @@
 
 ## GitHub 配置与安全边界
 
-仓库 `Settings` -> `Environments` -> `Deployment`：Deployment branches and tags 只允许 `main`，不设置 Required reviewers，质量检查通过后直接发布。
+仓库 `Settings` -> `Environments` -> `Deployment`：Deployment branches and tags 使用 Selected branches and tags，明确只允许 `main` 分支；不使用 Protected branches only，因为 `main` 不再设置分支保护。不设置 Required reviewers 或等待时间，手动运行的质量检查通过后直接发布。
 
 | 类型     | 名称                 | 内容                                                   |
 | -------- | -------------------- | ------------------------------------------------------ |
@@ -99,7 +99,7 @@
 
 workflow 使用 `BatchMode=yes`、`ConnectTimeout=15`、`StrictHostKeyChecking=yes`、`IdentitiesOnly=yes` 和 Secret 写入的 `known_hosts`，不使用未经核验的 `ssh-keyscan`。SSH 临时目录权限 `700`，私钥和 known_hosts 权限 `600`。
 
-`main` 分支保护应要求 Pull Request 和 `Quality` 检查通过；必需检查名称以第一次工作流运行后 GitHub 实际显示的状态为准。
+`main` 不设置分支保护，允许直接推送。质量检查由工作流自动执行，发布入口由 `workflow_dispatch` 控制，Pull Request 按需使用。
 
 ## 服务器发布契约
 
@@ -124,7 +124,7 @@ ssh "deploy@$DEPLOY_HOST" 'sudo -n -l systemctl restart xdd-blog.service'
 
 Node/pnpm 版本应与 workflow 的 Node.js `26.7.0`、pnpm `11.5.0` 一致。工作区与分支历史必须满足上节契约，发现 `src/site.config.ts` 或其他文件改动时先确认来源，不自动覆盖。
 
-需要手工完成首次服务器构建时，使用以下检查脚本。它发布当前 `origin/main`，不绑定 Actions 的 `github.sha`，不能替代日常自动发布。执行前必须确认该提交已经通过质量检查并获得发布授权。
+需要手工完成首次服务器构建时，使用以下检查脚本。它发布当前 `origin/main`，不绑定 Actions 的 `github.sha`，不能替代日常通过 Actions 手动发起的发布。执行前必须确认该提交已经通过质量检查并获得发布授权。
 
 ```bash
 ssh "deploy@$DEPLOY_HOST" 'bash -s' <<'REMOTE'
@@ -173,11 +173,11 @@ ssh "deploy@$DEPLOY_HOST" 'curl -I http://127.0.0.1:4400/'
 curl -I https://blog.xdd.ink/
 ```
 
-首次 Actions 发布时，在工作分支提交 workflow 和文档，创建目标为 `main` 的 Pull Request 并确认 `quality` 通过；合并后在 `Actions` 观察 `main` 的 `quality` 和 `deploy`，最后检查 systemd 日志、本机 HTTP 和公网。配置变更、提交和部署均需各自获得授权。
+首次 Actions 发布时，先将 workflow 和文档更新到 `main`，确认 push 的 `quality` 通过且 `deploy` 跳过；获得发布授权后，在 `Actions` -> `CI/CD` -> `Run workflow` 选择 `main`，观察 `quality` 和 `deploy`，最后检查 systemd 日志、本机 HTTP 和公网。配置变更、提交和部署均需各自获得授权。
 
 ## 日常发布与排查
 
-日常只通过 Pull Request 合并到 `main` 发布。不在服务器编辑受跟踪文件，不把 `.env.local` 或 SSH 私钥传给 Actions。
+日常将代码推送到 `main`，需要上线时在 `Actions` -> `CI/CD` -> `Run workflow` 选择 `main` 手动运行；推送和合并都不自动发布。手动运行会重新检查，检查通过后部署，无需人工审批。不在服务器编辑受跟踪文件，不把 `.env.local` 或 SSH 私钥传给 Actions。
 
 查看仓库 `Actions` -> `CI/CD`。命令行可使用 GitHub CLI；使用前先 `gh auth login`，也可直接使用网页：
 
@@ -215,7 +215,7 @@ curl -i -N -H "Connection: Upgrade" -H "Upgrade: websocket" -H "Host: 127.0.0.1:
 
 重启前失败不会主动重启上一版进程，但构建在原工作目录内执行，不是原子发布，不能保证失败构建完全不影响旧服务文件。检查服务器改动时使用 `git status --short --branch` 和 `git diff` 确认来源，不使用 `git reset --hard` 或 `git clean` 绕过检查。
 
-正常回滚是在 GitHub 对问题提交执行 `git revert`，创建 Pull Request 并合并到 `main`，让回滚提交重新经过 `quality` 和自动部署。不要在服务器直接 reset 到旧提交，也不要覆盖 `.env.local`。
+正常回滚是对问题提交执行 `git revert`，将回滚提交推送到 `main`，通过检查后再手动运行发布，让回滚提交重新经过 `quality` 和部署。不要在服务器直接 reset 到旧提交，也不要覆盖 `.env.local`。
 
 错误：只执行 `git pull --ff-only origin main`、`pnpm build` 和 `sudo systemctl restart`。这会漏掉工作区、目标 SHA、历史和非交互 sudo 检查。
 
@@ -227,4 +227,4 @@ curl -i -N -H "Connection: Upgrade" -H "Upgrade: websocket" -H "Host: 127.0.0.1:
 - 用 Prettier 检查 workflow 和相关文档；Trellis 文档显式检查方法见[质量规范](./quality-guidelines.md)。
 - 用 YAML 解析器检查 workflow 包含 `quality`、`deploy`、`needs: quality` 和 `Deployment` Environment；每个 `run` 块只做 `bash -n` 语法检查，不把检查变成真实部署。
 - 获得服务器检查授权后，只读确认 Git 远端、工作区、Node/pnpm、环境文件是否存在且被忽略、sudo 权限、systemd 和本机 HTTP，不读取密钥或 `.env.local` 内容。
-- 首次真实发布后确认 PR 只执行 quality，main push 先 quality 再 deploy，日志没有私钥或环境文件内容。纯文档迁移不执行这些生产操作。
+- 确认 PR 和 main push 只执行 quality，deploy 跳过；获得授权后，首次真实发布确认 main 的手动运行先 quality 再 deploy，其他分支不能部署，日志没有私钥或环境文件内容。纯文档迁移不执行这些生产操作。

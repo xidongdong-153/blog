@@ -30,9 +30,9 @@ pnpm build         # 生产构建
 ## 工作规则
 
 - 涉及 README、docs、注释、JSDoc、提示词、错误提示等说明性文本，先读 `xdd-plain-docs` 技能再动笔。
-- 严禁在 `main` 分支上直接开发与提交：开始任务前必须拉取最新 `origin/main` 并切出独立分支（`feat/*`、`fix/*` 等）。
+- 日常开发允许直接更新 `main`；开始任务前先获取最新 `origin/main`，工作区干净时用 `git pull --ff-only origin main` 对齐。较大改动可按需切独立分支。
 - 每次代码修改后按顺序过质量门：`pnpm typecheck`、`pnpm lint`、`pnpm format:check`，全过才算完成；涉及服务端业务模块或核心工具改动时必须运行 `pnpm test`。
-- 所有改动必须通过 Pull Request 流程合入 `main`；合并后必须核验生产 `Deployment` 环境审批并对齐本地分支。完整流程详见 [.trellis/spec/frontend/git-workflow.md](.trellis/spec/frontend/git-workflow.md)。
+- 推送 `main` 和目标为 `main` 的 Pull Request 自动运行质量检查，不自动发布。发布时在 Actions 手动运行 `CI/CD` 并选择 `main`，检查通过后直接部署，无需环境人工审批。完整流程详见 [.trellis/spec/frontend/git-workflow.md](.trellis/spec/frontend/git-workflow.md)。
 - 功能状态以 [.trellis/spec/frontend/feature-status.md](.trellis/spec/frontend/feature-status.md) 为唯一清单，实现后更新状态并删掉对应占位代码。README 只保留项目简介、本地启动、常用检查、核心路径和维护文档链接，不添加详细维护说明。
 - 新增页面放进 `src/app/(site)/`，页面专属组件放 `src/app/(site)/_components/` 对应分组，不建第二套目录结构。
 - 日期在数据层一律存 ISO 字符串，渲染时用 `src/lib/content.ts` 的 `formatDate`，不直接在组件里 new Date 再格式化。
@@ -41,5 +41,5 @@ pnpm build         # 生产构建
 
 - 不允许擅自提交或推送代码：执行 `git commit`、`git push`、`git merge` 前，必须先向用户展示改动摘要并获得明确确认。
 - 用户未确认前，改动停留在工作区或暂存区，不提交、不推送。
-- 严禁直接向 `main` 执行 `git push`（远端已设保护规则拦截）；提交后必须推送到特性分支并通过 `gh pr create` 发起 Pull Request。
-- PR 需等待 CI `Quality` 检查全绿后方可执行 `gh pr merge --merge --delete-branch`，并在合并后提醒用户或协助通过 `Deployment` 部署审批。
+- 获得提交与推送授权后，可直接推送 `main`；Pull Request 按需使用，使用时等待 `Quality` 通过后再合并。
+- 生产发布另需明确授权。手动运行 Actions 即启动质量检查和后续部署，不把推送代码视为发布授权。
