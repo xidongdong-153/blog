@@ -88,7 +88,7 @@ export default async function BlogPage({ searchParams }: BlogPageProps) {
             categoryCounts={categoryCounts}
           />
         }
-        sidebar={<BlogSidebar tags={tags} />}
+        sidebar={tags.length > 0 ? <BlogSidebar tags={tags} /> : null}
       >
         <section aria-label="文章列表" id="content" className="min-w-0">
           {/* 文章列表 */}

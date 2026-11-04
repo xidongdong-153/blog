@@ -26,7 +26,7 @@ RSC 页面先排除草稿、再按 URL 来源筛选，把完整结果交给 `Blo
       categoryCounts={categoryCounts}
     />
   }
-  sidebar={<BlogSidebar tags={tags} />}
+  sidebar={tags.length > 0 ? <BlogSidebar tags={tags} /> : null}
 >
   {/* 普通列表与分页器 */}
 </BlogSearch>
@@ -85,7 +85,7 @@ flowchart TD
 
 - 搜索框在 `/blog` 标题下方，输入即过滤，没有提交按钮。
 - 搜索态隐藏分类工具栏，用结果替换列表与分页器，清空后恢复；搜索输入期间不发网络请求。
-- 普通列表和搜索结果处于同一个响应式网格主列，lg 起约 3:1 双栏；标签侧栏常驻。无标签时仍保留主列宽度，防止搜索或数据变化导致阅读行宽跳动。
+- 普通列表和搜索结果使用同一个响应式网格。有标签时 lg 起约 3:1 双栏，侧栏在搜索前后保留；无标签时页面传入 `sidebar={null}`，网格使用单列，列表与工具栏等宽。不能仅让 `BlogSidebar` 返回 `null`，却保留双栏占位。搜索状态不改变列宽。
 - 搜索范围为当前来源筛选下的全部已发布文章，不受当前分类筛选与排序影响。
 - 来源切换通过 `sourceSwitch` 槽位传入，放在 `children` 外、搜索框旁，在搜索态和零结果时都可见。切换是同 `/blog` 路由的 Next Link 导航，会更新服务端传入的文章集合。
 - 同路由切换来源时保持 `BlogSearch` 位置与 key 不变，保留其 `useState` 搜索词；不要因来源集合为空而卸载组件。

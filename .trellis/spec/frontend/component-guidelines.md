@@ -42,7 +42,7 @@ MDX 渲染走异步 RSC（`mdx-content.tsx` 的 `compileMDX`），不需要 clie
 - 正文排版用 `prose prose-stone dark:prose-invert`（@tailwindcss/typography），见 `mdx-content.tsx`。
 - 颜色、字号、间距、圆角与页面宽度以[设计规范](../../../DESIGN.md)为准。五页卡片用 `rounded-lg`，控件用 `rounded-md`；头像、页头和弹窗等例外见设计规范。
 - 提示框与卡片避免使用 `border-l-4` 等单侧粗边框（side-tab 反模式），采用完整微边框 `rounded-xl border` 配合语义背景色。
-- 五个一级内容页使用 `max-w-5xl` 外框；窄阅读区在外框内左对齐。文章列表 lg 起双栏，搜索前后列宽一致。首页、普通文章详情、专栏详情与笔记详情保留各自阅读布局，不在共享 main 上限制最大宽度。
+- 五个一级内容页使用 `max-w-5xl` 外框；窄阅读区在外框内左对齐。文章列表有标签时 lg 起双栏，无标签时单列；搜索前后列宽一致。首页、普通文章详情、专栏详情与笔记详情保留各自阅读布局，不在共享 main 上限制最大宽度。
 - 不写自定义组件 CSS 类，样式全部走 Tailwind 工具类与 data 变体（如 `data-[scrolled=true]:`、`theme-system:` 等）；`src/app/globals.css` 仅用于存放设计 token、keyframes 和变体定义。
 
 ## 通用模式与组件

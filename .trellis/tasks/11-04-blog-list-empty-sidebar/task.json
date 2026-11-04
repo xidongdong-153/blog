@@ -1,0 +1,32 @@
+{
+  "id": "blog-list-empty-sidebar",
+  "name": "blog-list-empty-sidebar",
+  "title": "修复文章列表右侧空侧栏留白",
+  "description": "无标签时让文章列表、搜索结果和空态占满内容区；有标签时保留现有双栏。",
+  "status": "in_progress",
+  "dev_type": null,
+  "scope": null,
+  "package": null,
+  "priority": "P2",
+  "creator": "xdd",
+  "assignee": "xdd",
+  "createdAt": "2026-11-04",
+  "completedAt": null,
+  "branch": "main",
+  "base_branch": "main",
+  "worktree_path": null,
+  "commit": null,
+  "pr_url": null,
+  "subtasks": [],
+  "children": [],
+  "parent": null,
+  "relatedFiles": [
+    "src/app/(site)/blog/page.tsx",
+    "src/app/(site)/_components/blog/blog-search.tsx",
+    "DESIGN.md",
+    ".trellis/spec/frontend/component-guidelines.md",
+    ".trellis/spec/frontend/search-guidelines.md"
+  ],
+  "notes": "应用代码与浏览器验收完成；typecheck、lint、build、本次文件格式检查通过。全库 format:check 被任务前已有的 tsconfig.json 格式问题阻塞，未修改该文件。验证详情见 prd.md。用户已授权提交和推送本次修改；不执行生产发布，任务暂不归档。",
+  "meta": {}
+}

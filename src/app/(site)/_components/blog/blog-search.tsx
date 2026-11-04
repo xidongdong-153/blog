@@ -65,7 +65,7 @@ export function BlogSearch({
         {sourceSwitch}
       </div>
       {!isSearching && toolbar}
-      <div className="grid gap-y-10 lg:grid-cols-[minmax(0,3fr)_minmax(0,1fr)] lg:gap-x-8">
+      <div className={`grid gap-y-10 ${sidebar ? 'lg:grid-cols-[minmax(0,3fr)_minmax(0,1fr)] lg:gap-x-8' : ''}`}>
         {isSearching ? (
           <section aria-label="搜索结果" className="flex min-w-0 flex-col">
             {hits.length > 0 ? (
