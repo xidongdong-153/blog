@@ -1,27 +1,55 @@
 'use client'
 
-import type { EditorView } from '@codemirror/view'
-import { markdown } from '@codemirror/lang-markdown'
-import { HighlightStyle, syntaxHighlighting } from '@codemirror/language'
-import { languages } from '@codemirror/language-data'
-import { EditorView as View } from '@codemirror/view'
-import { tags } from '@lezer/highlight'
 import * as Toolbar from '@radix-ui/react-toolbar'
-import CodeMirror from '@uiw/react-codemirror'
-import { Bold, Code, FileCode, Italic, Link2, List, MessageSquareText, Quote } from 'lucide-react'
-import { useMemo, useRef } from 'react'
+import { Node } from '@tiptap/core'
+import Document from '@tiptap/extension-document'
+import Text from '@tiptap/extension-text'
+import { UndoRedo } from '@tiptap/extensions'
+import { closeHistory } from '@tiptap/pm/history'
+import { EditorContent, useEditor } from '@tiptap/react'
+import {
+  Bold,
+  Code,
+  FileCode,
+  Heading2,
+  Italic,
+  Link2,
+  List,
+  MessageSquareText,
+  Quote,
+  Redo2,
+  Undo2,
+} from 'lucide-react'
+import { useEffect } from 'react'
 import { Button } from '../ui/button'
 import { Tooltip, TooltipContent, TooltipTrigger } from '../ui/tooltip'
 
-const editorHighlightStyle = HighlightStyle.define([
-  { tag: tags.heading, color: 'hsl(var(--foreground))', fontWeight: '600' },
-  { tag: [tags.keyword, tags.tagName, tags.link], color: 'hsl(var(--primary))' },
-  { tag: [tags.string, tags.attributeValue, tags.number], color: 'hsl(var(--foreground))' },
-  { tag: [tags.comment, tags.meta], color: 'hsl(var(--muted-foreground))' },
-  { tag: tags.invalid, color: 'hsl(var(--destructive))' },
-])
+const MdxSource = Node.create({
+  name: 'mdxSource',
+  group: 'block',
+  content: 'text*',
+  marks: '',
+  code: true,
+  defining: true,
+  whitespace: 'pre',
+  parseHTML: () => [{ tag: 'pre', preserveWhitespace: 'full' }],
+  renderHTML: () => ['pre', { class: 'm-0 whitespace-pre-wrap break-words font-mono' }, ['code', {}, 0]],
+  addKeyboardShortcuts() {
+    const newline = () => this.editor.commands.insertContent({ type: 'text', text: '\n' })
+    return { Enter: newline, 'Shift-Enter': newline, 'Mod-Enter': newline }
+  },
+})
+
+const extensions = [Document.extend({ content: 'mdxSource' }), Text, MdxSource, UndoRedo]
+function sourceDocument(value: string) {
+  return {
+    type: 'doc',
+    content: [{ type: 'mdxSource', content: value ? [{ type: 'text', text: value }] : [] }],
+  }
+}
 
 const snippets = [
+  { label: '标题', icon: Heading2, before: '\n## ', after: '' },
   { label: '粗体', icon: Bold, before: '**', after: '**' },
   { label: '斜体', icon: Italic, before: '*', after: '*' },
   { label: '链接', icon: Link2, before: '[', after: '](https://)' },
@@ -37,7 +65,6 @@ const snippets = [
   },
 ]
 
-/** 仅在文章编辑页加载的 CodeMirror 源码编辑器。 */
 export function MarkdownEditor({
   value,
   onChange,
@@ -47,48 +74,61 @@ export function MarkdownEditor({
   onChange: (value: string) => void
   disabled: boolean
 }) {
-  const view = useRef<EditorView | null>(null)
-  const extensions = useMemo(
-    () => [
-      markdown({ codeLanguages: languages }),
-      syntaxHighlighting(editorHighlightStyle),
-      View.lineWrapping,
-      View.theme({
-        '&': { backgroundColor: 'transparent', color: 'hsl(var(--foreground))', fontSize: '14px' },
-        '.cm-scroller': { fontFamily: 'var(--font-mono), monospace', lineHeight: '1.8' },
-        '.cm-content': { padding: '20px 0', caretColor: 'hsl(var(--foreground))' },
-        '.cm-line': { padding: '0 20px' },
-        '.cm-gutters': { backgroundColor: 'hsl(var(--muted))', color: 'hsl(var(--muted-foreground))', border: 'none' },
-        '&.cm-focused': { outline: '2px solid hsl(var(--ring))', outlineOffset: '2px' },
-        '.cm-activeLine, .cm-activeLineGutter': { backgroundColor: 'hsl(var(--muted))' },
-        '.cm-selectionBackground, &.cm-focused .cm-selectionBackground': { backgroundColor: 'hsl(var(--border))' },
-        '.cm-cursor': { borderLeftColor: 'hsl(var(--foreground))' },
-        '.cm-panels, .cm-tooltip': {
-          backgroundColor: 'hsl(var(--background))',
-          color: 'hsl(var(--foreground))',
-          borderColor: 'hsl(var(--border))',
-        },
-        '.cm-searchMatch': { backgroundColor: 'hsl(var(--muted))', outline: '1px solid hsl(var(--primary))' },
-      }),
-    ],
-    [],
-  )
+  const editor = useEditor({
+    extensions,
+    content: sourceDocument(value),
+    immediatelyRender: false,
+    editable: !disabled,
+    enableInputRules: false,
+    enablePasteRules: false,
+    editorProps: {
+      attributes: {
+        role: 'textbox',
+        'aria-label': 'MDX 正文',
+        'aria-multiline': 'true',
+        spellcheck: 'false',
+        class:
+          'min-h-[560px] p-5 text-sm leading-7 text-foreground caret-foreground selection:bg-primary/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring',
+      },
+      handlePaste(view, event) {
+        if (!view.editable || !event.clipboardData) return false
+        event.preventDefault()
+        view.dispatch(view.state.tr.insertText(event.clipboardData.getData('text/plain')))
+        return true
+      },
+    },
+    onUpdate: ({ editor }) => onChange(editor.state.doc.textContent),
+  })
+
+  useEffect(() => {
+    if (editor && editor.state.doc.textContent !== value) {
+      editor.commands.setContent(sourceDocument(value), { emitUpdate: false })
+    }
+  }, [editor, value])
+
+  useEffect(() => {
+    editor?.setEditable(!disabled)
+  }, [editor, disabled])
+
   function insert(before: string, after: string) {
-    const editor = view.current
-    if (!editor || disabled || editor.composing) return
-    const { from, to } = editor.state.selection.main
-    const selected = editor.state.sliceDoc(from, to)
-    editor.dispatch({
-      changes: { from, to, insert: before + selected + after },
-      selection: { anchor: from + before.length, head: from + before.length + selected.length },
-    })
-    editor.focus()
+    if (!editor || disabled || editor.view.composing) return
+    const { from, to } = editor.state.selection
+    const selected = editor.state.doc.textBetween(from, to)
+    editor.view.dispatch(closeHistory(editor.state.tr))
+    editor
+      .chain()
+      .focus()
+      .insertContentAt({ from, to }, { type: 'text', text: before + selected + after })
+      .setTextSelection({ from: from + before.length, to: from + before.length + selected.length })
+      .run()
+    editor.view.dispatch(closeHistory(editor.state.tr))
   }
+
   return (
     <div className="min-w-0 overflow-hidden rounded-lg border border-border">
       <Toolbar.Root
         aria-label="正文格式"
-        className="flex flex-wrap items-center gap-1 border-b border-border bg-muted/30 px-2 py-1"
+        className="flex min-h-12 flex-wrap items-center gap-1 border-b border-border bg-muted/30 px-2 py-1"
       >
         {snippets.map(({ label, icon: Icon, before, after }) => (
           <Tooltip key={label}>
@@ -98,7 +138,7 @@ export function MarkdownEditor({
                   variant="ghost"
                   size="icon"
                   aria-label={label}
-                  disabled={disabled}
+                  disabled={disabled || !editor}
                   onClick={() => insert(before, after)}
                   className="text-muted-foreground hover:text-foreground"
                 >
@@ -109,20 +149,31 @@ export function MarkdownEditor({
             <TooltipContent sideOffset={8}>{label}</TooltipContent>
           </Tooltip>
         ))}
+        <Toolbar.Separator className="mx-1 h-5 w-px bg-border" />
+        <Toolbar.Button asChild>
+          <Button
+            variant="ghost"
+            size="icon"
+            aria-label="撤销"
+            disabled={disabled || !editor}
+            onClick={() => editor?.chain().focus().undo().run()}
+          >
+            <Undo2 />
+          </Button>
+        </Toolbar.Button>
+        <Toolbar.Button asChild>
+          <Button
+            variant="ghost"
+            size="icon"
+            aria-label="重做"
+            disabled={disabled || !editor}
+            onClick={() => editor?.chain().focus().redo().run()}
+          >
+            <Redo2 />
+          </Button>
+        </Toolbar.Button>
       </Toolbar.Root>
-      <CodeMirror
-        aria-label="MDX 正文"
-        value={value}
-        onChange={onChange}
-        onCreateEditor={(editor) => {
-          view.current = editor
-        }}
-        extensions={extensions}
-        editable={!disabled}
-        theme="none"
-        minHeight="560px"
-        basicSetup={{ foldGutter: true, highlightActiveLine: true }}
-      />
+      <EditorContent editor={editor} className="max-h-[75vh] min-h-[560px] overflow-auto overscroll-contain" />
     </div>
   )
 }

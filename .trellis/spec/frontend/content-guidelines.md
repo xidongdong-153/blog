@@ -33,9 +33,9 @@
 
 ## 编辑、预览与 MDX
 
-后台入口为 `/admin/posts`。CodeMirror 只在编辑页按需加载；支持显式保存、Cmd/Ctrl+S、常用格式与组件片段。桌面可分栏，窄屏切换编辑或预览；保存失败保留输入，离开未保存内容时确认。
+后台入口为 `/admin/posts`。Tiptap 只在编辑页按需加载，以纯文本节点保留 MDX 原文；支持显式保存、Cmd/Ctrl+S、常用格式与组件片段、撤销与重做。文章属性在顶部折叠区按两行排列，专栏附加字段在专栏控件下展开。桌面默认编辑与预览分栏，窄屏切换编辑或预览；保存失败保留输入，离开未保存内容时确认。
 
-预览读取已保存的工作版本，仅站长可访问。公开正文和预览共用 `MdxContent` 及 `posts/mdx-options.ts`，保持代码高亮、公式、表格、图片、目录锚点一致。预览隐藏站点导航和页脚，不挂评论或触发访客登记。
+内部预览在正文变化后防抖 350ms，通过鉴权 Server Action 渲染当前 MDX，不保存工作稿；忽略过期响应，语法错误时保留并标记上次成功内容。独立的「保存并外部预览」按钮保存后打开工作版本页面，仅站长可访问。内部预览接收服务端编译结果，由 `MDXRemote` 渲染；公开正文与外部预览继续使用 `MdxContent`。三处共用 `mdx-components.tsx` 组件映射及 `posts/mdx-options.ts` 编译配置，保持代码高亮、公式、表格、图片、目录锚点一致。外部预览隐藏站点导航和页脚，不挂评论或触发访客登记。
 
 MDX 允许 Markdown、预设 HTML 元素和现有 Callout、Collapse、Video；拒绝任意 JavaScript、import/export、属性表达式、展开属性、事件处理器、未知组件和危险 URL。布尔属性使用简写，例如 `<Collapse title="详情" defaultOpen>`。Callout type 只支持 note / tip / warning / important。校验基于 AST，发布时还需通过实际编译。
 

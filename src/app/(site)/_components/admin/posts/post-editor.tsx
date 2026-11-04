@@ -18,6 +18,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '.
 import { Switch } from '../ui/switch'
 import { Tabs, TabsList, TabsTrigger } from '../ui/tabs'
 import { Textarea } from '../ui/textarea'
+import { LiveMdxPreview } from './live-mdx-preview'
 import { postRequest } from './post-api'
 import { PostConfirmDialog } from './post-confirm-dialog'
 
@@ -33,16 +34,6 @@ const MarkdownEditor = dynamic(() => import('./markdown-editor').then((module) =
 
 type EditorMode = 'edit' | 'split' | 'preview'
 
-function syncPreviewTheme(frame: HTMLIFrameElement | null) {
-  const root = frame?.contentDocument?.documentElement
-  if (!root) return
-  const parentRoot = document.documentElement
-  root.classList.toggle('dark', parentRoot.classList.contains('dark'))
-  root.dataset.theme = parentRoot.dataset.theme
-  root.style.colorScheme = parentRoot.classList.contains('dark') ? 'dark' : 'light'
-}
-
-/** 工作稿编辑与发布界面；预览读取刚保存的工作版本。 */
 export function PostEditor({ initial }: { initial?: ManagedPost }) {
   const router = useRouter()
   const [pendingNavigation, setPendingNavigation] = useState<string | null>(null)
@@ -59,11 +50,9 @@ export function PostEditor({ initial }: { initial?: ManagedPost }) {
   const [operation, setOperation] = useState<'save' | 'preview' | 'publish' | null>(null)
   const busy = operation !== null
   const [error, setError] = useState('')
-  const [mode, setMode] = useState<EditorMode>('edit')
-  const [previewRevision, setPreviewRevision] = useState<number | null>(null)
+  const [mode, setMode] = useState<EditorMode>('split')
   const [confirmPublish, setConfirmPublish] = useState(false)
   const busyRef = useRef(false)
-  const previewFrameRef = useRef<HTMLIFrameElement>(null)
   const dirty = JSON.stringify(input) !== savedInput
 
   const setDocument = useCallback(<K extends keyof PostDocument>(field: K, value: PostDocument[K]) => {
@@ -91,14 +80,16 @@ export function PostEditor({ initial }: { initial?: ManagedPost }) {
     busyRef.current = true
     setOperation(action)
     setError('')
+    const previewWindow = action === 'preview' ? window.open('about:blank', '_blank') : null
+    if (previewWindow) previewWindow.opener = null
     try {
+      if (action === 'preview' && !previewWindow) throw new Error('预览窗口被拦截，请允许弹出窗口后重试')
       const current = dirty || !record ? await persist() : record
       if (action === 'publish') {
         const published = await postRequest<ManagedPost>(`/${current.id}/publish`, 'POST', {
           revision: current.revision,
         })
         setRecord(published)
-        if (previewRevision !== null) setPreviewRevision(published.revision)
         setConfirmPublish(false)
         toast.success('文章已发布', {
           action: {
@@ -107,18 +98,13 @@ export function PostEditor({ initial }: { initial?: ManagedPost }) {
           },
         })
       } else if (action === 'preview') {
-        setPreviewRevision(current.revision)
-        setMode((currentMode) =>
-          currentMode === 'edit'
-            ? window.matchMedia('(min-width: 1024px)').matches
-              ? 'split'
-              : 'preview'
-            : currentMode,
-        )
+        if (previewWindow)
+          previewWindow.location.replace(`/admin/posts/${current.id}/preview?revision=${current.revision}`)
       } else {
         toast.success('草稿已保存')
       }
     } catch (cause) {
+      previewWindow?.close()
       setConfirmPublish(false)
       setError(cause instanceof Error ? cause.message : '操作失败，请稍后重试')
     } finally {
@@ -130,16 +116,11 @@ export function PostEditor({ initial }: { initial?: ManagedPost }) {
   useEffect(() => {
     const media = window.matchMedia('(min-width: 1024px)')
     const adapt = () => {
-      if (!media.matches) setMode((current) => (current === 'split' ? 'preview' : current))
+      if (!media.matches) setMode((current) => (current === 'split' ? 'edit' : current))
     }
+    adapt()
     media.addEventListener('change', adapt)
     return () => media.removeEventListener('change', adapt)
-  }, [])
-
-  useEffect(() => {
-    const observer = new MutationObserver(() => syncPreviewTheme(previewFrameRef.current))
-    observer.observe(document.documentElement, { attributes: true, attributeFilter: ['class', 'data-theme'] })
-    return () => observer.disconnect()
   }, [])
 
   const saveRef = useRef(() => {
@@ -184,8 +165,6 @@ export function PostEditor({ initial }: { initial?: ManagedPost }) {
   }, [dirty])
 
   const doc = input.document
-  const previewUrl =
-    record && previewRevision !== null ? `/admin/posts/${record.id}/preview?revision=${previewRevision}` : null
   return (
     <div className="flex flex-col gap-6 pb-8">
       <header className="flex flex-wrap items-center justify-between gap-4 border-b border-border pb-5">
@@ -223,7 +202,8 @@ export function PostEditor({ initial }: { initial?: ManagedPost }) {
               void perform('preview')
             }}
           >
-            保存并预览
+            <ExternalLink />
+            保存并外部预览
           </Button>
           <Button disabled={busy} pending={operation === 'publish'} onClick={() => setConfirmPublish(true)}>
             {record?.published ? '发布更新' : '发布'}
@@ -238,229 +218,156 @@ export function PostEditor({ initial }: { initial?: ManagedPost }) {
           {error}
         </p>
       )}
-      <div className="grid min-w-0 gap-8 xl:grid-cols-[minmax(0,1fr)_17rem]">
-        <Tabs value={mode} onValueChange={(value) => setMode(value as EditorMode)} className="min-w-0 gap-5">
-          <label className="flex flex-col gap-2 text-sm font-medium" htmlFor="post-title">
-            标题
-            <Input
-              id="post-title"
-              maxLength={240}
-              value={doc.title}
+      <section aria-label="文章属性" className="min-w-0">
+        <Collapsible defaultOpen className="overflow-hidden rounded-lg border border-border">
+          <CollapsibleTrigger asChild>
+            <Button variant="ghost" className="group w-full justify-between rounded-none px-4">
+              文章属性
+              <ChevronDown className="transition-transform duration-(--ui-duration) group-data-[state=open]:rotate-180 motion-reduce:transition-none" />
+            </Button>
+          </CollapsibleTrigger>
+          <CollapsibleContent>
+            <fieldset
               disabled={busy}
-              onChange={(event) => setDocument('title', event.target.value)}
-              placeholder="文章标题"
-              className="text-lg md:text-lg"
-            />
-          </label>
-          <div className="flex flex-wrap items-center justify-between gap-3">
-            <TabsList aria-label="编辑器视图">
-              <TabsTrigger id="post-tab-edit" value="edit" aria-controls="post-editor-panel">
-                <FilePenLine className="size-4" />
-                编辑
-              </TabsTrigger>
-              <TabsTrigger
-                id="post-tab-split"
-                value="split"
-                aria-controls="post-editor-panel"
-                className="hidden lg:inline-flex"
-              >
-                <Columns2 className="size-4" />
-                分栏
-              </TabsTrigger>
-              <TabsTrigger id="post-tab-preview" value="preview" aria-controls="post-editor-panel">
-                <Eye className="size-4" />
-                预览
-              </TabsTrigger>
-            </TabsList>
-            {previewUrl && (
-              <Link
-                href={previewUrl}
-                target="_blank"
-                className="inline-flex min-h-11 items-center gap-1 text-xs text-muted-foreground hover:text-foreground"
-              >
-                在新窗口预览
-                <ExternalLink size={13} />
-              </Link>
-            )}
-          </div>
-          <div
-            id="post-editor-panel"
-            role="tabpanel"
-            aria-labelledby={`post-tab-${mode}`}
-            className={`grid min-w-0 gap-5 ${mode === 'split' ? 'lg:grid-cols-2' : ''}`}
-          >
-            <div className={mode === 'preview' ? 'hidden' : 'min-w-0'}>
-              <MarkdownEditor value={doc.content} onChange={(value) => setDocument('content', value)} disabled={busy} />
-            </div>
-            {mode !== 'edit' && (
-              <section aria-label="文章预览" className="min-w-0 rounded-lg border border-border">
-                <div className="flex min-h-12 flex-wrap items-center justify-between gap-2 border-b border-border px-4 text-xs text-muted-foreground">
-                  <span>{dirty ? '当前预览未包含未保存修改' : '工作稿预览'}</span>
-                  <Button
-                    variant="ghost"
-                    className="h-10 px-2 text-xs text-primary"
-                    disabled={busy}
-                    pending={operation === 'preview'}
-                    onClick={() => {
-                      void perform('preview')
-                    }}
-                  >
-                    保存并刷新
-                  </Button>
-                </div>
-                {previewUrl ? (
-                  <iframe
-                    key={previewUrl}
-                    ref={previewFrameRef}
-                    onLoad={(event) => syncPreviewTheme(event.currentTarget)}
-                    title="文章工作稿预览"
-                    src={previewUrl}
-                    className="h-[720px] w-full rounded-b-lg bg-background"
-                  />
-                ) : (
-                  <div className="flex min-h-72 items-center justify-center p-6 text-sm text-muted-foreground">
-                    保存并预览后在这里查看正文。
-                  </div>
-                )}
-              </section>
-            )}
-          </div>
-        </Tabs>
-        <aside aria-label="文章属性" className="min-w-0">
-          <Collapsible defaultOpen className="overflow-hidden rounded-lg border border-border">
-            <CollapsibleTrigger asChild>
-              <Button variant="ghost" className="group w-full justify-between rounded-none px-4">
-                文章属性
-                <ChevronDown className="transition-transform duration-(--ui-duration) group-data-[state=open]:rotate-180 motion-reduce:transition-none" />
-              </Button>
-            </CollapsibleTrigger>
-            <CollapsibleContent>
-              <fieldset disabled={busy} className="flex min-w-0 flex-col gap-5 p-4 pt-2">
-                <label htmlFor="post-slug" className="flex flex-col gap-2 text-sm">
-                  文章地址
-                  <Input
-                    id="post-slug"
-                    value={input.slug}
-                    maxLength={128}
-                    required
-                    disabled={record?.slugLocked || busy}
-                    onChange={(event) => setInput((current) => ({ ...current, slug: event.target.value }))}
-                    placeholder="my-first-post"
-                    pattern="[a-z0-9]+(-[a-z0-9]+)*"
-                  />
-                  <span className="text-xs text-muted-foreground">
-                    {record?.slugLocked ? '发布后地址固定' : '小写字母、数字和连字符'}
-                  </span>
-                </label>
-                <label htmlFor="post-description" className="flex flex-col gap-2 text-sm">
-                  描述
-                  <Textarea
-                    id="post-description"
-                    value={doc.description}
-                    maxLength={1000}
-                    rows={3}
-                    onChange={(event) => setDocument('description', event.target.value)}
-                  />
-                </label>
-                <div className="flex flex-col gap-2 text-sm">
-                  <label htmlFor="post-category">分类</label>
-                  <Select
-                    value={doc.category}
-                    disabled={busy}
-                    onValueChange={(value) => setDocument('category', value as PostDocument['category'])}
-                  >
-                    <SelectTrigger id="post-category" className="w-full">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {Object.entries(BLOG_CATEGORY_LABELS).map(([value, label]) => (
-                        <SelectItem key={value} value={value}>
-                          {label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <label htmlFor="post-tags" className="flex flex-col gap-2 text-sm">
-                  标签
-                  <Input
-                    id="post-tags"
-                    value={tagsText}
-                    maxLength={1800}
-                    onChange={(event) => {
-                      setTagsText(event.target.value)
-                      setDocument(
-                        'tags',
-                        event.target.value
-                          .split(/[,，]/)
-                          .map((tag) => tag.trim())
-                          .filter(Boolean),
-                      )
-                    }}
-                    placeholder="用逗号分隔"
-                  />
-                </label>
-                <div className="flex flex-col gap-2 text-sm">
-                  <label htmlFor="post-date">文章日期</label>
-                  <DatePicker
-                    id="post-date"
-                    value={doc.date}
-                    required
-                    disabled={busy}
-                    onValueChange={(value) => setDocument('date', value)}
-                  />
-                </div>
-                <div className="flex flex-col gap-2 text-sm">
-                  <label htmlFor="post-updated-date">内容更新日期</label>
-                  <DatePicker
-                    id="post-updated-date"
-                    value={doc.updatedDate}
-                    disabled={busy}
-                    onValueChange={(value) => setDocument('updatedDate', value)}
-                  />
-                </div>
-                <label htmlFor="post-cover" className="flex flex-col gap-2 text-sm">
-                  封面 URL
-                  <Input
-                    id="post-cover"
-                    value={doc.heroImage}
-                    maxLength={2048}
-                    onChange={(event) => setDocument('heroImage', event.target.value)}
-                    placeholder="https:// 或 /images/…"
-                  />
-                </label>
-                <label htmlFor="post-color" className="flex flex-col gap-2 text-sm">
-                  主题色
-                  <Input
-                    id="post-color"
-                    value={doc.heroColor}
-                    maxLength={7}
-                    onChange={(event) => setDocument('heroColor', event.target.value)}
-                    placeholder="#659eb9"
-                  />
-                </label>
-                <div className="flex flex-col gap-2 text-sm">
-                  <label htmlFor="post-series">专栏</label>
-                  <Select
-                    value={doc.series?.id ?? 'none'}
-                    disabled={busy}
-                    onValueChange={(value) =>
-                      setDocument('series', value === 'none' ? undefined : { id: value, order: doc.series?.order ?? 1 })
-                    }
-                  >
-                    <SelectTrigger id="post-series" className="w-full">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="none">无</SelectItem>
-                      {Object.values(REGISTERED_SERIES).map((series) => (
-                        <SelectItem key={series.id} value={series.id}>
-                          {series.title}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
+              className="grid min-w-0 grid-cols-1 items-start gap-4 p-4 pt-2 sm:grid-cols-2 lg:grid-cols-12"
+            >
+              <label className="flex min-w-0 flex-col gap-2 text-sm font-medium lg:col-span-3" htmlFor="post-title">
+                标题
+                <Input
+                  id="post-title"
+                  maxLength={240}
+                  value={doc.title}
+                  disabled={busy}
+                  onChange={(event) => setDocument('title', event.target.value)}
+                  placeholder="文章标题"
+                  className="text-lg md:text-lg"
+                />
+              </label>
+              <label htmlFor="post-description" className="lg:col-span-3 flex flex-col gap-2 text-sm">
+                描述
+                <Textarea
+                  id="post-description"
+                  value={doc.description}
+                  maxLength={1000}
+                  rows={1}
+                  className="h-11 min-h-11 resize-y"
+                  onChange={(event) => setDocument('description', event.target.value)}
+                />
+              </label>
+              <label htmlFor="post-slug" className="lg:col-span-2 flex flex-col gap-2 text-sm">
+                文章地址
+                <Input
+                  id="post-slug"
+                  value={input.slug}
+                  maxLength={128}
+                  required
+                  disabled={record?.slugLocked || busy}
+                  onChange={(event) => setInput((current) => ({ ...current, slug: event.target.value }))}
+                  placeholder="my-first-post"
+                  pattern="[a-z0-9]+(-[a-z0-9]+)*"
+                />
+                <span className="text-xs text-muted-foreground">
+                  {record?.slugLocked ? '发布后地址固定' : '小写字母、数字和连字符'}
+                </span>
+              </label>
+              <div className="lg:col-span-1 flex flex-col gap-2 text-sm">
+                <label htmlFor="post-category">分类</label>
+                <Select
+                  value={doc.category}
+                  disabled={busy}
+                  onValueChange={(value) => setDocument('category', value as PostDocument['category'])}
+                >
+                  <SelectTrigger id="post-category" className="w-full">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {Object.entries(BLOG_CATEGORY_LABELS).map(([value, label]) => (
+                      <SelectItem key={value} value={value}>
+                        {label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <label htmlFor="post-tags" className="lg:col-span-3 flex flex-col gap-2 text-sm">
+                标签
+                <Input
+                  id="post-tags"
+                  value={tagsText}
+                  maxLength={1800}
+                  onChange={(event) => {
+                    setTagsText(event.target.value)
+                    setDocument(
+                      'tags',
+                      event.target.value
+                        .split(/[,，]/)
+                        .map((tag) => tag.trim())
+                        .filter(Boolean),
+                    )
+                  }}
+                  placeholder="用逗号分隔"
+                />
+              </label>
+              <div className="lg:col-span-2 flex flex-col gap-2 text-sm">
+                <label htmlFor="post-date">文章日期</label>
+                <DatePicker
+                  id="post-date"
+                  value={doc.date}
+                  required
+                  disabled={busy}
+                  onValueChange={(value) => setDocument('date', value)}
+                />
+              </div>
+              <div className="lg:col-span-2 flex flex-col gap-2 text-sm">
+                <label htmlFor="post-updated-date">内容更新日期</label>
+                <DatePicker
+                  id="post-updated-date"
+                  value={doc.updatedDate}
+                  disabled={busy}
+                  onValueChange={(value) => setDocument('updatedDate', value)}
+                />
+              </div>
+              <label htmlFor="post-cover" className="lg:col-span-2 flex flex-col gap-2 text-sm">
+                封面 URL
+                <Input
+                  id="post-cover"
+                  value={doc.heroImage}
+                  maxLength={2048}
+                  onChange={(event) => setDocument('heroImage', event.target.value)}
+                  placeholder="https:// 或 /images/…"
+                />
+              </label>
+              <label htmlFor="post-color" className="lg:col-span-1 flex flex-col gap-2 text-sm">
+                主题色
+                <Input
+                  id="post-color"
+                  value={doc.heroColor}
+                  maxLength={7}
+                  onChange={(event) => setDocument('heroColor', event.target.value)}
+                  placeholder="#659eb9"
+                />
+              </label>
+              <div className="lg:col-span-2 flex flex-col gap-2 text-sm">
+                <label htmlFor="post-series">专栏</label>
+                <Select
+                  value={doc.series?.id ?? 'none'}
+                  disabled={busy}
+                  onValueChange={(value) =>
+                    setDocument('series', value === 'none' ? undefined : { id: value, order: doc.series?.order ?? 1 })
+                  }
+                >
+                  <SelectTrigger id="post-series" className="w-full">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="none">无</SelectItem>
+                    {Object.values(REGISTERED_SERIES).map((series) => (
+                      <SelectItem key={series.id} value={series.id}>
+                        {series.title}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
                 {doc.series && (
                   <>
                     <label htmlFor="post-order" className="flex flex-col gap-2 text-sm">
@@ -489,37 +396,71 @@ export function PostEditor({ initial }: { initial?: ManagedPost }) {
                     </label>
                   </>
                 )}
-                <div className="flex flex-col gap-1 border-t border-border pt-3">
-                  <label
-                    htmlFor="post-ai-generated"
-                    className="flex min-h-11 cursor-pointer items-center justify-between gap-3 text-sm"
-                  >
-                    AI 生成
-                    <Switch
-                      id="post-ai-generated"
-                      disabled={busy}
-                      checked={doc.aiGenerated}
-                      onCheckedChange={(checked) => setDocument('aiGenerated', checked)}
-                    />
-                  </label>
-                  <label
-                    htmlFor="post-disable-summary"
-                    className="flex min-h-11 cursor-pointer items-center justify-between gap-3 text-sm"
-                  >
-                    关闭 AI 摘要
-                    <Switch
-                      id="post-disable-summary"
-                      disabled={busy}
-                      checked={doc.disableAiSummary}
-                      onCheckedChange={(checked) => setDocument('disableAiSummary', checked)}
-                    />
-                  </label>
-                </div>
-              </fieldset>
-            </CollapsibleContent>
-          </Collapsible>
-        </aside>
-      </div>
+              </div>
+              <div className="lg:col-span-3 flex flex-col gap-1 pt-5">
+                <label
+                  htmlFor="post-ai-generated"
+                  className="flex min-h-11 cursor-pointer items-center justify-between gap-3 text-sm"
+                >
+                  AI 生成
+                  <Switch
+                    id="post-ai-generated"
+                    disabled={busy}
+                    checked={doc.aiGenerated}
+                    onCheckedChange={(checked) => setDocument('aiGenerated', checked)}
+                  />
+                </label>
+                <label
+                  htmlFor="post-disable-summary"
+                  className="flex min-h-11 cursor-pointer items-center justify-between gap-3 text-sm"
+                >
+                  关闭 AI 摘要
+                  <Switch
+                    id="post-disable-summary"
+                    disabled={busy}
+                    checked={doc.disableAiSummary}
+                    onCheckedChange={(checked) => setDocument('disableAiSummary', checked)}
+                  />
+                </label>
+              </div>
+            </fieldset>
+          </CollapsibleContent>
+        </Collapsible>
+      </section>
+      <Tabs value={mode} onValueChange={(value) => setMode(value as EditorMode)} className="min-w-0 gap-5">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <TabsList aria-label="编辑器视图">
+            <TabsTrigger id="post-tab-edit" value="edit" aria-controls="post-editor-panel">
+              <FilePenLine className="size-4" />
+              编辑
+            </TabsTrigger>
+            <TabsTrigger
+              id="post-tab-split"
+              value="split"
+              aria-controls="post-editor-panel"
+              className="hidden lg:inline-flex"
+            >
+              <Columns2 className="size-4" />
+              分栏
+            </TabsTrigger>
+            <TabsTrigger id="post-tab-preview" value="preview" aria-controls="post-editor-panel">
+              <Eye className="size-4" />
+              预览
+            </TabsTrigger>
+          </TabsList>
+        </div>
+        <div
+          id="post-editor-panel"
+          role="tabpanel"
+          aria-labelledby={`post-tab-${mode}`}
+          className={`grid min-w-0 gap-5 ${mode === 'split' ? 'lg:grid-cols-2' : ''}`}
+        >
+          <div className={mode === 'preview' ? 'hidden' : 'min-w-0'}>
+            <MarkdownEditor value={doc.content} onChange={(value) => setDocument('content', value)} disabled={busy} />
+          </div>
+          {mode !== 'edit' && <LiveMdxPreview source={doc.content} />}
+        </div>
+      </Tabs>
       {pendingNavigation && (
         <PostConfirmDialog
           open={leaveOpen}
