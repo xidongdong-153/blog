@@ -38,6 +38,12 @@ const DISCONNECT_GRACE_MS = 1500
  */
 export function VisitorPresenceProvider({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
+  if (pathname.startsWith('/admin')) return children
+  return <TrackedVisitorPresenceProvider>{children}</TrackedVisitorPresenceProvider>
+}
+
+function TrackedVisitorPresenceProvider({ children }: { children: React.ReactNode }) {
+  const pathname = usePathname()
   const currentSlug = useMemo(() => parseArticleSlug(pathname), [pathname])
 
   const [connectionState, setConnectionState] = useState<VisitorConnectionState>('connecting')

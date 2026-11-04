@@ -10,7 +10,7 @@
 
 类型就近定义，跟着它描述的数据走，不建 `types/` 目录：
 
-- `BlogPost`、`Note`、`NoteStatus`、`Heading`、`NOTE_STATUS_LABELS` 全在 `src/lib/content.ts`，和数据读取函数放一起。
+- 公开 `BlogPost`、本地 `Note` 与目录类型在 `src/lib/content.ts`；管理输入的 `PostDocument`、`PostInput`、`ManagedPost` 在浏览器可用的 `src/lib/posts.ts`。
 - 页面 props 用 interface 定义在页面文件里（`BlogPostPageProps`）。
 - 配置类型从值推导：`src/site.config.ts` 用 `as const` + `export type SiteConfig = typeof siteConfig`，改配置不用同步改类型。
 
@@ -32,7 +32,9 @@ export type NoteStatus = 'in-progress' | 'incomplete' | 'ready' | 'archived'
 
 ## 运行时校验
 
-frontmatter 是外部输入，读取时逐字段校验，`src/lib/content.ts` 的模式：
+博文 API 和导入使用 `src/lib/posts.ts` 的 Zod schema，非法类型、未知字段和无效日历日期拒绝写入。MDX 再经过 AST 与编译校验。
+
+以下宽松规则只适用于本地笔记的 frontmatter，不能用于数据库博文：
 
 - `requireString`：必填字符串，缺失或空白抛错，错误信息带文件路径。
 - `readDate`：接受 YAML `Date` 或非空字符串，输出字符串；缺失或其他类型抛错，非空字符串只去掉首尾空白，不验证日历合法性。填写要求见[内容约定](./content-guidelines.md)。

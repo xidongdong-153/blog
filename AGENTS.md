@@ -4,16 +4,16 @@
 
 ## 项目概况
 
-Next.js 16 + React 19 + Tailwind CSS 4 + TypeScript 单应用博客，App Router，文章与笔记用 MDX 文件管理，动态功能（评论、友链、AI 摘要、账号认证）使用 libSQL/Turso 数据库与 Drizzle ORM，Blog 另提供只读活动 API。开发端口 4400（4399 是 site 和 starter web 的端口，避免冲突）。
+Next.js 16 + React 19 + Tailwind CSS 4 + TypeScript 单应用博客，App Router，文章以 MDX 原文和元数据快照存入数据库，笔记使用本地 Markdown 文件，动态功能（评论、友链、AI 摘要、账号认证）使用 libSQL/Turso 数据库与 Drizzle ORM，Blog 另提供只读活动 API。开发端口 4400（4399 是 site 和 starter web 的端口，避免冲突）。
 
 主要目录（代码在 `src/`，内容和配置文件在仓库根）：
 
 - `src/app/(site)/`：公开页面，页面私有组件在同级 `_components/` 按功能分组。
-- `src/server/modules/`：服务端业务模块（`auth`、`comments`、`links`、`ai`、`presence`、`system`），高内聚包含 service、route、types 和对应测试。
+- `src/server/modules/`：服务端业务模块（`posts`、`auth`、`comments`、`links`、`ai`、`presence`、`visitors`、`admin`、`system`），高内聚包含 service、route、types 和对应测试。
 - `src/server/infra/`：跨模块基础设施（数据库 client/schema/migrations、AI 模型客户端与加密、邮件发送等）。
-- `src/lib/content.ts`：MDX 内容读取层，frontmatter 校验在这里。
+- `src/lib/content.ts`：公开内容读取入口；文章异步读取数据库公开快照，笔记同步读文件。文章管理与校验在 `src/server/modules/posts/` 和 `src/lib/posts.ts`。
 - `src/site.config.ts`：站点标题、导航、社交链接。
-- `content/blog/`、`content/notes/`：文章和笔记源文件。
+- `content/notes/`：笔记源文件；文章从 `/admin/posts` 管理，支持 MDX 导入导出。
 
 内容约定见 [.trellis/spec/frontend/content-guidelines.md](.trellis/spec/frontend/content-guidelines.md)。
 

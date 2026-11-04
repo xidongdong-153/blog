@@ -3,6 +3,7 @@ import { Hono } from 'hono'
 import { getCookie, setCookie } from 'hono/cookie'
 import { getBlogPost } from '@/lib/content'
 import { VISITOR_COOKIE_MAX_AGE_SECONDS, VISITOR_COOKIE_NAME } from '@/lib/visitor'
+import { listPublishedSlugs } from '@/server/modules/posts/posts.service'
 import { visitorsService } from './visitors.service'
 import { VisitorsServiceError } from './visitors.types'
 
@@ -85,13 +86,14 @@ visitorsRoute.get('/stats', async (c) => {
   const slug = c.req.query('slug')
 
   if (slug) {
-    const post = getBlogPost(slug)
+    const post = await getBlogPost(slug)
     if (!post) {
       return c.json({ error: '文章不存在' }, 400)
     }
   }
 
   try {
+    visitorsService.clearUnpublishedArticles(new Set(await listPublishedSlugs()))
     const stats = await visitorsService.getStats(slug)
     return c.json(stats)
   } catch (err) {

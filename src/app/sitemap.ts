@@ -2,7 +2,9 @@ import type { MetadataRoute } from 'next'
 import { getAllBlogPosts, getAllBlogTags, getAllNotes, getAllSeries } from '@/lib/content'
 import { siteConfig } from '@/site.config'
 
-export default function sitemap(): MetadataRoute.Sitemap {
+export const dynamic = 'force-dynamic'
+
+export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const baseUrl = siteConfig.url
 
   const staticRoutes: MetadataRoute.Sitemap = [
@@ -17,7 +19,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { url: `${baseUrl}/contact`, lastModified: new Date(), changeFrequency: 'monthly', priority: 0.4 },
   ]
 
-  const blogRoutes: MetadataRoute.Sitemap = getAllBlogPosts()
+  const blogRoutes: MetadataRoute.Sitemap = (await getAllBlogPosts())
     .filter((post) => !post.draft)
     .map((post) => ({
       url: `${baseUrl}/blog/${post.slug}`,
@@ -26,7 +28,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
       priority: 0.8,
     }))
 
-  const seriesRoutes: MetadataRoute.Sitemap = getAllSeries().map((series) => ({
+  const seriesRoutes: MetadataRoute.Sitemap = (await getAllSeries()).map((series) => ({
     url: `${baseUrl}/blog/series/${series.id}`,
     lastModified: series.lastUpdated ? new Date(series.lastUpdated) : new Date(),
     changeFrequency: 'weekly',
@@ -42,7 +44,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
       priority: 0.6,
     }))
 
-  const tagRoutes: MetadataRoute.Sitemap = getAllBlogTags().map(({ tag }) => ({
+  const tagRoutes: MetadataRoute.Sitemap = (await getAllBlogTags()).map(({ tag }) => ({
     url: `${baseUrl}/blog/tags/${encodeURIComponent(tag)}`,
     lastModified: new Date(),
     changeFrequency: 'weekly',

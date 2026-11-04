@@ -9,9 +9,9 @@ import { isCommentRateLimited, resetCommentRateLimit } from './comments.rate-lim
 const TEST_SLUG = 'test-article'
 
 test('评论 Hono 路由与权限状态码测试', async (t) => {
-  let cleanupFixture: (() => void) | undefined
-  t.before(() => {
-    cleanupFixture = createBlogPostFixture(TEST_SLUG)
+  let cleanupFixture: (() => Promise<void>) | undefined
+  t.before(async () => {
+    cleanupFixture = await createBlogPostFixture(TEST_SLUG)
   })
   t.after(() => cleanupFixture?.())
   await t.test('GET /api/comments 参数校验', async () => {

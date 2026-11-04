@@ -15,13 +15,7 @@ interface SeriesPageProps {
   params: Promise<{ id: string }>
 }
 
-/** 预生成所有静态专栏路由。 */
-export function generateStaticParams() {
-  return Object.keys(REGISTERED_SERIES).map((id) => ({ id }))
-}
-
-/** 未在注册表中列出的专栏直接 404。 */
-export const dynamicParams = false
+export const dynamic = 'force-dynamic'
 
 /** 动态生成专栏 SEO 元数据。 */
 export async function generateMetadata({ params }: SeriesPageProps): Promise<Metadata> {
@@ -43,7 +37,7 @@ export async function generateMetadata({ params }: SeriesPageProps): Promise<Met
  */
 export default async function SeriesDetailPage({ params }: SeriesPageProps) {
   const { id } = await params
-  const detail = getSeriesDetail(id)
+  const detail = await getSeriesDetail(id)
 
   if (!detail) {
     notFound()

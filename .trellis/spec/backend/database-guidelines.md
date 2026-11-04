@@ -1,6 +1,6 @@
 # 数据库规范
 
-数据库是 Turso（libSQL），ORM 用 Drizzle，连接层在 `src/server/infra/db/client.ts`，表定义在 `src/server/infra/db/schema/`。当前只有一张表 `system_health_checks`：已定义、还没有任何代码读写它，迁移文件也从未生成过。
+数据库是 Turso（libSQL），ORM 用 Drizzle，连接层在 `src/server/infra/db/client.ts`，表定义在 `src/server/infra/db/schema/`。现有表和迁移以 schema 聚合与 migrations 为准，包含账号、评论、友链、AI、访客及博文。
 
 ## 连接与环境变量
 
@@ -11,7 +11,7 @@
 
 本地开发什么都不用配，自动落到 `file:local.db`（仓库根，`*.db` 在 `.gitignore` 里，不进 git）。线上在 `.env.local` 或部署环境里填 `TURSO_DATABASE_URL`（形如 `libsql://xxx.turso.io`）和 `TURSO_AUTH_TOKEN`，字段说明见 `.env.example` 的 Turso 段。
 
-业务代码一律用单例：`import { db } from '@/server/infra/db/client'`（现有引用方是 `src/app/(site)/status/page.tsx` 和 `src/server/routes/system.ts`）。`createDatabase` 的显式参数留给测试或需要第二个实例的场景，业务代码不传参。
+业务代码一律用单例：`import { db } from '@/server/infra/db/client'`（页面通过对应模块的 service 调用）。`createDatabase` 的显式参数留给测试或需要第二个实例的场景，业务代码不传参。
 
 `src/server/infra/db/client.ts` 同时导出 `AppDatabase` 类型（`typeof db`），需要标注类型的场合用它，不要自己重算。
 
@@ -31,7 +31,7 @@ export * from './system'
 ```
 
 - 新表定义后必须加进 `schema/index.ts` 的 spread。`drizzle` 实例（`client.ts` 的 `drizzle(client, { schema })`）和 `drizzle.config.ts` 的 `schema` 字段都只认这个出口。
-- SQL 迁移输出到 `src/server/infra/db/migrations/`（`drizzle.config.ts` 的 `out` 字段）。这个目录现在不存在，第一次跑 `pnpm db:generate` 才会生成。
+- SQL 迁移输出到 `src/server/infra/db/migrations/`（`drizzle.config.ts` 的 `out` 字段）。生成的 SQL 和 meta 文件都进 Git。
 
 ## 表命名与列写法
 
@@ -52,7 +52,7 @@ export const healthChecks = sqliteTable('system_health_checks', {
 - 表名：`模块_实体复数`，snake_case。system 域的健康检查 → `system_health_checks`。表名带模块前缀，查询时一眼看出归属。
 - 导出名：camelCase、不带模块前缀（`healthChecks`），代码里 import 时短。
 - 列名：snake_case（`latency_ms`、`checked_at`），跟表名风格一致。
-- 时间戳列：`integer` 加 `mode: 'timestamp_ms'`，代码里传 `Date` 对象，库里存毫秒整数。注意区分：内容层（`src/lib/content.ts` 的 frontmatter）日期存 ISO 字符串，那是 MDX 的约定；数据库层存毫秒整数，两边各自稳定，不要串用。
+- 新增博文表的创建、修改和内容日期使用 ISO 字符串，遵守项目 AGENTS；已有账号、评论和 AI 等模块的毫秒时间戳列保持原样，本次不统一迁移。
 
 ## migration 流程
 
@@ -88,6 +88,14 @@ pnpm db:studio     # 打开 drizzle-kit studio，本地默认连 file:local.db
 - `drizzle.config.ts` 已支持检测并自动载入 `.env.local`，执行 `pnpm db:*` 命令时自动连通线上 Turso 或本地文件库。
 - `src/server/infra/db/migrations/` 已生成迁移并应用至数据库。
 
+## 博文存储契约
+
+`site_posts` 以稳定 ID 关联评论，以唯一 slug 提供 URL。document 与 published 分别保存当前工作稿和完整公开快照，标签、正文和其他元数据必须来自同一快照。revision 用于乐观锁；publish 在完成编译后通过版本条件更新，避免覆盖校验期间的新修改。
+
+保存与发布分离，首次发布后锁定 slug。撤回清空公开快照，保留工作稿与评论；删除用事务清理评论、摘要和文章。SQLite 写锁及并发冲突返回 409，不把冲突当作成功。
+
+读写实现位于 `src/server/modules/posts/`，客户端类型与校验在 `src/lib/posts.ts`。完整字段、导入导出和 MDX 范围见[内容约定](../frontend/content-guidelines.md)。`pnpm test` 自动创建并迁移临时 SQLite 库，测试完成后清理；不能用生产库跑内容测试。
+
 ## AI 摘要同步契约
 
 ### 1. Scope / Trigger
@@ -120,14 +128,14 @@ pnpm summary:sync
 
 ### 4. Validation & Error Matrix
 
-| 条件 | 处理 |
-| --- | --- |
-| `disableAiSummary` 严格为 `true` | 不读模型、不写新摘要，计入 `disabled`；页面不渲染 |
-| 缓存 `content_hash` 等于当前正文哈希 | 不调用模型，计入 `skipped` |
-| 没有 ready 配置或主密钥不可用 | 不调用模型，安全记录跳过并以 0 退出 |
-| 模型返回空文本、非 `stop` 或 Markdown | 不写库，保留旧记录并计入 `failed` |
-| 单篇模型或数据库错误 | 记录安全错误，继续处理下一篇，命令以 0 退出 |
-| 页面查询失败或哈希不匹配 | 不渲染摘要，继续渲染文章正文 |
+| 条件                                  | 处理                                              |
+| ------------------------------------- | ------------------------------------------------- |
+| `disableAiSummary` 严格为 `true`      | 不读模型、不写新摘要，计入 `disabled`；页面不渲染 |
+| 缓存 `content_hash` 等于当前正文哈希  | 不调用模型，计入 `skipped`                        |
+| 没有 ready 配置或主密钥不可用         | 不调用模型，安全记录跳过并以 0 退出               |
+| 模型返回空文本、非 `stop` 或 Markdown | 不写库，保留旧记录并计入 `failed`                 |
+| 单篇模型或数据库错误                  | 记录安全错误，继续处理下一篇，命令以 0 退出       |
+| 页面查询失败或哈希不匹配              | 不渲染摘要，继续渲染文章正文                      |
 
 ### 5. Good / Base / Bad Cases
 

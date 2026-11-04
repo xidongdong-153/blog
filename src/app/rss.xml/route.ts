@@ -20,9 +20,11 @@ function escapeXml(unsafe: string): string {
   })
 }
 
-export function GET(): Response {
+export const dynamic = 'force-dynamic'
+
+export async function GET(): Promise<Response> {
   const baseUrl = siteConfig.url
-  const posts = getAllBlogPosts()
+  const posts = (await getAllBlogPosts())
     .filter((post) => !post.draft)
     .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
 
@@ -57,7 +59,7 @@ ${itemsXml}
   return new Response(xml, {
     headers: {
       'Content-Type': 'application/xml; charset=utf-8',
-      'Cache-Control': 'public, max-age=3600, s-maxage=86400, stale-while-revalidate=86400',
+      'Cache-Control': 'no-store, max-age=0',
     },
   })
 }

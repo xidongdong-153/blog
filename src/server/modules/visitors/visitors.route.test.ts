@@ -10,9 +10,9 @@ import { resetBootstrapRateLimitMap } from './visitors.route.ts'
 const TEST_SLUG = 'test-article'
 
 test('访客 Hono 路由测试', async (t) => {
-  let cleanupFixture: (() => void) | undefined
-  t.before(() => {
-    cleanupFixture = createBlogPostFixture(TEST_SLUG)
+  let cleanupFixture: (() => Promise<void>) | undefined
+  t.before(async () => {
+    cleanupFixture = await createBlogPostFixture(TEST_SLUG)
   })
   t.after(() => cleanupFixture?.())
   await t.test('POST /api/visitors/bootstrap 首次访问颁发 Cookie 并返回公开计数', async () => {

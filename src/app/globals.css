@@ -1,4 +1,5 @@
 @import 'tailwindcss';
+@import 'tw-animate-css';
 @plugin '@tailwindcss/typography';
 @import 'katex/dist/katex.min.css';
 
@@ -33,6 +34,26 @@
   --radius: var(--radius);
   --font-serif: var(--font-serif), Georgia, Cambria, 'Times New Roman', Times, serif;
   --animate-skill-fade-in: skill-fade-in 320ms ease both;
+  --animate-ui-expand: ui-expand var(--ui-duration) var(--ui-ease);
+  --animate-ui-collapse: ui-collapse var(--ui-duration) var(--ui-ease);
+}
+
+@keyframes ui-expand {
+  from {
+    height: 0;
+  }
+  to {
+    height: var(--radix-collapsible-content-height);
+  }
+}
+
+@keyframes ui-collapse {
+  from {
+    height: var(--radix-collapsible-content-height);
+  }
+  to {
+    height: 0;
+  }
 }
 
 @keyframes skill-fade-in {
@@ -67,6 +88,8 @@
 }
 
 :root {
+  --ui-duration: 160ms;
+  --ui-ease: cubic-bezier(0.16, 1, 0.3, 1);
   --background: 40 20% 97.5%;
   --foreground: 30 8% 15%;
   --card: 40 25% 98.5%;

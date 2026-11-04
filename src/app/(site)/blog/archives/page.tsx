@@ -3,13 +3,15 @@ import Link from 'next/link'
 import { formatDate, getAllBlogPosts } from '@/lib/content'
 import { AiGeneratedLabel } from '../../_components/blog/ai-generated-label'
 
+export const dynamic = 'force-dynamic'
+
 export const metadata: Metadata = {
   title: '归档',
 }
 
 /** 按年份分组列全部文章。 */
-export default function ArchivesPage() {
-  const posts = getAllBlogPosts().filter((post) => !post.draft)
+export default async function ArchivesPage() {
+  const posts = (await getAllBlogPosts()).filter((post) => !post.draft)
 
   const byYear = new Map<string, typeof posts>()
   for (const post of posts) {

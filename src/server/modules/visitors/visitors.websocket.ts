@@ -12,6 +12,7 @@ import {
   VISITOR_SESSION_CLEANUP_INTERVAL_MS,
   VISITOR_SOCKET_PATH,
 } from '@/lib/visitor'
+import { listPublishedSlugs } from '@/server/modules/posts/posts.service'
 import { visitorsService as defaultVisitorsService } from './visitors.service'
 
 interface ExtendedWebSocket extends WebSocket {
@@ -169,83 +170,87 @@ export class VisitorWebSocketHub {
     })
 
     ws.on('message', async (rawData) => {
-      const now = Date.now()
-      if (!ws.lastMsgReset || now - ws.lastMsgReset >= 1000) {
-        ws.lastMsgReset = now
-        ws.msgCount = 0
-      }
-      ws.msgCount = (ws.msgCount || 0) + 1
-      if (ws.msgCount > 10) {
-        this.sendError(ws, 'rate_limited')
-        return
-      }
-
-      let msg: VisitorClientMessage
       try {
-        msg = JSON.parse(rawData.toString())
-      } catch {
-        this.sendError(ws, 'invalid_message')
-        return
-      }
-
-      if (!msg || typeof msg !== 'object' || typeof msg.type !== 'string') {
-        this.sendError(ws, 'invalid_message')
-        return
-      }
-
-      if (!msg.sessionId || typeof msg.sessionId !== 'string' || msg.sessionId.length > 64) {
-        this.sendError(ws, 'invalid_session')
-        return
-      }
-
-      switch (msg.type) {
-        case 'sync': {
-          let articleSlug = msg.articleSlug ?? null
-          if (articleSlug !== null) {
-            if (typeof articleSlug !== 'string' || articleSlug.length > 128) {
-              this.sendError(ws, 'invalid_article')
-              return
-            }
-            const post = getBlogPost(articleSlug)
-            if (!post) {
-              this.sendError(ws, 'invalid_article')
-              articleSlug = null
-            }
-          }
-
-          // 单物理连接会话限制：若当前连接已有旧 sessionId，先移除旧会话
-          if (ws.currentSessionId && ws.currentSessionId !== msg.sessionId) {
-            this.visitorsService.removeSession(ws.currentSessionId, connectionId)
-          }
-          ws.currentSessionId = msg.sessionId
-
-          this.visitorsService.registerSession({
-            sessionId: msg.sessionId,
-            connectionId,
-            visitorId,
-            articleSlug,
-          })
-
-          await this.broadcastSnapshot()
-          break
+        const now = Date.now()
+        if (!ws.lastMsgReset || now - ws.lastMsgReset >= 1000) {
+          ws.lastMsgReset = now
+          ws.msgCount = 0
+        }
+        ws.msgCount = (ws.msgCount || 0) + 1
+        if (ws.msgCount > 10) {
+          this.sendError(ws, 'rate_limited')
+          return
         }
 
-        case 'heartbeat': {
-          this.visitorsService.heartbeatSession(msg.sessionId, connectionId)
-          break
-        }
-
-        case 'leave': {
-          const removed = this.visitorsService.removeSession(msg.sessionId, connectionId)
-          if (removed) {
-            await this.broadcastSnapshot()
-          }
-          break
-        }
-
-        default:
+        let msg: VisitorClientMessage
+        try {
+          msg = JSON.parse(rawData.toString())
+        } catch {
           this.sendError(ws, 'invalid_message')
-          break
+          return
+        }
+
+        if (!msg || typeof msg !== 'object' || typeof msg.type !== 'string') {
+          this.sendError(ws, 'invalid_message')
+          return
+        }
+
+        if (!msg.sessionId || typeof msg.sessionId !== 'string' || msg.sessionId.length > 64) {
+          this.sendError(ws, 'invalid_session')
+          return
+        }
+
+        switch (msg.type) {
+          case 'sync': {
+            let articleSlug = msg.articleSlug ?? null
+            if (articleSlug !== null) {
+              if (typeof articleSlug !== 'string' || articleSlug.length > 128) {
+                this.sendError(ws, 'invalid_article')
+                return
+              }
+              const post = await getBlogPost(articleSlug)
+              if (!post) {
+                this.sendError(ws, 'invalid_article')
+                articleSlug = null
+              }
+            }
+
+            // 单物理连接会话限制：若当前连接已有旧 sessionId，先移除旧会话
+            if (ws.currentSessionId && ws.currentSessionId !== msg.sessionId) {
+              this.visitorsService.removeSession(ws.currentSessionId, connectionId)
+            }
+            ws.currentSessionId = msg.sessionId
+
+            this.visitorsService.registerSession({
+              sessionId: msg.sessionId,
+              connectionId,
+              visitorId,
+              articleSlug,
+            })
+
+            await this.broadcastSnapshot()
+            break
+          }
+
+          case 'heartbeat': {
+            this.visitorsService.heartbeatSession(msg.sessionId, connectionId)
+            break
+          }
+
+          case 'leave': {
+            const removed = this.visitorsService.removeSession(msg.sessionId, connectionId)
+            if (removed) {
+              await this.broadcastSnapshot()
+            }
+            break
+          }
+
+          default:
+            this.sendError(ws, 'invalid_message')
+            break
+        }
+      } catch {
+        this.sendError(ws, 'service_unavailable')
       }
     })
 
@@ -277,13 +282,18 @@ export class VisitorWebSocketHub {
 
   /** 向所有已连接的客户端广播当前最新公开快照 */
   async broadcastSnapshot(): Promise<void> {
-    const snapshot = await this.visitorsService.getPublicSnapshot()
-    const payload = JSON.stringify(snapshot)
+    try {
+      this.visitorsService.clearUnpublishedArticles(new Set(await listPublishedSlugs()))
+      const snapshot = await this.visitorsService.getPublicSnapshot()
+      const payload = JSON.stringify(snapshot)
 
-    for (const client of this.wss.clients) {
-      if (client.readyState === WebSocket.OPEN) {
-        client.send(payload)
+      for (const client of this.wss.clients) {
+        if (client.readyState === WebSocket.OPEN) {
+          client.send(payload)
+        }
       }
+    } catch {
+      for (const client of this.wss.clients) this.sendError(client, 'service_unavailable')
     }
   }
 

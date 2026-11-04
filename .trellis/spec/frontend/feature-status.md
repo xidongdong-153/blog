@@ -2,35 +2,38 @@
 
 本表是功能状态与未实现功能的唯一清单。实现后在这里更新状态，并删除对应占位代码；README 只保留入口，不维护第二张表。
 
-| 功能                               | 状态   | 位置                                                                                                                                                             |
-| ---------------------------------- | ------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 文章列表 / 详情 / 标签 / 归档      | 已实现 | `src/app/(site)/blog/`                                                                                                                                           |
-| 文章主题分类与多维时间排序         | 已实现 | `src/lib/content.ts`、`src/app/(site)/blog/`、`src/app/(site)/_components/blog/`                                                                                 |
-| AI 文章来源标记与主列表 / 搜索过滤 | 已实现 | `src/lib/content.ts`、`src/lib/blog-meta.ts`、`src/app/(site)/_components/blog/`                                                                                 |
-| 仓库 AI 写作与本地草稿             | 已实现 | `$HOME/.agents/skills/xdd-blog-writing/SKILL.md`、`content/drafts/`（仅本地，Git 忽略）                                                                          |
-| 文章系列与专栏聚合 (/blog/series)  | 已实现 | `src/lib/series.ts`、`src/app/(site)/blog/series/[id]/`、`src/app/(site)/_components/blog/series-*`                                                              |
-| 专栏文章左侧章节侧栏与移动抽屉     | 已实现 | `src/app/(site)/_components/blog/series-chapter-sidebar.tsx`、`src/app/(site)/blog/[slug]/page.tsx`、`src/app/(site)/_components/blog/floating-action-group.tsx` |
-| 文章目录 TOC（滚动跟随高亮）       | 已实现 | `src/app/(site)/_components/blog/toc.tsx`                                                                                                                        |
-| 详情页右侧粘性 TOC 侧栏            | 已实现 | `src/app/(site)/blog/[slug]/page.tsx`                                                                                                                            |
-| Hero 图 + 更新日期                 | 已实现 | `src/lib/content.ts`、`src/app/(site)/blog/[slug]/page.tsx`                                                                                                      |
-| 版权卡片（CC BY-NC-SA 4.0）        | 已实现 | `src/app/(site)/_components/blog/copyright-card.tsx`                                                                                                             |
-| 笔记列表 / 详情（状态标记）        | 已实现 | `src/app/(site)/notes/`                                                                                                                                          |
-| 三态主题切换（明 / 系统 / 暗）     | 已实现 | `src/app/(site)/_components/site/theme-toggle.tsx`（页脚工具条）                                                                                                 |
-| sticky 胶囊页头                    | 已实现 | `src/app/(site)/_components/site/site-header.tsx`                                                                                                                |
-| 项目 / 友链 / 关于 / 联系          | 已实现 | `src/app/(site)/` 对应目录                                                                                                                                       |
-| 五个一级页面统一布局与标题区       | 已实现 | `src/app/(site)/_components/site/page-header.tsx`，文章、笔记、项目、友链、关于页面；设计值见 `DESIGN.md`                                                        |
-| 友链申请与邮件一键审批             | 已实现 | `src/app/(site)/links/`、`src/server/modules/links/`、`src/server/infra/email.ts`                                                                                |
-| 站内搜索                           | 已实现 | `src/app/(site)/_components/blog/blog-search.tsx`、`src/lib/search.ts`                                                                                           |
-| Better Auth 社交评论               | 已实现 | `src/app/(site)/_components/comment/`、`src/server/modules/comments/`、`src/server/modules/auth/`                                                                |
-| RSS                                | 已实现 | `src/app/rss.xml/route.ts`                                                                                                                                       |
-| sitemap / robots                   | 已实现 | `src/app/sitemap.ts`、`src/app/robots.ts`                                                                                                                        |
-| OG 图自动生成                      | 未开始 | 计划 `src/app/(site)/blog/[slug]/opengraph-image.tsx`，用 `next/og`                                                                                              |
-| 代码块高亮与复制                   | 已实现 | `src/app/(site)/_components/blog/mdx-content.tsx`                                                                                                                |
-| Mac 实时活动（独立采集与首页展示） | 已实现 | `src/lib/presence.ts`、`src/server/modules/presence/`、`$HOME/.hammerspoon/presence/`                                                                            |
-| AI 摘要模型配置                    | 已实现 | `src/app/(site)/settings/ai/`、`src/server/modules/ai/`                                                                                                          |
-| AI 摘要同步与展示                  | 已实现 | `scripts/sync-summaries.ts`、`src/server/modules/ai/summary.service.ts`、`src/app/(site)/_components/blog/ai-summary.tsx`、`src/app/(site)/blog/[slug]/page.tsx` |
-| 访客统计与文章实时在线状态         | 已实现 | `server.ts`、`src/lib/visitor.ts`、`src/server/modules/visitors/`、`src/app/(site)/_components/visitor/`                                                         |
-| 顶栏站长登录入口与弹窗             | 已实现 | `src/app/(site)/_components/site/site-header.tsx`、`src/app/(site)/_components/site/header-auth.tsx`、`src/app/(site)/_components/site/auth-modal.tsx`           |
-| 管理员管理控制台 (/admin)          | 已实现 | `src/app/(site)/admin/`、`src/server/modules/admin/`、`src/app/(site)/_components/admin/`                                                                        |
+| 功能                                                 | 状态   | 位置                                                                                                                                                             |
+| ---------------------------------------------------- | ------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 博文数据库存储 / 工作稿与公开版本隔离                | 已实现 | `src/server/modules/posts/`、`src/server/infra/db/schema/posts.ts`、`src/lib/content.ts`                                                                         |
+| 站长文章管理 / CodeMirror 编辑 / 预览 / 发布撤回删除 | 已实现 | `src/app/(site)/admin/posts/`、`src/app/(site)/_components/admin/posts/`                                                                                         |
+| MDX 单篇与 ZIP 批量导入导出                          | 已实现 | `src/server/modules/posts/posts-transfer.ts`、`src/app/(site)/admin/posts/import/`                                                                               |
+| 文章列表 / 详情 / 标签 / 归档                        | 已实现 | `src/app/(site)/blog/`                                                                                                                                           |
+| 文章主题分类与多维时间排序                           | 已实现 | `src/lib/content.ts`、`src/app/(site)/blog/`、`src/app/(site)/_components/blog/`                                                                                 |
+| AI 文章来源标记与主列表 / 搜索过滤                   | 已实现 | `src/lib/content.ts`、`src/lib/blog-meta.ts`、`src/app/(site)/_components/blog/`                                                                                 |
+| 本地 MDX 草稿（通过后台导入）                        | 已实现 | `$HOME/.agents/skills/xdd-blog-writing/SKILL.md`、`content/drafts/`（仅本地，Git 忽略）                                                                          |
+| 文章系列与专栏聚合 (/blog/series)                    | 已实现 | `src/lib/series.ts`、`src/app/(site)/blog/series/[id]/`、`src/app/(site)/_components/blog/series-*`                                                              |
+| 专栏文章左侧章节侧栏与移动抽屉                       | 已实现 | `src/app/(site)/_components/blog/series-chapter-sidebar.tsx`、`src/app/(site)/blog/[slug]/page.tsx`、`src/app/(site)/_components/blog/floating-action-group.tsx` |
+| 文章目录 TOC（滚动跟随高亮）                         | 已实现 | `src/app/(site)/_components/blog/toc.tsx`                                                                                                                        |
+| 详情页右侧粘性 TOC 侧栏                              | 已实现 | `src/app/(site)/blog/[slug]/page.tsx`                                                                                                                            |
+| Hero 图 + 更新日期                                   | 已实现 | `src/lib/content.ts`、`src/app/(site)/blog/[slug]/page.tsx`                                                                                                      |
+| 版权卡片（CC BY-NC-SA 4.0）                          | 已实现 | `src/app/(site)/_components/blog/copyright-card.tsx`                                                                                                             |
+| 笔记列表 / 详情（状态标记）                          | 已实现 | `src/app/(site)/notes/`                                                                                                                                          |
+| 三态主题切换（明 / 系统 / 暗）                       | 已实现 | `src/app/(site)/_components/site/theme-toggle.tsx`（页脚工具条）                                                                                                 |
+| sticky 胶囊页头                                      | 已实现 | `src/app/(site)/_components/site/site-header.tsx`                                                                                                                |
+| 项目 / 友链 / 关于 / 联系                            | 已实现 | `src/app/(site)/` 对应目录                                                                                                                                       |
+| 五个一级页面统一布局与标题区                         | 已实现 | `src/app/(site)/_components/site/page-header.tsx`，文章、笔记、项目、友链、关于页面；设计值见 `DESIGN.md`                                                        |
+| 友链申请与邮件一键审批                               | 已实现 | `src/app/(site)/links/`、`src/server/modules/links/`、`src/server/infra/email.ts`                                                                                |
+| 站内搜索                                             | 已实现 | `src/app/(site)/_components/blog/blog-search.tsx`、`src/lib/search.ts`                                                                                           |
+| Better Auth 社交评论                                 | 已实现 | `src/app/(site)/_components/comment/`、`src/server/modules/comments/`、`src/server/modules/auth/`                                                                |
+| RSS                                                  | 已实现 | `src/app/rss.xml/route.ts`                                                                                                                                       |
+| sitemap / robots                                     | 已实现 | `src/app/sitemap.ts`、`src/app/robots.ts`                                                                                                                        |
+| OG 图自动生成                                        | 未开始 | 计划 `src/app/(site)/blog/[slug]/opengraph-image.tsx`，用 `next/og`                                                                                              |
+| 代码块高亮与复制                                     | 已实现 | `src/app/(site)/_components/blog/mdx-content.tsx`                                                                                                                |
+| Mac 实时活动（独立采集与首页展示）                   | 已实现 | `src/lib/presence.ts`、`src/server/modules/presence/`、`$HOME/.hammerspoon/presence/`                                                                            |
+| AI 摘要模型配置                                      | 已实现 | `src/app/(site)/settings/ai/`、`src/server/modules/ai/`                                                                                                          |
+| AI 摘要同步与展示                                    | 已实现 | `scripts/sync-summaries.ts`、`src/server/modules/ai/summary.service.ts`、`src/app/(site)/_components/blog/ai-summary.tsx`、`src/app/(site)/blog/[slug]/page.tsx` |
+| 访客统计与文章实时在线状态                           | 已实现 | `server.ts`、`src/lib/visitor.ts`、`src/server/modules/visitors/`、`src/app/(site)/_components/visitor/`                                                         |
+| 顶栏站长登录入口与弹窗                               | 已实现 | `src/app/(site)/_components/site/site-header.tsx`、`src/app/(site)/_components/site/header-auth.tsx`、`src/app/(site)/_components/site/auth-modal.tsx`           |
+| 管理员管理控制台 (/admin)                            | 已实现 | `src/app/(site)/admin/`、`src/server/modules/admin/`、`src/app/(site)/_components/admin/`                                                                        |
 
 评论配置与状态见[组件规范](./component-guidelines.md)；活动服务配置及验证边界见[活动规范](./presence-guidelines.md)。已实现不代表外部服务当前在线。

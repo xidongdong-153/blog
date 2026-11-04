@@ -72,9 +72,9 @@ function waitForSnapshot(
 }
 
 test('VisitorWebSocketHub 实时连接与协议测试', async (t) => {
-  let cleanupFixture: (() => void) | undefined
-  t.before(() => {
-    cleanupFixture = createBlogPostFixture(REAL_POST_SLUG)
+  let cleanupFixture: (() => Promise<void>) | undefined
+  t.before(async () => {
+    cleanupFixture = await createBlogPostFixture(REAL_POST_SLUG)
   })
   t.after(() => cleanupFixture?.())
 

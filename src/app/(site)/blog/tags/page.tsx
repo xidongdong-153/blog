@@ -2,12 +2,14 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import { getAllBlogTags } from '@/lib/content'
 
+export const dynamic = 'force-dynamic'
+
 export const metadata: Metadata = {
   title: '标签',
 }
 
-export default function TagsPage() {
-  const tags = getAllBlogTags()
+export default async function TagsPage() {
+  const tags = await getAllBlogTags()
 
   return (
     <div className="mx-auto flex w-full max-w-3xl flex-col gap-10">
@@ -29,7 +31,7 @@ export default function TagsPage() {
           {tags.map(({ tag, count }) => (
             <li key={tag}>
               <Link
-                href={`/blog/tags/${tag}`}
+                href={`/blog/tags/${encodeURIComponent(tag)}`}
                 className="inline-flex items-center gap-1.5 rounded-md border border-border/60 bg-card/40 px-3 py-1.5 font-mono text-sm text-muted-foreground transition-all hover:border-foreground/30 hover:bg-muted/40 hover:text-foreground"
               >
                 <span>#{tag}</span>

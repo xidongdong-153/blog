@@ -62,18 +62,18 @@ MDX 渲染走异步 RSC（`mdx-content.tsx` 的 `compileMDX`），不需要 clie
 
 参考 `src/app/(site)/blog/[slug]/page.tsx` 的完整结构：
 
-- `generateStaticParams` 返回全部 slug。
-- `export const dynamicParams = false`，未列出的 slug 直接 404。
+- 文章、标签、专栏及聚合页使用 `dynamic = 'force-dynamic'`，支持数据库运行时新增内容。
+- 不在构建时枚举文章或标签；公开数据只来自已发布快照。笔记继续静态生成。
 - `generateMetadata` 读单条数据生成 title / description。
 - Next.js 16 的 `params` 是 Promise，取值要 `await`。
 
 ## draft 过滤
 
-列表、归档、标签页过滤 `draft`；详情页不过滤（draft 文章可直接访问）。过滤逻辑在页面里做（`getAllBlogPosts().filter((post) => !post.draft)`），数据层返回全量。
+博文公开查询在 service 层只返回已发布快照，详情也不能直接访问草稿。管理读取必须走站长鉴权。笔记保留原有文件 draft 过滤。
 
 ## MDX 渲染
 
-正文渲染统一走 `MdxContent`（`src/app/(site)/_components/blog/mdx-content.tsx`），不在别处再调 `compileMDX`。
+正文渲染统一走 `MdxContent`，管理预览复用同一组件。共享编译配置在 `src/server/modules/posts/mdx-options.ts`；发布前进行 AST 与编译校验，不能等公开访问时才发现错误。
 
 - **插件链**：
   - Remark：`remark-gfm`（表格/任务列表）、`remark-math`（数学公式）、`remark-cjk-friendly`（修复全角标点加粗）。
@@ -99,7 +99,7 @@ MDX 渲染走异步 RSC（`mdx-content.tsx` 的 `compileMDX`），不需要 clie
   - 前端通过 `/api/config/auth` 检测已启用的登录渠道，仅渲染已配置 provider 的登录按钮。
   - 未登录访客可公开读取评论列表；提交评论、回复和站长操作必须校验 session。
 - **数据与交互契约**：
-  - 内容关联：通过文章 `slug` 由服务端校验文章并解析实际 `commentKey`（改名文章在 frontmatter 保留旧 `commentKey` 承接历史评论）。
+  - 内容关联：通过文章 `slug` 由服务端校验公开快照，实际 `targetKey` 使用文章数据库 ID。撤回后不再允许公开评论查询和提交。
   - 层级结构：顶级评论与平铺单层回复；回复回复时通过 `replyToId` 提示被回复人，不产生多级缩进。
   - 排序规则：默认置顶优先且时间倒序，最新模式纯倒序，最早模式正序；讨论下的回复始终按时间正序。
   - 容错与限制：评论去除首尾空白后限制 1 至 1000 字；支持软删除占位。

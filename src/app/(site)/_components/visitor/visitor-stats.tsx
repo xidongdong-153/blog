@@ -1,6 +1,7 @@
 'use client'
 
 import { CircleHelp } from 'lucide-react'
+import { usePathname } from 'next/navigation'
 import { useEffect, useRef, useState } from 'react'
 import { useVisitorPresence } from './visitor-presence-provider'
 
@@ -13,7 +14,13 @@ interface VisitorStatsProps {
  * 站点统计动态区域组件。
  * 展示累计匿名访客数与当前全站在线人数，集成可访问的说明气泡，无侵入融入出版物排版。
  */
-export function VisitorStats({ className = '', align = 'center' }: VisitorStatsProps) {
+export function VisitorStats(props: VisitorStatsProps) {
+  const pathname = usePathname()
+  if (pathname.startsWith('/admin')) return null
+  return <PublicVisitorStats {...props} />
+}
+
+function PublicVisitorStats({ className = '', align = 'center' }: VisitorStatsProps) {
   const { connectionState, uniqueVisitorCount, onlineVisitorCount } = useVisitorPresence()
   const [isHelpOpen, setIsHelpOpen] = useState(false)
   const helpContainerRef = useRef<HTMLSpanElement>(null)

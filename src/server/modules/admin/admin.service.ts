@@ -11,10 +11,11 @@ import type {
 import type { BlogPost } from '@/lib/content'
 import type { AppDatabase } from '@/server/infra/db/client'
 import { count, desc, eq, isNotNull, isNull } from 'drizzle-orm'
-import { getAllBlogPosts, getAllNotes, resolvePostCommentKey } from '@/lib/content'
+import { getAllNotes, resolvePostCommentKey } from '@/lib/content'
 import { db as defaultDb } from '@/server/infra/db/client'
 import { comments, friendLinks, user } from '@/server/infra/db/schema'
 import { getAiSummaryConfig, isAiMasterKeyAvailable } from '@/server/modules/ai/summary-config.service'
+import { listManagedPosts } from '@/server/modules/posts/posts.service'
 import { checkDatabase, getSystemProcessHealth } from '@/server/modules/system/system.service'
 import { visitorsService } from '@/server/modules/visitors/visitors.service'
 
@@ -178,7 +179,13 @@ export async function getAdminDashboardData(
   options?: { customDb?: AppDatabase },
 ): Promise<AdminDashboardData> {
   const targetDb = options?.customDb ?? defaultDb
-  const allPosts = getAllBlogPosts()
+  const managedPosts = await listManagedPosts(targetDb).catch(() => [])
+  const allPosts: BlogPost[] = managedPosts.map((post) => ({
+    ...post.document,
+    slug: post.slug,
+    commentKey: post.id,
+    draft: !post.published,
+  }))
 
   const [dbResult, aiConfigResult, visitorStats, linksOverview, commentsOverview] = await Promise.all([
     checkDatabase({ customDb: targetDb }).catch(() => ({

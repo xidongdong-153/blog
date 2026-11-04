@@ -232,6 +232,12 @@ export class VisitorsService {
     }
   }
 
+  clearUnpublishedArticles(publishedSlugs: Set<string>): void {
+    for (const session of this.sessions.values()) {
+      if (session.articleSlug && !publishedSlugs.has(session.articleSlug)) session.articleSlug = null
+    }
+  }
+
   /** 获取公开只读统计 */
   async getStats(targetSlug?: string): Promise<VisitorStatsResponse> {
     const snapshot = await this.getPublicSnapshot()

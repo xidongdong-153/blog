@@ -2,12 +2,12 @@ import { getAllBlogPosts, getAllBlogTags, getAllNotes } from '@/lib/content'
 
 /**
  * 首页站点统计收尾组件。
- * 基于本地 MDX 内容计算文章、笔记与标签总量，无卡片边框。
+ * 基于已发布文章和本地笔记计算内容总量，无卡片边框。
  */
-export function SiteStats() {
-  const postsCount = getAllBlogPosts().filter((post) => !post.draft).length
+export async function SiteStats() {
+  const postsCount = (await getAllBlogPosts()).filter((post) => !post.draft).length
   const notesCount = getAllNotes().filter((note) => !note.draft).length
-  const tagsCount = getAllBlogTags().length
+  const tagsCount = (await getAllBlogTags()).length
 
   const stats = [
     { label: '篇文章', value: postsCount },

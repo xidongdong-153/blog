@@ -4,6 +4,8 @@ import fs from 'node:fs'
 import path from 'node:path'
 import GithubSlugger from 'github-slugger'
 import matter from 'gray-matter'
+import { cache } from 'react'
+import { findPublishedPost, listPublishedPosts } from '@/server/modules/posts/posts.service'
 import { BLOG_CATEGORIES, BLOG_CATEGORY_LABELS, filterBlogPostsBySource } from './blog-meta'
 import { REGISTERED_SERIES, SERIES_STATUS_LABELS } from './series'
 
@@ -26,7 +28,7 @@ export interface BlogPostSeriesRef {
 }
 
 /**
- * 博客文章。对应 content/blog/<文件夹>/post.mdx，slug 取文件夹名。
+ * 已发布博客文章，正文与元数据来自数据库公开快照。
  * date 存 ISO 字符串而不是 Date，避免跨 server/client 边界序列化问题。
  */
 export interface BlogPost {
@@ -49,7 +51,7 @@ export interface BlogPost {
   aiGenerated: boolean
   /** 专栏归属信息，未配置时为 undefined */
   series?: BlogPostSeriesRef
-  /** true 时列表页不显示 */
+  /** 公开查询恒为 false，草稿由管理模块读取。 */
   draft: boolean
   /** 严格为 true 时不生成也不展示 AI 摘要 */
   disableAiSummary: boolean
@@ -95,16 +97,6 @@ function requireString(data: Record<string, unknown>, field: string, filePath: s
   return value
 }
 
-function requireCategory(data: Record<string, unknown>, filePath: string): BlogCategory {
-  const value = data.category
-  if (value === 'tech' || value === 'tinkering' || value === 'thoughts') {
-    return value
-  }
-  throw new Error(
-    `${filePath} 的 frontmatter 缺少必填字段 category 或值非法，必须是 tech / tinkering / thoughts 之一，当前值为: ${String(value)}`,
-  )
-}
-
 /**
  * YAML 里裸写的日期（如 date: 2026-06-15）会被 gray-matter 解析成 Date 对象，
  * 加引号时是字符串。两种写法都接受，统一转成 ISO 日期字符串。
@@ -127,85 +119,12 @@ function readTags(data: Record<string, unknown>): string[] {
   return []
 }
 
-/** 读取可选的日期字段，没写或格式不对就返回空字符串。 */
-function readOptionalDate(data: Record<string, unknown>, field: string): string {
-  const value = data[field]
-  if (value instanceof Date) {
-    return value.toISOString().slice(0, 10)
-  }
-  if (typeof value === 'string' && value.trim() !== '') {
-    return value.trim()
-  }
-  return ''
-}
+const readPublishedPosts = cache(() => listPublishedPosts())
+const readPublishedPost = cache((slug: string) => findPublishedPost(slug))
 
-/** 读取可选的专栏关联信息。 */
-function readSeries(data: Record<string, unknown>, filePath: string): BlogPostSeriesRef | undefined {
-  const seriesData = data.series
-  if (!seriesData || typeof seriesData !== 'object') {
-    return undefined
-  }
-  const rawId = (seriesData as Record<string, unknown>).id
-  const rawOrder = (seriesData as Record<string, unknown>).order
-  const rawGroup = (seriesData as Record<string, unknown>).group
-
-  if (typeof rawId !== 'string' || !rawId.trim()) {
-    return undefined
-  }
-  const orderNum = typeof rawOrder === 'number' ? rawOrder : parseInt(String(rawOrder), 10)
-  if (Number.isNaN(orderNum)) {
-    return undefined
-  }
-
-  const seriesId = rawId.trim()
-  if (!REGISTERED_SERIES[seriesId]) {
-    console.warn(`[content] ${filePath} 引用的专栏 id "${seriesId}" 未在 REGISTERED_SERIES 中注册`)
-  }
-
-  const group = typeof rawGroup === 'string' && rawGroup.trim() ? rawGroup.trim() : undefined
-
-  return {
-    id: seriesId,
-    order: orderNum,
-    group,
-  }
-}
-
-/** 读取全部博客文章，按日期倒序；draft 的文章不出现在列表，但仍可直接访问。 */
-export function getAllBlogPosts(): BlogPost[] {
-  const blogDir = path.join(CONTENT_DIR, 'blog')
-  if (!fs.existsSync(blogDir)) {
-    return []
-  }
-
-  const posts: BlogPost[] = []
-  for (const entry of fs.readdirSync(blogDir, { withFileTypes: true })) {
-    if (!entry.isDirectory()) continue
-    const filePath = path.join(blogDir, entry.name, 'post.mdx')
-    if (!fs.existsSync(filePath)) continue
-
-    const { data, content } = readMdxFile(filePath)
-    posts.push({
-      slug: entry.name,
-      commentKey:
-        typeof data.commentKey === 'string' && data.commentKey.trim() !== '' ? data.commentKey.trim() : undefined,
-      title: requireString(data, 'title', filePath),
-      description: typeof data.description === 'string' ? data.description : '',
-      category: requireCategory(data, filePath),
-      date: readDate(data, filePath),
-      updatedDate: readOptionalDate(data, 'updatedDate'),
-      heroImage: typeof data.heroImage === 'string' ? data.heroImage : '',
-      heroColor: typeof data.heroColor === 'string' && data.heroColor.trim() !== '' ? data.heroColor.trim() : undefined,
-      tags: readTags(data),
-      aiGenerated: data.aiGenerated === true,
-      series: readSeries(data, filePath),
-      draft: data.draft === true,
-      disableAiSummary: data.disableAiSummary === true,
-      content,
-    })
-  }
-
-  return posts.sort((a, b) => b.date.localeCompare(a.date))
+/** 从数据库读取已发布快照，按文章日期倒序。 */
+export async function getAllBlogPosts(): Promise<BlogPost[]> {
+  return readPublishedPosts()
 }
 
 /** 获取文章实际的评论关联标识（有 commentKey 则取 commentKey，否则取 slug）。 */
@@ -246,8 +165,8 @@ export function getAllNotes(): Note[] {
   return notes.sort((a, b) => b.date.localeCompare(a.date))
 }
 
-export function getBlogPost(slug: string): BlogPost | undefined {
-  return getAllBlogPosts().find((post) => post.slug === slug)
+export async function getBlogPost(slug: string): Promise<BlogPost | undefined> {
+  return readPublishedPost(slug)
 }
 
 export function getNote(slug: string): Note | undefined {
@@ -255,9 +174,9 @@ export function getNote(slug: string): Note | undefined {
 }
 
 /** 全部标签和出现次数，按数量倒序。 */
-export function getAllBlogTags(): Array<{ tag: string; count: number }> {
+export async function getAllBlogTags(): Promise<Array<{ tag: string; count: number }>> {
   const counter = new Map<string, number>()
-  for (const post of getAllBlogPosts()) {
+  for (const post of await getAllBlogPosts()) {
     if (post.draft) continue
     for (const tag of post.tags) {
       counter.set(tag, (counter.get(tag) ?? 0) + 1)
@@ -269,9 +188,11 @@ export function getAllBlogTags(): Array<{ tag: string; count: number }> {
 }
 
 /** 各分类已发布文章数量统计，按固定预设顺序返回。 */
-export function getBlogCategoriesWithCount(): Array<{ category: BlogCategory; label: string; count: number }> {
+export async function getBlogCategoriesWithCount(): Promise<
+  Array<{ category: BlogCategory; label: string; count: number }>
+> {
   const counter = new Map<BlogCategory, number>()
-  for (const post of getAllBlogPosts()) {
+  for (const post of await getAllBlogPosts()) {
     if (post.draft) continue
     counter.set(post.category, (counter.get(post.category) ?? 0) + 1)
   }
@@ -379,8 +300,8 @@ export function extractHeadings(content: string): Heading[] {
 /**
  * 获取所有已注册专栏的概要信息，包含各专栏已发布文章数与最近更新时间。
  */
-export function getAllSeries(): Array<SeriesDefinition & { postsCount: number; lastUpdated: string }> {
-  const posts = getAllBlogPosts().filter((post) => !post.draft && post.series)
+export async function getAllSeries(): Promise<Array<SeriesDefinition & { postsCount: number; lastUpdated: string }>> {
+  const posts = (await getAllBlogPosts()).filter((post) => post.series)
 
   return Object.values(REGISTERED_SERIES).map((series) => {
     const seriesPosts = posts.filter((p) => p.series?.id === series.id)
@@ -403,14 +324,14 @@ export function getAllSeries(): Array<SeriesDefinition & { postsCount: number; l
 /**
  * 获取指定专栏的元数据及所有收录文章（按 order 升序排列）。
  */
-export function getSeriesDetail(id: string): { series: SeriesDefinition; posts: BlogPost[] } | null {
+export async function getSeriesDetail(id: string): Promise<{ series: SeriesDefinition; posts: BlogPost[] } | null> {
   const series = REGISTERED_SERIES[id]
   if (!series) {
     return null
   }
 
-  const posts = getAllBlogPosts()
-    .filter((post) => !post.draft && post.series?.id === id)
+  const posts = (await getAllBlogPosts())
+    .filter((post) => post.series?.id === id)
     .sort((a, b) => {
       const orderA = a.series?.order ?? 0
       const orderB = b.series?.order ?? 0
@@ -426,18 +347,18 @@ export function getSeriesDetail(id: string): { series: SeriesDefinition; posts: 
 /**
  * 为当前文章计算其所属专栏的上下文导轨信息（上一篇、下一篇、总讲数等）。
  */
-export function getSeriesNav(currentPost: BlogPost): {
+export async function getSeriesNav(currentPost: BlogPost): Promise<{
   series: SeriesDefinition
   prev?: BlogPost
   next?: BlogPost
   currentIndex: number
   totalCount: number
-} | null {
+} | null> {
   if (!currentPost.series) {
     return null
   }
 
-  const detail = getSeriesDetail(currentPost.series.id)
+  const detail = await getSeriesDetail(currentPost.series.id)
   if (!detail) {
     return null
   }

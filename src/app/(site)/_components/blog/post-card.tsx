@@ -153,7 +153,7 @@ export function PostCard({
             {post.tags.map((tag) => (
               <li key={tag} className="min-w-0 max-w-full [overflow-wrap:anywhere]">
                 <Link
-                  href={`/blog/tags/${tag}`}
+                  href={`/blog/tags/${encodeURIComponent(tag)}`}
                   className="rounded-sm text-muted-foreground underline decoration-border underline-offset-4 transition-colors hover:text-foreground focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-ring"
                 >
                   #{tag}

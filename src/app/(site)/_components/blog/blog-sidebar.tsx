@@ -22,7 +22,7 @@ export function BlogSidebar({ tags, className = '' }: BlogSidebarProps) {
         {tags.map(({ tag, count }) => (
           <li key={tag} className="min-w-0 max-w-full">
             <Link
-              href={`/blog/tags/${tag}`}
+              href={`/blog/tags/${encodeURIComponent(tag)}`}
               className="inline-flex min-h-9 max-w-full items-center gap-1 rounded-md border border-border/60 bg-card/40 px-2.5 py-1 break-words text-muted-foreground transition-colors hover:border-foreground/30 hover:text-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
             >
               <span className="min-w-0 [overflow-wrap:anywhere]">#{tag}</span>

@@ -12,6 +12,8 @@ import { PostCard } from '../_components/blog/post-card'
 import { SeriesBanner } from '../_components/blog/series-banner'
 import { PageHeader } from '../_components/site/page-header'
 
+export const dynamic = 'force-dynamic'
+
 export const metadata: Metadata = {
   title: '文章',
 }
@@ -38,14 +40,14 @@ export default async function BlogPage({ searchParams }: BlogPageProps) {
   const activeSort: BlogSortOrder = rawSort === 'oldest' || rawSort === 'updated' ? rawSort : 'newest'
   const activeSource: BlogSourceFilter = resolvedSearchParams.source === 'human' ? 'human' : 'all'
 
-  const { sourcePosts, categoryCounts, posts, totalPages } = getBlogListData(getAllBlogPosts(), {
+  const { sourcePosts, categoryCounts, posts, totalPages } = getBlogListData(await getAllBlogPosts(), {
     source: activeSource,
     category: activeCategory,
     sort: activeSort,
     page: currentPage,
   })
-  const tags = getAllBlogTags()
-  const featuredSeries = getAllSeries().find((s) => s.postsCount > 0)
+  const tags = await getAllBlogTags()
+  const featuredSeries = (await getAllSeries()).find((s) => s.postsCount > 0)
 
   function getPageUrl(pageNum: number): string {
     return buildBlogListUrl({ source: activeSource, category: activeCategory, sort: activeSort, page: pageNum })

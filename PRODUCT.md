@@ -20,7 +20,7 @@ web
 
 ## Operating Context
 
-作者使用 TypeScript 技术栈，偏好 Next.js + React。文章和笔记由仓库内容文件管理，动态功能通过应用内服务端模块与 libSQL/Turso 数据库提供。博客同时承载文章、笔记、项目展示、友链和个人简介。
+作者使用 TypeScript 技术栈，偏好 Next.js + React。文章由后台编辑并保存在数据库中，笔记保留仓库文件管理，动态功能通过应用内服务端模块与 libSQL/Turso 数据库提供。博客同时承载文章、笔记、项目展示、友链和个人简介。
 
 ## Capabilities and Constraints
 
@@ -37,7 +37,7 @@ web
 
 ## Evidence on Hand
 
-- 真实内容存放在 content/blog/ 和 content/notes/
+- 博文存放在数据库 site_posts，笔记存放在 content/notes/
 - 个人经历和技能信息在 src/profile.config.ts
 - 已有访客统计与实时在线能力；是否有实际数据取决于当前环境，不据此推断访问量或用户规模
 

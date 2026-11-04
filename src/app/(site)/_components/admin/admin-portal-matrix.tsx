@@ -20,6 +20,13 @@ export function AdminPortalMatrix({ aiService, engagement, system }: AdminPortal
     <section className="flex flex-col gap-3">
       <div className="font-mono text-xs uppercase tracking-wider text-muted-foreground">// 04. 快捷入口</div>
 
+      <Link
+        href="/admin/posts"
+        className="flex min-h-14 items-center justify-between rounded-lg border border-border px-5 py-4 text-sm font-medium transition-colors hover:bg-muted focus-visible:outline-2 focus-visible:outline-ring"
+      >
+        文章管理
+        <ArrowRight size={16} />
+      </Link>
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
         {/* 入口 1：AI 摘要配置 */}
         <div className="flex flex-col justify-between gap-4 rounded-lg border border-border/60 bg-card/40 p-4.5 transition-all hover:border-border">

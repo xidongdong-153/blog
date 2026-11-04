@@ -8,9 +8,11 @@ import { SiteStats } from './_components/home/site-stats'
 import { SkillList } from './_components/home/skill-list'
 import { WritingTimeline } from './_components/home/writing-timeline'
 
-export default function HomePage() {
+export const dynamic = 'force-dynamic'
+
+export default async function HomePage() {
   const entries: WritingEntry[] = [
-    ...getAllBlogPosts()
+    ...(await getAllBlogPosts())
       .filter((post) => !post.draft)
       .map((post) => ({
         kind: 'article' as const,
@@ -46,9 +48,7 @@ export default function HomePage() {
             </div>
           </>
         ) : (
-          <p className="text-sm text-muted-foreground">
-            还没有内容。在 content/blog/ 或 content/notes/ 下新建文件，写作就会出现在这里。
-          </p>
+          <p className="text-sm text-muted-foreground">还没有公开文章或笔记。</p>
         )}
       </Section>
 

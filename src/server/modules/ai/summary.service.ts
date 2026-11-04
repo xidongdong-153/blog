@@ -218,7 +218,7 @@ export interface SyncSummariesOptions {
  */
 export async function syncAllArticleSummaries(options?: SyncSummariesOptions): Promise<SyncSummariesResult> {
   const database = options?.database ?? defaultDb
-  const posts = options?.posts ?? getAllBlogPosts()
+  const posts = options?.posts ?? (await getAllBlogPosts())
   const log = options?.logger ?? {
     info: (msg: string) => console.log(msg),
     warn: (msg: string) => console.warn(msg),

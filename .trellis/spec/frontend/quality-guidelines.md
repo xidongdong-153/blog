@@ -9,7 +9,7 @@ pnpm format:check  # prettier --check .
 pnpm build         # 生产构建，改动页面、数据层或内容结构后跑
 ```
 
-每次代码修改后按顺序过前三条，全过才算完成。`pnpm build` 会验证 `generateStaticParams` 和 frontmatter，并生成静态内容页面；活动 API 是动态路由。
+每次代码修改后按顺序过前三条，全过才算完成。`pnpm build` 验证页面和类型；博文使用动态 SSR，不会在构建时检查数据库中的每篇正文。正文校验由预览与发布服务执行。
 
 纯文档修改不要求类型检查、lint 或构建；运行 `pnpm format:check`、相对链接核对和 `git diff --check`，并显式检查默认被忽略的 Trellis Markdown。例如：
 
@@ -21,10 +21,10 @@ pnpm exec prettier --check --ignore-path /dev/null .trellis/spec/frontend/conten
 
 ## 无测试框架
 
-项目没有测试框架（无 vitest / jest），活动协议使用 Node 内置测试：
+项目使用 Node 内置测试，无 vitest / jest。`pnpm test` 会创建临时 SQLite 库、应用迁移，再通过 glob 发现全部测试，完成后清理数据库：
 
 ```bash
-node --experimental-strip-types --test src/lib/presence.test.ts
+pnpm test
 ```
 
 页面验证使用 typecheck、build 和本地 `pnpm dev` 手查，修 bug 先复现再修。若引入测试框架，更新本文件；README 仅同步常用命令，不重复维护详细测试说明。

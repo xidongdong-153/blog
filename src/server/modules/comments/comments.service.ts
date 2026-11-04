@@ -41,7 +41,7 @@ export async function getCommentsBySlug(
   sort: CommentSortOrder = 'default',
   currentUserEmail?: string | null,
 ): Promise<CommentsResult> {
-  const post = getBlogPost(slug)
+  const post = await getBlogPost(slug)
   if (!post) {
     throw new CommentServiceError(404, `文章不存在: ${slug}`)
   }
@@ -209,7 +209,7 @@ export async function getCommentsBySlug(
  * 创建新评论或回复。
  */
 export async function createComment(params: CreateCommentInput): Promise<CreateCommentResult> {
-  const post = getBlogPost(params.slug)
+  const post = await getBlogPost(params.slug)
   if (!post) {
     throw new CommentServiceError(404, `文章不存在: ${params.slug}`)
   }
@@ -424,7 +424,7 @@ export async function getCommentDeletePreviewByToken(token: string): Promise<Com
   }
 
   // 根据 targetKey 查找文章标题和 slug
-  const allPosts = getAllBlogPosts()
+  const allPosts = await getAllBlogPosts()
   const matchedPost = allPosts.find((p) => resolvePostCommentKey(p) === comment.targetKey)
 
   const snippet = comment.content.length > 80 ? `${comment.content.slice(0, 80)}...` : comment.content

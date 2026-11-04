@@ -1,6 +1,6 @@
 # blog
 
-Next.js 16 + React 19 + TypeScript 个人博客，文章和笔记用 MDX 文件管理，动态功能（评论、友链、AI 摘要、账号认证）使用 libSQL/Turso 数据库（本地开发自动回退 SQLite 文件）。合并到 `main` 后由 GitHub Actions 检查并发布到自有服务器；首页实时活动读取独立 Mac Presence Service。
+Next.js 16 + React 19 + TypeScript 个人博客，文章、评论、友链、AI 摘要和账号认证使用 libSQL/Turso 数据库，正文保留 MDX 格式，笔记使用本地 Markdown 文件。本地开发默认使用 SQLite。推送 `main` 后由 GitHub Actions 检查，生产发布需手动运行工作流；首页实时活动读取独立 Mac Presence Service。
 
 ## 本地启动
 
@@ -8,6 +8,7 @@ Next.js 16 + React 19 + TypeScript 个人博客，文章和笔记用 MDX 文件�
 
 ```bash
 pnpm install
+pnpm db:migrate
 pnpm dev
 ```
 
@@ -18,9 +19,10 @@ pnpm dev
 - `src/site.config.ts`：站点标题、导航、社交链接、正式域名。
 - `src/profile.config.ts`：个人简介、城市、技术栈、经历与教育。
 - `.env.example`：评论和活动服务配置示例；需要时在 `.env.local` 配置，不提交该文件。
-- `content/blog/<slug>/post.mdx`：文章。
+- `/admin/posts`：站长文章管理、MDX 编辑预览与导入导出。
+- `src/server/modules/posts/`：文章存储与发布服务。
 - `content/notes/<slug>.md`：笔记。
-- `src/lib/content.ts`：内容读取与 frontmatter 校验。
+- `src/lib/content.ts`：公开文章与本地笔记读取。
 
 ## 检查
 

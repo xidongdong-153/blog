@@ -8,7 +8,6 @@ import {
   calculateReadingTime,
   extractHeadings,
   formatDate,
-  getAllBlogPosts,
   getBlogPost,
   getSeriesDetail,
   getSeriesNav,
@@ -29,16 +28,11 @@ interface BlogPostPageProps {
   params: Promise<{ slug: string }>
 }
 
-export function generateStaticParams() {
-  return getAllBlogPosts().map((post) => ({ slug: post.slug }))
-}
-
-/** 未列出的 slug 直接 404，不在构建后按需渲染。 */
-export const dynamicParams = false
+export const dynamic = 'force-dynamic'
 
 export async function generateMetadata({ params }: BlogPostPageProps): Promise<Metadata> {
   const { slug } = await params
-  const post = getBlogPost(slug)
+  const post = await getBlogPost(slug)
   if (!post) return {}
   return {
     title: post.title,
@@ -48,15 +42,15 @@ export async function generateMetadata({ params }: BlogPostPageProps): Promise<M
 
 export default async function BlogPostPage({ params }: BlogPostPageProps) {
   const { slug } = await params
-  const post = getBlogPost(slug)
+  const post = await getBlogPost(slug)
   if (!post) {
     notFound()
   }
 
   const headings = extractHeadings(post.content)
   const readingTime = calculateReadingTime(post.content)
-  const seriesNav = getSeriesNav(post)
-  const seriesDetail = seriesNav ? getSeriesDetail(seriesNav.series.id) : null
+  const seriesNav = await getSeriesNav(post)
+  const seriesDetail = seriesNav ? await getSeriesDetail(seriesNav.series.id) : null
 
   let summary: string | null = null
   if (!post.disableAiSummary) {
@@ -103,7 +97,14 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
 
             {post.heroImage && (
               <div className="relative mb-6 aspect-video overflow-hidden rounded-lg border border-border/60">
-                <Image src={post.heroImage} alt={`${post.title} hero image`} fill className="object-cover" priority />
+                <Image
+                  src={post.heroImage}
+                  alt={`${post.title} hero image`}
+                  fill
+                  className="object-cover"
+                  priority
+                  unoptimized
+                />
               </div>
             )}
 

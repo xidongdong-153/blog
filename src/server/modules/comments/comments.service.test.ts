@@ -25,7 +25,7 @@ const ADMIN_EMAIL = 'admin-service@example.com'
 test('评论 Service 综合测试', async (t) => {
   const originalAdmin = process.env.ADMIN_EMAIL
   process.env.ADMIN_EMAIL = ADMIN_EMAIL
-  const cleanupFixture = createBlogPostFixture(TEST_SLUG)
+  const cleanupFixture = await createBlogPostFixture(TEST_SLUG)
   t.after(cleanupFixture)
 
   // 初始化测试用户
