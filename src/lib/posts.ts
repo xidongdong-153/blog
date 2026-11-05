@@ -48,7 +48,8 @@ export const postDocumentSchema = z
     heroImage: z.string().max(2048).refine(isMediaUrl, '请输入有效的图片 URL 或公共资源路径').default(''),
     heroColor: z
       .string()
-      .regex(/^(?:#[0-9a-f]{3}|#[0-9a-f]{6})?$/i, '主题色使用十六进制颜色')
+      // eslint-disable-next-line regexp/use-ignore-case -- JSON Schema pattern 不支持 i 标记，需显式保留大小写范围。
+      .regex(/^(?:#[0-9a-fA-F]{3}|#[0-9a-fA-F]{6})?$/, '主题色使用十六进制颜色')
       .default(''),
     tags: z
       .array(z.string().trim().min(1).max(60))

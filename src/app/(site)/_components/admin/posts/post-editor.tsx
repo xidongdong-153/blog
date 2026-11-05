@@ -8,6 +8,7 @@ import { useRouter } from 'next/navigation'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { toast } from 'sonner'
 import { BLOG_CATEGORY_LABELS } from '@/lib/blog-meta'
+import { generatedPostDraftSchema } from '@/lib/post-draft'
 import { createEmptyPost } from '@/lib/posts'
 import { REGISTERED_SERIES } from '@/lib/series'
 import { Button } from '../ui/button'
@@ -21,6 +22,7 @@ import { Textarea } from '../ui/textarea'
 import { LiveMdxPreview } from './live-mdx-preview'
 import { postRequest } from './post-api'
 import { PostConfirmDialog } from './post-confirm-dialog'
+import { PostGenerateDialog } from './post-generate-dialog'
 
 const MarkdownEditor = dynamic(() => import('./markdown-editor').then((module) => module.MarkdownEditor), {
   ssr: false,
@@ -47,7 +49,9 @@ export function PostEditor({ initial }: { initial?: ManagedPost }) {
     JSON.stringify(initial ? { slug: initial.slug, document: initial.document } : createEmptyPost()),
   )
   const [tagsText, setTagsText] = useState(initial?.document.tags.join(', ') ?? '')
-  const [operation, setOperation] = useState<'save' | 'preview' | 'publish' | null>(null)
+  const [operation, setOperation] = useState<'save' | 'preview' | 'publish' | 'generate' | null>(null)
+  const [generateOpen, setGenerateOpen] = useState(false)
+  const generateButtonRef = useRef<HTMLButtonElement>(null)
   const busy = operation !== null
   const [error, setError] = useState('')
   const [mode, setMode] = useState<EditorMode>('split')
@@ -75,8 +79,36 @@ export function PostEditor({ initial }: { initial?: ManagedPost }) {
     return result
   }
 
+  async function generateDraft(overview: string, signal: AbortSignal) {
+    if (busyRef.current) throw new Error('请等待当前操作完成')
+    busyRef.current = true
+    setOperation('generate')
+    setError('')
+    try {
+      const result = await postRequest<unknown>('/generate-draft', 'POST', { overview }, signal)
+      const parsed = generatedPostDraftSchema.safeParse(result)
+      if (!parsed.success) throw new Error('生成的初稿格式无效，请重试')
+      if (signal.aborted) return
+      const { slug, heroColor, ...document } = parsed.data
+      setInput((current) => ({
+        slug: record?.slugLocked ? current.slug : slug,
+        document: {
+          ...current.document,
+          ...document,
+          heroColor: current.document.heroColor || heroColor,
+          aiGenerated: true,
+        },
+      }))
+      setTagsText(document.tags.join(', '))
+      toast.success('初稿已填入，请检查后保存')
+    } finally {
+      busyRef.current = false
+      setOperation(null)
+    }
+  }
+
   async function perform(action: 'save' | 'preview' | 'publish') {
-    if (busyRef.current) return
+    if (busyRef.current || generateOpen) return
     busyRef.current = true
     setOperation(action)
     setError('')
@@ -183,6 +215,14 @@ export function PostEditor({ initial }: { initial?: ManagedPost }) {
           </div>
         </div>
         <div className="flex flex-wrap items-center gap-2">
+          <Button
+            ref={generateButtonRef}
+            variant="outline"
+            disabled={busy && operation !== 'generate'}
+            onClick={() => setGenerateOpen(true)}
+          >
+            AI 生成初稿
+          </Button>
           <Button
             variant="outline"
             disabled={busy}
@@ -472,6 +512,14 @@ export function PostEditor({ initial }: { initial?: ManagedPost }) {
           {mode !== 'edit' && <LiveMdxPreview source={doc.content} />}
         </div>
       </Tabs>
+      {generateOpen && (
+        <PostGenerateDialog
+          hasExistingContent={Boolean(record) || dirty}
+          returnFocusRef={generateButtonRef}
+          onGenerate={generateDraft}
+          onClose={() => setGenerateOpen(false)}
+        />
+      )}
       {pendingNavigation && (
         <PostConfirmDialog
           open={leaveOpen}

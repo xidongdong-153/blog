@@ -8,6 +8,7 @@ import { getReadySummaryConfig } from '@/server/modules/ai/summary-config.servic
 import { generateSummaryForPost } from '@/server/modules/ai/summary.service'
 import { getSession, isSiteAdmin } from '@/server/modules/auth/auth.service'
 import { createFailureResponse, createSuccessResponse } from '@/server/shared/response'
+import { generatePostDraft, PostDraftServiceError } from './posts-draft.service'
 import { exportPosts, importPosts, preflightImport } from './posts-transfer'
 import {
   createPost,
@@ -50,6 +51,7 @@ export function createPostsRoute(
     }),
   )
   route.onError((error, c) => {
+    if (error instanceof PostDraftServiceError) return c.json(createFailureResponse(error.message), error.statusCode)
     if (error instanceof PostServiceError) return c.json(createFailureResponse(error.message), error.statusCode)
     if (error instanceof z.ZodError)
       return c.json(createFailureResponse(error.issues.map((issue) => issue.message).join('；')), 400)
@@ -73,6 +75,18 @@ export function createPostsRoute(
     )
   })
   route.post('/', async (c) => c.json(createSuccessResponse(await createPost(await c.req.json(), database)), 201))
+
+  route.post(
+    '/generate-draft',
+    bodyLimit({
+      maxSize: 32 * 1024,
+      onError: (c) => c.json(createFailureResponse('内容概述请求过大'), 413),
+    }),
+    async (c) =>
+      c.json(
+        createSuccessResponse(await generatePostDraft(await c.req.json(), { database, signal: c.req.raw.signal })),
+      ),
+  )
 
   route.post('/import/preview', async (c) => {
     const form = await c.req.formData()

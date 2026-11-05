@@ -1,8 +1,9 @@
 import type { ApiResponse } from '@/server/shared/response'
 
-export async function postRequest<T>(path: string, method = 'GET', body?: unknown): Promise<T> {
+export async function postRequest<T>(path: string, method = 'GET', body?: unknown, signal?: AbortSignal): Promise<T> {
   const response = await fetch(`/api/admin/posts${path}`, {
     method,
+    signal,
     cache: 'no-store',
     headers: body === undefined ? undefined : { 'Content-Type': 'application/json' },
     body: body === undefined ? undefined : JSON.stringify(body),
