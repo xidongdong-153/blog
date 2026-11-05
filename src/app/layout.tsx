@@ -30,7 +30,11 @@ export const metadata: Metadata = {
  */
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="zh-CN" className={`${satoshi.variable} ${newsreader.variable}`} suppressHydrationWarning>
+    <html
+      lang="zh-CN"
+      className={`${satoshi.variable} ${newsreader.variable} has-[[data-slot=admin-layout]]:[scrollbar-gutter:stable]`}
+      suppressHydrationWarning
+    >
       <head>
         <script
           dangerouslySetInnerHTML={{
@@ -38,7 +42,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           }}
         />
       </head>
-      <body className="min-h-screen antialiased">{children}</body>
+      <body className="min-h-screen antialiased has-[[data-slot=admin-layout]]:data-[scroll-locked]:mr-0! has-[[data-slot=admin-layout]]:data-[scroll-locked]:[--removed-body-scroll-bar-size:0px]!">
+        {children}
+      </body>
     </html>
   )
 }

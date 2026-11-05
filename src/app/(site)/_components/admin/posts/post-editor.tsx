@@ -227,150 +227,158 @@ export function PostEditor({ initial }: { initial?: ManagedPost }) {
             </Button>
           </CollapsibleTrigger>
           <CollapsibleContent>
-            <fieldset
-              disabled={busy}
-              className="grid min-w-0 grid-cols-1 items-start gap-4 p-4 pt-2 sm:grid-cols-2 lg:grid-cols-12"
-            >
-              <label className="flex min-w-0 flex-col gap-2 text-sm font-medium lg:col-span-3" htmlFor="post-title">
-                标题
-                <Input
-                  id="post-title"
-                  maxLength={240}
-                  value={doc.title}
-                  disabled={busy}
-                  onChange={(event) => setDocument('title', event.target.value)}
-                  placeholder="文章标题"
-                  className="text-lg md:text-lg"
-                />
-              </label>
-              <label htmlFor="post-description" className="lg:col-span-3 flex flex-col gap-2 text-sm">
-                描述
-                <Textarea
-                  id="post-description"
-                  value={doc.description}
-                  maxLength={1000}
-                  rows={1}
-                  className="h-11 min-h-11 resize-y"
-                  onChange={(event) => setDocument('description', event.target.value)}
-                />
-              </label>
-              <label htmlFor="post-slug" className="lg:col-span-2 flex flex-col gap-2 text-sm">
-                文章地址
-                <Input
-                  id="post-slug"
-                  value={input.slug}
-                  maxLength={128}
-                  required
-                  disabled={record?.slugLocked || busy}
-                  onChange={(event) => setInput((current) => ({ ...current, slug: event.target.value }))}
-                  placeholder="my-first-post"
-                  pattern="[a-z0-9]+(-[a-z0-9]+)*"
-                />
-                <span className="text-xs text-muted-foreground">
-                  {record?.slugLocked ? '发布后地址固定' : '小写字母、数字和连字符'}
-                </span>
-              </label>
-              <div className="lg:col-span-1 flex flex-col gap-2 text-sm">
-                <label htmlFor="post-category">分类</label>
-                <Select
-                  value={doc.category}
-                  disabled={busy}
-                  onValueChange={(value) => setDocument('category', value as PostDocument['category'])}
-                >
-                  <SelectTrigger id="post-category" className="w-full">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {Object.entries(BLOG_CATEGORY_LABELS).map(([value, label]) => (
-                      <SelectItem key={value} value={value}>
-                        {label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+            <fieldset disabled={busy} className="flex min-w-0 flex-col gap-5 p-4 pt-3 sm:p-5 sm:pt-3">
+              <div className="grid min-w-0 gap-5 sm:grid-cols-2">
+                <label className="flex min-w-0 flex-col gap-2 text-sm font-medium" htmlFor="post-title">
+                  标题
+                  <Input
+                    id="post-title"
+                    maxLength={240}
+                    value={doc.title}
+                    disabled={busy}
+                    onChange={(event) => setDocument('title', event.target.value)}
+                    placeholder="文章标题"
+                    className="text-lg md:text-lg"
+                  />
+                </label>
+                <label htmlFor="post-slug" className="flex min-w-0 flex-col gap-2 text-sm font-medium">
+                  文章地址
+                  <Input
+                    id="post-slug"
+                    value={input.slug}
+                    maxLength={128}
+                    required
+                    disabled={record?.slugLocked || busy}
+                    onChange={(event) => setInput((current) => ({ ...current, slug: event.target.value }))}
+                    placeholder="my-first-post"
+                    pattern="[a-z0-9]+(-[a-z0-9]+)*"
+                    aria-describedby="post-slug-hint"
+                  />
+                  <span id="post-slug-hint" className="text-xs font-normal text-muted-foreground">
+                    {record?.slugLocked ? '发布后地址固定' : '小写字母、数字和连字符'}
+                  </span>
+                </label>
               </div>
-              <label htmlFor="post-tags" className="lg:col-span-3 flex flex-col gap-2 text-sm">
-                标签
-                <Input
-                  id="post-tags"
-                  value={tagsText}
-                  maxLength={1800}
-                  onChange={(event) => {
-                    setTagsText(event.target.value)
-                    setDocument(
-                      'tags',
-                      event.target.value
-                        .split(/[,，]/)
-                        .map((tag) => tag.trim())
-                        .filter(Boolean),
-                    )
-                  }}
-                  placeholder="用逗号分隔"
-                />
-              </label>
-              <div className="lg:col-span-2 flex flex-col gap-2 text-sm">
-                <label htmlFor="post-date">文章日期</label>
-                <DatePicker
-                  id="post-date"
-                  value={doc.date}
-                  required
-                  disabled={busy}
-                  onValueChange={(value) => setDocument('date', value)}
-                />
+              <div className="grid min-w-0 items-start gap-5 lg:grid-cols-2">
+                <label htmlFor="post-description" className="flex min-w-0 flex-col gap-2 text-sm font-medium">
+                  描述
+                  <Textarea
+                    id="post-description"
+                    value={doc.description}
+                    maxLength={1000}
+                    rows={3}
+                    className="min-h-28 resize-y font-normal [field-sizing:fixed]"
+                    onChange={(event) => setDocument('description', event.target.value)}
+                  />
+                </label>
+                <div className="grid min-w-0 gap-5 sm:grid-cols-3">
+                  <div className="flex min-w-0 flex-col gap-2 text-sm font-medium">
+                    <label htmlFor="post-category">分类</label>
+                    <Select
+                      value={doc.category}
+                      disabled={busy}
+                      onValueChange={(value) => setDocument('category', value as PostDocument['category'])}
+                    >
+                      <SelectTrigger id="post-category" className="w-full">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {Object.entries(BLOG_CATEGORY_LABELS).map(([value, label]) => (
+                          <SelectItem key={value} value={value}>
+                            {label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <label htmlFor="post-tags" className="flex min-w-0 flex-col gap-2 text-sm font-medium sm:col-span-2">
+                    标签
+                    <Input
+                      id="post-tags"
+                      value={tagsText}
+                      maxLength={1800}
+                      onChange={(event) => {
+                        setTagsText(event.target.value)
+                        setDocument(
+                          'tags',
+                          event.target.value
+                            .split(/[,，]/)
+                            .map((tag) => tag.trim())
+                            .filter(Boolean),
+                        )
+                      }}
+                      placeholder="用逗号分隔"
+                    />
+                  </label>
+                </div>
               </div>
-              <div className="lg:col-span-2 flex flex-col gap-2 text-sm">
-                <label htmlFor="post-updated-date">内容更新日期</label>
-                <DatePicker
-                  id="post-updated-date"
-                  value={doc.updatedDate}
-                  disabled={busy}
-                  onValueChange={(value) => setDocument('updatedDate', value)}
-                />
+              <div className="grid min-w-0 gap-5 border-t border-border pt-5 sm:grid-cols-2 lg:grid-cols-6">
+                <div className="flex min-w-0 flex-col gap-2 text-sm font-medium">
+                  <label htmlFor="post-date">文章日期</label>
+                  <DatePicker
+                    id="post-date"
+                    value={doc.date}
+                    required
+                    disabled={busy}
+                    onValueChange={(value) => setDocument('date', value)}
+                  />
+                </div>
+                <div className="flex min-w-0 flex-col gap-2 text-sm font-medium">
+                  <label htmlFor="post-updated-date">内容更新日期</label>
+                  <DatePicker
+                    id="post-updated-date"
+                    value={doc.updatedDate}
+                    disabled={busy}
+                    onValueChange={(value) => setDocument('updatedDate', value)}
+                  />
+                </div>
+                <label htmlFor="post-cover" className="flex min-w-0 flex-col gap-2 text-sm font-medium lg:col-span-3">
+                  封面 URL
+                  <Input
+                    id="post-cover"
+                    value={doc.heroImage}
+                    maxLength={2048}
+                    onChange={(event) => setDocument('heroImage', event.target.value)}
+                    placeholder="https:// 或 /images/…"
+                  />
+                </label>
+                <label htmlFor="post-color" className="flex min-w-0 flex-col gap-2 text-sm font-medium">
+                  主题色
+                  <Input
+                    id="post-color"
+                    value={doc.heroColor}
+                    maxLength={7}
+                    onChange={(event) => setDocument('heroColor', event.target.value)}
+                    placeholder="#659eb9"
+                  />
+                </label>
               </div>
-              <label htmlFor="post-cover" className="lg:col-span-2 flex flex-col gap-2 text-sm">
-                封面 URL
-                <Input
-                  id="post-cover"
-                  value={doc.heroImage}
-                  maxLength={2048}
-                  onChange={(event) => setDocument('heroImage', event.target.value)}
-                  placeholder="https:// 或 /images/…"
-                />
-              </label>
-              <label htmlFor="post-color" className="lg:col-span-1 flex flex-col gap-2 text-sm">
-                主题色
-                <Input
-                  id="post-color"
-                  value={doc.heroColor}
-                  maxLength={7}
-                  onChange={(event) => setDocument('heroColor', event.target.value)}
-                  placeholder="#659eb9"
-                />
-              </label>
-              <div className="lg:col-span-2 flex flex-col gap-2 text-sm">
-                <label htmlFor="post-series">专栏</label>
-                <Select
-                  value={doc.series?.id ?? 'none'}
-                  disabled={busy}
-                  onValueChange={(value) =>
-                    setDocument('series', value === 'none' ? undefined : { id: value, order: doc.series?.order ?? 1 })
-                  }
-                >
-                  <SelectTrigger id="post-series" className="w-full">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="none">无</SelectItem>
-                    {Object.values(REGISTERED_SERIES).map((series) => (
-                      <SelectItem key={series.id} value={series.id}>
-                        {series.title}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+              <div className="grid min-w-0 items-start gap-5 sm:grid-cols-2 lg:grid-cols-6">
+                <div className="flex min-w-0 flex-col gap-2 text-sm font-medium sm:col-span-2 lg:col-span-3">
+                  <label htmlFor="post-series">专栏</label>
+                  <Select
+                    value={doc.series?.id ?? 'none'}
+                    disabled={busy}
+                    onValueChange={(value) =>
+                      setDocument('series', value === 'none' ? undefined : { id: value, order: doc.series?.order ?? 1 })
+                    }
+                  >
+                    <SelectTrigger id="post-series" className="w-full">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="none">无</SelectItem>
+                      {Object.values(REGISTERED_SERIES).map((series) => (
+                        <SelectItem key={series.id} value={series.id}>
+                          {series.title}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
                 {doc.series && (
                   <>
-                    <label htmlFor="post-order" className="flex flex-col gap-2 text-sm">
+                    <label htmlFor="post-order" className="flex min-w-0 flex-col gap-2 text-sm font-medium">
                       专栏排序
                       <Input
                         id="post-order"
@@ -383,7 +391,10 @@ export function PostEditor({ initial }: { initial?: ManagedPost }) {
                         }}
                       />
                     </label>
-                    <label htmlFor="post-group" className="flex flex-col gap-2 text-sm">
+                    <label
+                      htmlFor="post-group"
+                      className="flex min-w-0 flex-col gap-2 text-sm font-medium lg:col-span-2"
+                    >
                       章节分组
                       <Input
                         id="post-group"
@@ -397,10 +408,10 @@ export function PostEditor({ initial }: { initial?: ManagedPost }) {
                   </>
                 )}
               </div>
-              <div className="lg:col-span-3 flex flex-col gap-1 pt-5">
+              <div className="grid gap-x-8 gap-y-1 border-t border-border pt-3 sm:grid-cols-2 lg:flex lg:gap-8">
                 <label
                   htmlFor="post-ai-generated"
-                  className="flex min-h-11 cursor-pointer items-center justify-between gap-3 text-sm"
+                  className="flex min-h-11 cursor-pointer items-center justify-between gap-4 text-sm"
                 >
                   AI 生成
                   <Switch
@@ -412,7 +423,7 @@ export function PostEditor({ initial }: { initial?: ManagedPost }) {
                 </label>
                 <label
                   htmlFor="post-disable-summary"
-                  className="flex min-h-11 cursor-pointer items-center justify-between gap-3 text-sm"
+                  className="flex min-h-11 cursor-pointer items-center justify-between gap-4 text-sm"
                 >
                   关闭 AI 摘要
                   <Switch

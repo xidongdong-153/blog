@@ -10,7 +10,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
   await requirePostAdmin()
   return (
     <AdminUiProvider>
-      <div className="mx-auto w-full max-w-7xl">
+      <div data-slot="admin-layout" className="mx-auto w-full max-w-7xl">
         <AdminNavigation />
         {children}
       </div>
