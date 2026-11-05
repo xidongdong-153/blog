@@ -4,7 +4,7 @@
 
 修改 CI/CD、GitHub `Deployment` Environment 或服务器发布操作时遵守本文件。正式发布由 [ci-cd.yml](../../../.github/workflows/ci-cd.yml) 完成，不使用 Vercel。
 
-- 目标为 `main` 的 Pull Request 和 `main` push 只运行 `quality`，不自动发布。只有在 `main` 上通过 `workflow_dispatch` 手动运行时，`quality` 成功后才运行 `deploy`；其他分支手动运行只检查，不部署。
+- 目标为 `main` 的 Pull Request 和 `main` push 只运行 `quality`，不自动发布。只有在 `main` 上通过 `workflow_dispatch` 手动运行并勾选「确认发布到生产环境」（`confirm_deploy`）时，`quality` 成功后才运行 `deploy`；确认框默认不勾选，未确认或其他分支手动运行只检查，不部署。
 - `quality` 依次运行 `pnpm install --frozen-lockfile`、`pnpm typecheck`、`pnpm lint`、`pnpm format:check`、`pnpm db:migrate`、`pnpm test`、`pnpm build`；测试和构建使用 runner 上的 `file:ci.db` 与临时 token，不访问生产数据库；`build` 只注入固定的非生产 `BETTER_AUTH_SECRET` 和 `http://localhost:4400`，不读取生产认证密钥或 AI 凭据。
 - 仓库根目录跟踪 `pnpm-workspace.yaml`，配置 `@prisma/client`、`better-sqlite3`、`esbuild` 与 `sharp` 的依赖构建白名单（`allowBuilds`），统一本地、CI 与生产服务器的依赖构建策略。
 - `deploy` 使用 `Deployment` Environment，通过 SSH 执行 `bash -s -- <target-sha>`，工作目录为 `/home/deploy/code/xdd/blog`。
@@ -83,7 +83,7 @@
 
 ## GitHub 配置与安全边界
 
-仓库 `Settings` -> `Environments` -> `Deployment`：Deployment branches and tags 使用 Selected branches and tags，明确只允许 `main` 分支；不使用 Protected branches only，因为 `main` 不再设置分支保护。不设置 Required reviewers 或等待时间，手动运行的质量检查通过后直接发布。
+仓库 `Settings` -> `Environments` -> `Deployment`：Deployment branches and tags 使用 Selected branches and tags，明确只允许 `main` 分支；不使用 Protected branches only，因为 `main` 不再设置分支保护。不设置 Required reviewers 或等待时间，手动勾选发布确认且质量检查通过后发布。
 
 | 类型     | 名称                 | 内容                                                   |
 | -------- | -------------------- | ------------------------------------------------------ |
@@ -173,11 +173,11 @@ ssh "deploy@$DEPLOY_HOST" 'curl -I http://127.0.0.1:4400/'
 curl -I https://blog.xdd.ink/
 ```
 
-首次 Actions 发布时，先将 workflow 和文档更新到 `main`，确认 push 的 `quality` 通过且 `deploy` 跳过；获得发布授权后，在 `Actions` -> `CI/CD` -> `Run workflow` 选择 `main`，观察 `quality` 和 `deploy`，最后检查 systemd 日志、本机 HTTP 和公网。配置变更、提交和部署均需各自获得授权。
+首次 Actions 发布时，先将 workflow 和文档更新到 `main`，确认 push 的 `quality` 通过且 `deploy` 跳过；获得发布授权后，在 `Actions` -> `CI/CD` -> `Run workflow` 选择 `main`，勾选「确认发布到生产环境」并运行，观察 `quality` 和 `deploy`，最后检查 systemd 日志、本机 HTTP 和公网。配置变更、提交和部署均需各自获得授权。
 
 ## 日常发布与排查
 
-日常将代码推送到 `main`，需要上线时在 `Actions` -> `CI/CD` -> `Run workflow` 选择 `main` 手动运行；推送和合并都不自动发布。手动运行会重新检查，检查通过后部署，无需人工审批。不在服务器编辑受跟踪文件，不把 `.env.local` 或 SSH 私钥传给 Actions。
+日常将代码推送到 `main`，需要上线时在 `Actions` -> `CI/CD` -> `Run workflow` 选择 `main`，勾选「确认发布到生产环境」后手动运行；推送和合并都不自动发布。手动运行会重新检查，勾选确认且检查通过后部署，无需额外人工审批；未勾选时只检查。不在服务器编辑受跟踪文件，不把 `.env.local` 或 SSH 私钥传给 Actions。
 
 查看仓库 `Actions` -> `CI/CD`。命令行可使用 GitHub CLI；使用前先 `gh auth login`，也可直接使用网页：
 
@@ -227,4 +227,4 @@ curl -i -N -H "Connection: Upgrade" -H "Upgrade: websocket" -H "Host: 127.0.0.1:
 - 用 Prettier 检查 workflow 和相关文档；Trellis 文档显式检查方法见[质量规范](./quality-guidelines.md)。
 - 用 YAML 解析器检查 workflow 包含 `quality`、`deploy`、`needs: quality` 和 `Deployment` Environment；每个 `run` 块只做 `bash -n` 语法检查，不把检查变成真实部署。
 - 获得服务器检查授权后，只读确认 Git 远端、工作区、Node/pnpm、环境文件是否存在且被忽略、sudo 权限、systemd 和本机 HTTP，不读取密钥或 `.env.local` 内容。
-- 确认 PR 和 main push 只执行 quality，deploy 跳过；获得授权后，首次真实发布确认 main 的手动运行先 quality 再 deploy，其他分支不能部署，日志没有私钥或环境文件内容。纯文档迁移不执行这些生产操作。
+- 确认 PR 和 main push 只执行 quality，deploy 跳过；获得授权后，首次真实发布确认 main 勾选发布确认后先 quality 再 deploy，未勾选或其他分支不能部署，日志没有私钥或环境文件内容。纯文档迁移不执行这些生产操作。

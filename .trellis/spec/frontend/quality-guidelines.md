@@ -71,7 +71,7 @@ pnpm test
 - 允许直接开发和推送 `main`；开始任务先获取最新 `origin/main`，独立分支和 Pull Request 按需使用。
 - 不擅自 `git commit` / `git push` / `git merge`，提交与推送前把改动摘要给用户确认。
 - 提交信息遵循 Conventional Commits：`feat(scope): 说明`、`fix(scope): 说明`。
-- 推送 `main` 和目标为 `main` 的 PR 自动检查，不自动发布；手动在 `main` 运行 `CI/CD` 后，检查通过即部署，无需人工审批。生产发布必须另获明确授权。
+- 推送 `main` 和目标为 `main` 的 PR 自动检查，不自动发布；手动在 `main` 运行 `CI/CD` 并勾选「确认发布到生产环境」后，检查通过才部署，无需额外人工审批；未勾选时只检查。生产发布必须另获明确授权。
 
 ## 内容文件改动
 

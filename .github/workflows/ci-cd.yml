@@ -2,6 +2,12 @@ name: CI/CD
 
 on:
   workflow_dispatch:
+    inputs:
+      confirm_deploy:
+        description: 确认发布到生产环境
+        type: boolean
+        required: true
+        default: false
   pull_request:
     branches:
       - main
@@ -76,7 +82,7 @@ jobs:
 
   deploy:
     name: Deploy production
-    if: ${{ github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main' }}
+    if: ${{ github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main' && inputs.confirm_deploy == true }}
     needs: quality
     runs-on: ubuntu-latest
     environment:

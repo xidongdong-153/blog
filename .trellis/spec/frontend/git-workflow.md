@@ -40,9 +40,9 @@ git push origin main
 
 ## 手动发布
 
-代码已推送到 `main` 后，在 GitHub 打开 `Actions` → `CI/CD` → `Run workflow`，选择 `main` 并运行。手动运行会重新执行 `Quality`，通过后进入 `Deploy production`，无需额外人工审批。
+代码已推送到 `main` 后，在 GitHub 打开 `Actions` → `CI/CD` → `Run workflow`，选择 `main`，勾选「确认发布到生产环境」后点击运行。手动运行会重新执行 `Quality`，勾选确认且检查通过后进入 `Deploy production`，无需额外人工审批。确认框默认不勾选，保持默认值时只检查。
 
-- 只有 `workflow_dispatch` 事件且分支为 `main` 才能部署；其他分支手动运行只执行检查。
+- 只有 `workflow_dispatch` 事件、分支为 `main` 且 `inputs.confirm_deploy == true` 才能部署；未确认或其他分支手动运行只执行检查。
 - `Deployment` 环境保留密钥和变量，允许部署的分支明确限定为 `main`，不配置 Required reviewers 或等待时间。
 - AI 只有获得生产发布授权后才能点击 `Run workflow`；提交、推送和合并的授权不包含发布。
 - 若发布检查期间 `main` 又有新提交，服务器会因目标 SHA 与最新 `origin/main` 不一致而停止部署。需要发布最新代码时，重新手动运行工作流。
