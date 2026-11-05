@@ -3,3 +3,10 @@ allowBuilds:
   better-sqlite3: true
   esbuild: true
   sharp: true
+minimumReleaseAgeExclude:
+  - '@ai-sdk/anthropic@4.0.97'
+  - '@ai-sdk/gateway@4.0.136'
+  - '@ai-sdk/openai@4.0.109'
+  - '@ai-sdk/provider-utils@5.0.75'
+  - '@ai-sdk/provider@4.0.36'
+  - ai@7.0.163
