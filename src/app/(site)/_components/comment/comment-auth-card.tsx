@@ -84,8 +84,8 @@ export function CommentAuthCard({ providers, isOwner }: CommentAuthCardProps) {
                 </span>
                 <Link
                   href="/admin/ai"
-                  title="AI 摘要配置"
-                  aria-label="AI 摘要配置"
+                  title="AI"
+                  aria-label="打开 AI 管理台"
                   className="rounded p-1 text-muted-foreground transition-colors hover:bg-muted/60 hover:text-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
                 >
                   <Settings className="size-3.5" />

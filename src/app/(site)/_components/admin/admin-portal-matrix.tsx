@@ -1,6 +1,9 @@
 import type { AdminAiServiceStatus, AdminEngagementStats, AdminSystemStatus } from '@/server/modules/admin/admin.types'
+import { Badge, Flex, Heading, Text } from '@radix-ui/themes'
 import { Activity, ArrowRight, Cpu, Globe, MessageSquare, Server } from 'lucide-react'
 import Link from 'next/link'
+import { AiThemeProvider } from './ui/ai-theme-provider'
+import { Button } from './ui/button'
 
 interface AdminPortalMatrixProps {
   aiService: AdminAiServiceStatus
@@ -28,65 +31,40 @@ export function AdminPortalMatrix({ aiService, engagement, system }: AdminPortal
         <ArrowRight size={16} />
       </Link>
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
-        {/* 入口 1：AI 摘要配置 */}
-        <div className="flex flex-col justify-between gap-4 rounded-lg border border-border/60 bg-card/40 p-4.5 transition-all hover:border-border">
-          <div className="flex flex-col gap-2.5">
-            <div className="flex items-center justify-between">
-              <span className="font-mono text-[10px] tracking-wider text-muted-foreground uppercase">
-                CONTENT / AI SERVICES
-              </span>
-              <span
-                className={`inline-flex items-center gap-1 rounded-md px-1.5 py-0.5 font-mono text-[10px] font-medium ${
-                  isAiReady
-                    ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400'
-                    : aiService.status === 'needs_check'
-                      ? 'bg-amber-500/10 text-amber-600 dark:text-amber-400'
-                      : 'bg-rose-500/10 text-rose-600 dark:text-rose-400'
-                }`}
-              >
-                <span
-                  className={`size-1.5 rounded-full ${
-                    isAiReady ? 'bg-emerald-500' : aiService.status === 'needs_check' ? 'bg-amber-500' : 'bg-rose-500'
-                  }`}
-                />
-                {isAiReady ? '就绪' : aiService.status === 'needs_check' ? '待校验' : '未就绪'}
-              </span>
-            </div>
-
-            <div className="flex items-center gap-2.5">
-              <div className="flex size-8 shrink-0 items-center justify-center rounded-md border border-border/60 bg-background text-primary">
-                <Cpu className="size-4" />
-              </div>
-              <div>
-                <h2 className="font-serif text-base font-medium text-foreground">AI 摘要配置</h2>
-                <p className="text-xs text-muted-foreground">配置模型服务商与 API Key。</p>
-              </div>
-            </div>
-          </div>
-
-          <div className="flex flex-col gap-3 border-t border-border/40 pt-3">
-            <div className="grid grid-cols-2 gap-2 font-mono text-[11px]">
-              <div>
-                <span className="text-muted-foreground">协议:</span>{' '}
-                <span className="text-foreground">{aiService.protocol}</span>
-              </div>
-              <div>
-                <span className="text-muted-foreground">模型:</span>{' '}
-                <span className="truncate text-foreground" title={aiService.modelId || '未配置'}>
-                  {aiService.modelId ? aiService.modelId.split('/').pop() : '未配置'}
-                </span>
-              </div>
-            </div>
-
-            <Link
-              href="/admin/ai"
-              className="inline-flex items-center justify-between rounded-md border border-border/70 bg-background px-3 py-1.5 font-mono text-xs text-foreground transition-all hover:bg-muted"
-            >
-              <span>前往配置</span>
-              <ArrowRight className="size-3 text-muted-foreground" />
-            </Link>
-          </div>
-        </div>
+        <AiThemeProvider>
+          <Flex
+            direction="column"
+            justify="between"
+            gap="4"
+            className="h-full rounded-lg border border-border bg-card p-5"
+          >
+            <Flex direction="column" gap="3">
+              <Flex align="center" justify="between" gap="3">
+                <Heading as="h2" size="4" className="flex items-center gap-2 font-serif font-medium">
+                  <Cpu aria-hidden="true" className="size-4 text-primary" />
+                  AI
+                </Heading>
+                <Badge color={isAiReady ? 'green' : aiService.status === 'needs_check' ? 'amber' : 'red'}>
+                  {isAiReady ? '模型已连接' : aiService.status === 'needs_check' ? '待检查' : '未配置'}
+                </Badge>
+              </Flex>
+              <Text size="2" className="text-muted-foreground">
+                管理模型、写作 Agent 与 Tool。
+              </Text>
+            </Flex>
+            <Flex direction="column" gap="3" className="min-w-0 border-t border-border pt-3">
+              <Text size="1" className="break-all text-muted-foreground">
+                {aiService.protocol} · {aiService.modelId || '未配置模型'}
+              </Text>
+              <Button asChild variant="outline" className="justify-between">
+                <Link href="/admin/ai">
+                  打开 AI
+                  <ArrowRight aria-hidden="true" className="size-4" />
+                </Link>
+              </Button>
+            </Flex>
+          </Flex>
+        </AiThemeProvider>
 
         {/* 入口 2：友链管理 */}
         <div className="flex flex-col justify-between gap-4 rounded-lg border border-border/60 bg-card/40 p-4.5 transition-all hover:border-border">

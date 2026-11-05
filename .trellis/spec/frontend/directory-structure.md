@@ -41,7 +41,7 @@ content/notes/               笔记，一条一个 .md
 | `comment/` | 评论                 | `comment-section.tsx`、`comment-composer.tsx`、`comment-item.tsx`、`comment-auth-card.tsx`、`comment-icons.tsx`            |
 | `admin/`   | 管理面板             | `admin-header.tsx`、`admin-metrics.tsx`、`admin-pending-links.tsx`、`admin-recent-comments.tsx`、`admin-portal-matrix.tsx` |
 
-新增分组需要有新功能域才建，不要按组件类型（`ui/`、`common/`）分组。
+新增分组需要有新功能域才建，不要新增顶层组件类型分组（`ui/`、`common/`）。管理后台已有的 `admin/ui/` 是 shadcn/Radix 基础组件库目录，继续复用；AI 业务组件放 `admin/ai/`，不另建第二套组件库目录。
 
 ## 数据层
 

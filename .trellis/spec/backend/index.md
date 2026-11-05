@@ -8,12 +8,13 @@ Hono 4 + Drizzle ORM + Turso（libSQL）。Hono 应用已通过 `src/app/api/[[.
 
 ## 规范索引
 
-| 文件                                     | 内容                                                            |
-| ---------------------------------------- | --------------------------------------------------------------- |
-| [目录结构](./directory-structure.md)     | `src/server/` 各目录职责、放置规则速查、反模式                  |
-| [API 设计](./api-design-guidelines.md)   | `ApiResponse` 封装、路由注册、Hono 挂载、端点选型               |
-| [服务调用](./service-call-guidelines.md) | 直连 `db` 与走 API 的边界、service 层触发条件、外部服务调用模式 |
-| [数据库](./database-guidelines.md)       | schema 组织、表命名、migration 流程、环境变量与本地回退         |
+| 文件                                         | 内容                                                            |
+| -------------------------------------------- | --------------------------------------------------------------- |
+| [目录结构](./directory-structure.md)         | `src/server/` 各目录职责、放置规则速查、反模式                  |
+| [API 设计](./api-design-guidelines.md)       | `ApiResponse` 封装、路由注册、Hono 挂载、端点选型               |
+| [服务调用](./service-call-guidelines.md)     | 直连 `db` 与走 API 的边界、service 层触发条件、外部服务调用模式 |
+| [数据库](./database-guidelines.md)           | schema 组织、表命名、migration 流程、环境变量与本地回退         |
+| [AI Agent 与 Tool](./ai-agent-guidelines.md) | 写作 Agent、对话流、Tool 注册、配置并发与摘要缓存边界           |
 
 ## 开发前检查清单
 
@@ -36,17 +37,17 @@ pnpm db:verify     # 改了连接配置或执行迁移后跑
 
 ## 关键入口
 
-| 入口              | 文件                                                               |
-| ----------------- | ------------------------------------------------------------------ |
-| API 挂载入口      | `src/app/api/[[...route]]/route.ts`                                |
-| Hono 应用与路由装配 | `src/server/app.ts`                                              |
-| auth 模块         | `src/server/modules/auth/` (`auth.service.ts`, `auth.route.ts`)    |
-| comments 模块     | `src/server/modules/comments/` (`comments.service.ts`, `comments.route.ts`) |
-| links 模块        | `src/server/modules/links/` (`links.service.ts`, `links.route.ts`) |
-| ai 模块           | `src/server/modules/ai/` (`summary.service.ts`, `summary-config.service.ts`, `summary-config.route.ts`) |
-| presence 模块     | `src/server/modules/presence/` (`presence.service.ts`, `presence.route.ts`) |
-| system 模块       | `src/server/modules/system/` (`system.service.ts`, `system.route.ts`) |
-| 数据库基础设施    | `src/server/infra/db/client.ts`、`src/server/infra/db/schema/index.ts` |
-| AI 模型与凭据基础设施 | `src/server/infra/ai/` (`summary-model.ts`, `credential-crypto.ts`, `types.ts`) |
-| 邮件发送基础设施  | `src/server/infra/email.ts`                                        |
-| 统一响应封装      | `src/server/shared/response.ts`                                    |
+| 入口                  | 文件                                                                                                                                      |
+| --------------------- | ----------------------------------------------------------------------------------------------------------------------------------------- |
+| API 挂载入口          | `src/app/api/[[...route]]/route.ts`                                                                                                       |
+| Hono 应用与路由装配   | `src/server/app.ts`                                                                                                                       |
+| auth 模块             | `src/server/modules/auth/` (`auth.service.ts`, `auth.route.ts`)                                                                           |
+| comments 模块         | `src/server/modules/comments/` (`comments.service.ts`, `comments.route.ts`)                                                               |
+| links 模块            | `src/server/modules/links/` (`links.service.ts`, `links.route.ts`)                                                                        |
+| ai 模块               | `src/server/modules/ai/` (`agents.service.ts`, `agents.route.ts`, `tools.registry.ts`, `summary.service.ts`, `summary-config.service.ts`) |
+| presence 模块         | `src/server/modules/presence/` (`presence.service.ts`, `presence.route.ts`)                                                               |
+| system 模块           | `src/server/modules/system/` (`system.service.ts`, `system.route.ts`)                                                                     |
+| 数据库基础设施        | `src/server/infra/db/client.ts`、`src/server/infra/db/schema/index.ts`                                                                    |
+| AI 模型与凭据基础设施 | `src/server/infra/ai/` (`summary-model.ts`, `credential-crypto.ts`, `types.ts`)                                                           |
+| 邮件发送基础设施      | `src/server/infra/email.ts`                                                                                                               |
+| 统一响应封装          | `src/server/shared/response.ts`                                                                                                           |

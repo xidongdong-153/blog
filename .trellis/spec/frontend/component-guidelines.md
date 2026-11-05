@@ -112,6 +112,16 @@ MDX 渲染走异步 RSC（`mdx-content.tsx` 的 `compileMDX`），不需要 clie
 
 未实现的功能在页面注释里写实现方案，用一个临时占位组件渲染「待实现」状态，并登记到[功能状态](./feature-status.md)。实现后删掉占位组件和注释，把状态改成「已实现」。
 
+## Admin AI 组件
+
+- `/admin/ai` 的业务组件位于 `_components/admin/ai/`。交互复用 `admin/ui` 的 shadcn/Radix；布局、排版、头像、状态和滚动使用 Radix Themes，表单语义使用 Radix Form。业务 JSX 不直接拼原生标签，也不新建 Div/Box 等同义包装规避要求。
+- `AiThemeProvider` 限制组件库主题范围，并同步站点明暗主题；Portal 内使用 Themes 组件时也需提供主题。公开页面不依赖该 provider。
+- Agent 角色条由真实 DTO 驱动，当前仅内置写作 Agent，不渲染虚构角色或未实现按钮。头像资源来源与授权保留在 SVG metadata 中。
+- 对话、输入、Agent 配置和模型表单状态由 workspace 持有，切换 Tabs 不丢状态。临时会话刷新后清空，新建对话在存在未保存初稿时确认。
+- 使用 AI SDK 官方 `useChat` 与 typed tool parts；只有成功且通过 schema 的完整初稿显示保存入口，取消或半成品不允许保存。普通 Enter 换行，Ctrl/Meta+Enter 发送，输入法组合期间不发送。
+- 窄屏同时检查滚动区内部内容的实际宽度。Radix Themes 未分层的 `.rt-ScrollAreaViewport > * { width: fit-content }` 会覆盖 Tailwind 层内的普通 `w-full`，即使整页 `scrollWidth` 正常也会裁切消息。聊天竖向滚动区局部约束内部内容宽度，不全局改写库样式；长中文、模型 ID 和 Tool 结果都必须在 viewport 内完整换行。除元素边界外，还要比较文字容器的 `scrollWidth/clientWidth`，避免 Badge 外框正常但内部 `white-space: nowrap` 仍裁切文字。
+- AI 错误按稳定 code 选择恢复入口，不通过提示文案匹配。新 API/存储/取消边界见[AI Agent 与 Tool](../backend/ai-agent-guidelines.md)。
+
 ## Metadata
 
 - 静态标题用 `export const metadata: Metadata = { title: '文章' }`，根布局的模板会拼成「文章 - 站点标题」。

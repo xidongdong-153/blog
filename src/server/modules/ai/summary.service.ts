@@ -7,7 +7,12 @@ import { generateText } from 'ai'
 import { eq } from 'drizzle-orm'
 import { computeArticleContentHash } from '@/lib/ai-summary'
 import { getAllBlogPosts } from '@/lib/content'
-import { classifyAiError, createSummaryModel, SummaryModelError } from '@/server/infra/ai/summary-model'
+import {
+  classifyAiError,
+  createRestrictedFetch,
+  createSummaryModel,
+  SummaryModelError,
+} from '@/server/infra/ai/summary-model'
 import { db as defaultDb } from '@/server/infra/db/client'
 import { articleSummaries } from '@/server/infra/db/schema/ai'
 import { getReadySummaryConfig } from './summary-config.service'
@@ -125,25 +130,28 @@ export interface GenerateSummaryOptions {
   database?: AppDatabase
   fetch?: typeof globalThis.fetch
   timeoutMs?: number
+  signal?: AbortSignal
 }
 
 /**
- * 为单篇文章调用 AI 模型生成摘要并写入缓存。
+ * 调用 AI 模型生成并校验纯文本摘要，不写入缓存。
  */
-export async function generateSummaryForPost(
-  post: BlogPost,
+export async function generateSummaryText(
+  content: string,
   config: ReadySummaryConfig,
   options?: GenerateSummaryOptions,
-): Promise<ArticleSummaryRecord> {
-  const database = options?.database ?? defaultDb
+): Promise<string> {
   const timeoutMs = options?.timeoutMs ?? 60_000
+  const timeoutSignal = AbortSignal.timeout(timeoutMs)
+  const signal = options?.signal ? AbortSignal.any([options.signal, timeoutSignal]) : timeoutSignal
+  signal.throwIfAborted()
 
   const model = createSummaryModel({
     protocol: config.protocol,
     baseURL: config.baseUrl,
     modelId: config.modelId,
     apiKey: config.apiKey,
-    fetch: options?.fetch,
+    fetch: options?.fetch ?? createRestrictedFetch({ timeoutMs }),
   })
 
   let result
@@ -151,7 +159,8 @@ export async function generateSummaryForPost(
     result = await generateText({
       model,
       system: SUMMARY_SYSTEM_PROMPT,
-      prompt: post.content,
+      prompt: content,
+      abortSignal: signal,
       maxOutputTokens: 300,
       maxRetries: 2,
       timeout: { totalMs: timeoutMs },
@@ -169,12 +178,24 @@ export async function generateSummaryForPost(
     )
   }
 
+  signal.throwIfAborted()
   const trimmedText = result.text.trim()
   const validation = validateSummaryText(trimmedText)
   if (!validation.valid) {
     throw new SummaryModelError('UPSTREAM_INVALID_RESPONSE', `模型生成摘要不符合规范: ${validation.reason}`, 502)
   }
 
+  return trimmedText
+}
+
+export async function generateSummaryForPost(
+  post: BlogPost,
+  config: ReadySummaryConfig,
+  options?: GenerateSummaryOptions,
+): Promise<ArticleSummaryRecord> {
+  const database = options?.database ?? defaultDb
+  const trimmedText = await generateSummaryText(post.content, config, options)
+  options?.signal?.throwIfAborted()
   const contentHash = computeArticleContentHash(post.content)
 
   return await upsertArticleSummary(

@@ -1,568 +1,272 @@
 'use client'
 
-import type { AiSummaryConfigDto } from '@/server/modules/ai/ai.types'
-import { AlertCircle, CheckCircle2, Loader2, RefreshCw, ShieldAlert, Trash2 } from 'lucide-react'
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import type { ModelSettingsState } from './use-model-settings'
+import type { SummaryProtocol } from '@/server/modules/ai/ai.types'
+import * as Form from '@radix-ui/react-form'
+import { Badge, Box, Callout, Flex, Heading, Text } from '@radix-ui/themes'
+import { AlertCircle, RefreshCw, Trash2 } from 'lucide-react'
+import {
+  AlertDialog,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '../ui/alert-dialog'
+import { Button } from '../ui/button'
+import { Input } from '../ui/input'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select'
 
-type ProtocolType = 'openai-completions' | 'openai-responses' | 'anthropic-messages'
-
-const PROTOCOL_OPTIONS: { value: ProtocolType; label: string; desc: string }[] = [
-  {
-    value: 'openai-completions',
-    label: 'Chat Completions',
-    desc: '适用于兼容 /chat/completions 的通用中转',
-  },
-  {
-    value: 'openai-responses',
-    label: 'Responses',
-    desc: '适用于 OpenAI 原生 /responses 协议',
-  },
-  {
-    value: 'anthropic-messages',
-    label: 'Anthropic',
-    desc: '适用于 Anthropic 格式 /messages 协议',
-  },
+const PROTOCOLS: { value: SummaryProtocol; label: string }[] = [
+  { value: 'openai-completions', label: 'Chat Completions' },
+  { value: 'openai-responses', label: 'Responses' },
+  { value: 'anthropic-messages', label: 'Anthropic Messages' },
 ]
 
-interface AiSummarySettingsFormProps {
-  initialMasterKeyAvailable?: boolean
-}
-
-export function AiSummarySettingsForm({ initialMasterKeyAvailable = true }: AiSummarySettingsFormProps) {
-  const [loading, setLoading] = useState(true)
-  const [config, setConfig] = useState<AiSummaryConfigDto | null>(null)
-
-  // 表单状态
-  const [protocol, setProtocol] = useState<ProtocolType>('openai-completions')
-  const [baseUrl, setBaseUrl] = useState('')
-  const [modelId, setModelId] = useState('')
-  const [apiKey, setApiKey] = useState('')
-
-  // 模型列表与交互状态
-  const [availableModels, setAvailableModels] = useState<Array<{ id: string; displayName: string }> | null>(null)
-  const [isFetchingModels, setIsFetchingModels] = useState(false)
-  const [fetchModelsError, setFetchModelsError] = useState<string | null>(null)
-  const [isCustomModelInput, setIsCustomModelInput] = useState(false)
-
-  // 交互与状态反馈
-  const [isSaving, setIsSaving] = useState(false)
-  const [isChecking, setIsChecking] = useState(false)
-  const [isClearing, setIsClearing] = useState(false)
-  const [statusMessage, setStatusMessage] = useState<string | null>(null)
-  const [errorMessage, setErrorMessage] = useState<string | null>(null)
-
-  const hasCredential = Boolean(config?.hasCredential)
-
-  // 从服务商探测拉取可用模型列表
-  const handleFetchModels = async () => {
-    if (!baseUrl.trim()) {
-      setErrorMessage('请先填写 Base URL')
-      return
-    }
-
-    if (!apiKey.trim() && !hasCredential) {
-      setErrorMessage('请先输入 API Key 凭据或使用已保存的凭据')
-      return
-    }
-
-    setIsFetchingModels(true)
-    setFetchModelsError(null)
-    setErrorMessage(null)
-
-    try {
-      const res = await fetch('/api/ai/summary-config/models', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          baseUrl: baseUrl.trim(),
-          apiKey: apiKey.trim() || undefined,
-        }),
-      })
-
-      const json = await res.json()
-      if (!res.ok || !json.success) {
-        throw new Error(json.error || '获取模型列表失败')
-      }
-
-      const list = json.data as Array<{ id: string; displayName: string }>
-      setAvailableModels(list)
-
-      if (list.length > 0) {
-        const matched = list.some((item) => item.id === modelId.trim())
-        if (!modelId.trim()) {
-          setModelId(list[0].id)
-          setIsCustomModelInput(false)
-        } else if (matched) {
-          setIsCustomModelInput(false)
-        }
-      }
-    } catch (err) {
-      const msg = err instanceof Error ? err.message : '获取模型列表异常'
-      setFetchModelsError(msg)
-      setErrorMessage(`拉取模型列表失败: ${msg}`)
-    } finally {
-      setIsFetchingModels(false)
-    }
-  }
-
-  // 从服务端加载配置
-  const fetchConfig = useCallback(async () => {
-    try {
-      setLoading(true)
-      setErrorMessage(null)
-      const res = await fetch('/api/ai/summary-config')
-      const json = await res.json()
-
-      if (!res.ok || !json.success) {
-        throw new Error(json.error || '获取 AI 配置失败')
-      }
-
-      const data = json.data as AiSummaryConfigDto | null
-      setConfig(data)
-
-      if (data) {
-        setProtocol(data.protocol)
-        setBaseUrl(data.baseUrl)
-        setModelId(data.modelId)
-      } else {
-        // 初始默认值
-        setProtocol('openai-completions')
-        setBaseUrl('https://api.openai.com/v1')
-        setModelId('gpt-4o-mini')
-      }
-      setApiKey('')
-    } catch (err) {
-      setErrorMessage(err instanceof Error ? err.message : '加载配置异常')
-    } finally {
-      setLoading(false)
-    }
-  }, [])
-
-  useEffect(() => {
-    void fetchConfig()
-  }, [fetchConfig])
-
-  // 检测表单是否有未保存的改动
-  const isDirty = useMemo(() => {
-    if (!config) {
-      return Boolean(baseUrl.trim() || modelId.trim() || apiKey.trim())
-    }
-    const hasFieldChanged =
-      protocol !== config.protocol || baseUrl.trim() !== config.baseUrl || modelId.trim() !== config.modelId
-    const hasNewKey = Boolean(apiKey.trim())
-    return hasFieldChanged || hasNewKey
-  }, [config, protocol, baseUrl, modelId, apiKey])
-
-  // 保存配置
-  const handleSave = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setIsSaving(true)
-    setStatusMessage(null)
-    setErrorMessage(null)
-
-    try {
-      const res = await fetch('/api/ai/summary-config', {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          protocol,
-          baseUrl: baseUrl.trim(),
-          modelId: modelId.trim(),
-          apiKey: apiKey.trim() || undefined,
-        }),
-      })
-
-      const json = await res.json()
-      if (!res.ok || !json.success) {
-        throw new Error(json.error || '保存配置失败')
-      }
-
-      const updated = json.data as AiSummaryConfigDto
-      setConfig(updated)
-      setApiKey('')
-      setStatusMessage('配置保存成功，状态已重置为待测试。需测试通过后方可启用。')
-    } catch (err) {
-      setErrorMessage(err instanceof Error ? err.message : '保存配置异常')
-    } finally {
-      setIsSaving(false)
-    }
-  }
-
-  // 测试并启用
-  const handleCheckAndEnable = async () => {
-    if (isDirty) {
-      setErrorMessage('表单存在未保存的修改，请先保存配置后再执行测试')
-      return
-    }
-
-    setIsChecking(true)
-    setStatusMessage(null)
-    setErrorMessage(null)
-
-    try {
-      const res = await fetch('/api/ai/summary-config/check', {
-        method: 'POST',
-      })
-
-      const json = await res.json()
-      if (!res.ok || !json.success) {
-        throw new Error(json.error || '模型连接测试失败')
-      }
-
-      const updated = json.data as AiSummaryConfigDto
-      setConfig(updated)
-      setStatusMessage('模型连接测试成功，已正式启用并可用于文章摘要生成。')
-    } catch (err) {
-      setErrorMessage(err instanceof Error ? err.message : '测试过程发生异常')
-    } finally {
-      setIsChecking(false)
-    }
-  }
-
-  // 清除凭据
-  const handleClearCredential = async () => {
-    // eslint-disable-next-line no-alert
-    const confirmed = window.confirm(
-      '确定清除当前 API Key 凭据吗？清除后数据库中的加密密文将被彻底抹去，配置状态将变为待测试并暂停摘要生成功能。',
-    )
-    if (!confirmed) return
-
-    setIsClearing(true)
-    setStatusMessage(null)
-    setErrorMessage(null)
-
-    try {
-      const res = await fetch('/api/ai/summary-config/credential', {
-        method: 'DELETE',
-      })
-
-      const json = await res.json()
-      if (!res.ok || !json.success) {
-        throw new Error(json.error || '清除凭据失败')
-      }
-
-      const updated = json.data as AiSummaryConfigDto
-      setConfig(updated)
-      setApiKey('')
-      setStatusMessage('已成功清除 API Key 凭据，当前配置已停用。')
-    } catch (err) {
-      setErrorMessage(err instanceof Error ? err.message : '清除凭据异常')
-    } finally {
-      setIsClearing(false)
-    }
-  }
-
-  if (loading) {
-    return (
-      <div className="flex flex-col items-center justify-center gap-3 py-16 text-muted-foreground">
-        <Loader2 className="size-6 animate-spin" />
-        <span className="font-mono text-xs">正在读取配置...</span>
-      </div>
-    )
-  }
-
-  const isReady = config?.status === 'ready'
-  const masterKeyAvailable = config ? config.masterKeyAvailable : initialMasterKeyAvailable
-  const masterKeyMissing = !masterKeyAvailable
-
+/** 维护 Agent、摘要与初稿共用的默认模型，保留凭据的显式清除确认。 */
+export function AiSummarySettingsForm({ state, running }: { state: ModelSettingsState; running: boolean }) {
+  const busy = Boolean(state.operation) || running
   return (
-    <div className="flex flex-col gap-8">
-      {/* 主密钥缺失告警 */}
-      {masterKeyMissing && (
-        <div
-          role="alert"
-          className="flex items-start gap-3 rounded-lg border border-amber-500/40 bg-amber-500/10 p-4 text-xs text-amber-600 dark:text-amber-400"
+    <Box className="max-w-3xl py-6">
+      <Flex direction="column" gap="6">
+        <Flex justify="between" align="center" gap="3" wrap="wrap">
+          <Flex align="center" gap="3">
+            <Heading as="h2" size="5">
+              默认模型
+            </Heading>
+            <Badge color={state.config?.status === 'ready' ? 'green' : 'amber'}>
+              {state.config?.status === 'ready' ? '已启用' : state.config ? '待测试' : '未配置'}
+            </Badge>
+            {state.dirty && <Badge color="gray">未保存</Badge>}
+          </Flex>
+          <Button
+            variant="ghost"
+            size="sm"
+            disabled={busy || state.dirty}
+            pending={state.operation === 'refresh'}
+            onClick={() => void state.refresh()}
+          >
+            <RefreshCw aria-hidden="true" />
+            刷新配置
+          </Button>
+        </Flex>
+        {!state.masterKeyAvailable && (
+          <Callout.Root color="amber" role="alert">
+            <Callout.Icon>
+              <AlertCircle />
+            </Callout.Icon>
+            <Callout.Text>服务端凭据加密主密钥未配置或无效，暂时无法保存或使用 API Key。</Callout.Text>
+          </Callout.Root>
+        )}
+        {running && (
+          <Text size="2" color="gray">
+            对话正在运行，结束后可修改模型配置。
+          </Text>
+        )}
+        {state.error && (
+          <Callout.Root color="red" role="alert">
+            <Callout.Text>{state.error}</Callout.Text>
+          </Callout.Root>
+        )}
+        {state.message && (
+          <Text role="status" size="2">
+            {state.message}
+          </Text>
+        )}
+        <Form.Root
+          onSubmit={(event) => {
+            event.preventDefault()
+            if (!busy) void state.save()
+          }}
         >
-          <ShieldAlert className="mt-0.5 size-4 shrink-0" />
-          <div className="flex flex-col gap-1">
-            <span className="font-medium">服务端未检测到有效的凭据加密主密钥</span>
-            <span>
-              环境变量 AI_CREDENTIAL_ENCRYPTION_KEY 未配置或格式不合法（需为 32 字节
-              base64）。在此之前无法保存或解密凭据。
-            </span>
-          </div>
-        </div>
-      )}
-
-      {/* 状态徽标栏 */}
-      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border/60 pb-4">
-        <div className="flex items-center gap-2">
-          <span className="font-mono text-xs text-muted-foreground">// 当前状态:</span>
-          {config === null ? (
-            <span className="rounded bg-muted/60 px-2 py-0.5 font-mono text-xs text-muted-foreground">未配置</span>
-          ) : isReady ? (
-            <span className="inline-flex items-center gap-1.5 rounded bg-emerald-500/10 px-2.5 py-0.5 font-mono text-xs font-medium text-emerald-600 dark:text-emerald-400">
-              <CheckCircle2 className="size-3.5" />
-              已启用 (READY)
-            </span>
-          ) : (
-            <span className="inline-flex items-center gap-1.5 rounded bg-amber-500/10 px-2.5 py-0.5 font-mono text-xs font-medium text-amber-600 dark:text-amber-400">
-              <AlertCircle className="size-3.5" />
-              待测试 (NEEDS_CHECK)
-            </span>
-          )}
-        </div>
-
-        {config && <div className="font-mono text-xs text-muted-foreground">版本 r{config.revision}</div>}
-      </div>
-
-      {/* 表单反馈区域 (aria-live) */}
-      <div aria-live="polite" aria-atomic="true">
-        {statusMessage && (
-          <div className="mb-4 flex items-start gap-2.5 rounded-lg border border-emerald-500/30 bg-emerald-500/10 p-3.5 text-xs text-emerald-600 dark:text-emerald-400">
-            <CheckCircle2 className="mt-0.5 size-4 shrink-0" />
-            <span>{statusMessage}</span>
-          </div>
-        )}
-
-        {errorMessage && (
-          <div className="mb-4 flex items-start gap-2.5 rounded-lg border border-red-500/30 bg-red-500/10 p-3.5 text-xs text-red-600 dark:text-red-400">
-            <AlertCircle className="mt-0.5 size-4 shrink-0" />
-            <span>{errorMessage}</span>
-          </div>
-        )}
-      </div>
-
-      {/* 配置表单 */}
-      <form onSubmit={handleSave} className="flex flex-col gap-6">
-        {/* 协议选择 */}
-        <fieldset className="flex flex-col gap-2">
-          <legend className="font-mono text-xs uppercase tracking-wider text-muted-foreground">
-            模型协议 (Protocol)
-          </legend>
-          <div className="grid grid-cols-1 gap-2 sm:grid-cols-3" role="radiogroup">
-            {PROTOCOL_OPTIONS.map((opt) => {
-              const isSelected = protocol === opt.value
-              return (
-                <label
-                  key={opt.value}
-                  className={`relative flex cursor-pointer flex-col items-start rounded-lg border p-3 text-left transition-all focus-within:ring-1 focus-within:ring-ring ${
-                    isSelected
-                      ? 'border-primary/80 bg-primary/5 text-foreground shadow-xs'
-                      : 'border-border/60 bg-card/20 text-muted-foreground hover:border-foreground/30 hover:bg-muted/30'
-                  }`}
+          <Flex direction="column" gap="5">
+            <Form.Field name="protocol">
+              <Flex direction="column" gap="2">
+                <Form.Label htmlFor="ai-model-protocol">协议</Form.Label>
+                <Select
+                  value={state.protocol}
+                  onValueChange={(value) => state.setProtocol(value as SummaryProtocol)}
+                  disabled={busy}
                 >
-                  <div className="flex w-full items-center justify-between">
-                    <span className="text-xs font-medium text-foreground">{opt.label}</span>
-                    <input
-                      type="radio"
-                      name="ai-protocol"
-                      value={opt.value}
-                      checked={isSelected}
-                      onChange={() => setProtocol(opt.value)}
-                      className="size-3.5 accent-primary"
+                  <SelectTrigger id="ai-model-protocol" className="w-full">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {PROTOCOLS.map((item) => (
+                      <SelectItem key={item.value} value={item.value}>
+                        {item.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </Flex>
+            </Form.Field>
+            <Form.Field name="baseUrl">
+              <Flex direction="column" gap="2">
+                <Form.Label htmlFor="ai-model-base-url">服务地址</Form.Label>
+                <Form.Control asChild>
+                  <Input
+                    id="ai-model-base-url"
+                    type="url"
+                    required
+                    maxLength={2048}
+                    value={state.baseUrl}
+                    disabled={busy}
+                    aria-describedby="ai-model-base-url-hint"
+                    onChange={(event) => {
+                      state.setBaseUrl(event.target.value)
+                      state.setCustomModel(true)
+                    }}
+                    placeholder="https://api.openai.com/v1"
+                  />
+                </Form.Control>
+                <Text id="ai-model-base-url-hint" size="2" color="gray">
+                  填写接口前缀，例如 https://api.openai.com/v1。
+                </Text>
+              </Flex>
+            </Form.Field>
+            <Form.Field name="modelId">
+              <Flex direction="column" gap="2">
+                <Flex justify="between" align="center" gap="2" wrap="wrap">
+                  <Form.Label htmlFor="ai-model-id">模型 ID</Form.Label>
+                  <Flex gap="2" wrap="wrap">
+                    {state.models.length > 0 && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        disabled={busy}
+                        onClick={() => state.setCustomModel(!state.customModel)}
+                      >
+                        {state.customModel ? '从列表选择' : '手动输入'}
+                      </Button>
+                    )}
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      disabled={busy || (!state.apiKey.trim() && !state.config?.hasCredential)}
+                      pending={state.operation === 'models'}
+                      onClick={() => void state.fetchModels()}
+                    >
+                      拉取模型列表
+                    </Button>
+                  </Flex>
+                </Flex>
+                {state.customModel || state.models.length === 0 ? (
+                  <Form.Control asChild>
+                    <Input
+                      id="ai-model-id"
+                      required
+                      maxLength={240}
+                      value={state.modelId}
+                      disabled={busy}
+                      onChange={(event) => state.setModelId(event.target.value)}
+                      placeholder="填写服务商提供的模型 ID"
                     />
-                  </div>
-                  <span className="mt-1.5 text-xs leading-relaxed text-muted-foreground">{opt.desc}</span>
-                </label>
-              )
-            })}
-          </div>
-        </fieldset>
-
-        {/* Base URL */}
-        <div className="flex flex-col gap-1.5">
-          <div className="flex items-center justify-between">
-            <label htmlFor="ai-base-url" className="font-mono text-xs uppercase tracking-wider text-muted-foreground">
-              Base URL (服务地址前缀)
-            </label>
-          </div>
-          <input
-            id="ai-base-url"
-            type="url"
-            required
-            value={baseUrl}
-            onChange={(e) => setBaseUrl(e.target.value)}
-            placeholder="https://api.openai.com/v1"
-            className="h-10 w-full rounded-md border border-border/80 bg-background px-3 font-mono text-xs text-foreground placeholder:text-muted-foreground/60 transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
-          />
-          <span className="text-xs text-muted-foreground">
-            Base URL 将作为路径前缀。若中转服务提供的是 /v1/messages 或 /v1/chat/completions，需保留末尾的 /v1。
-          </span>
-        </div>
-
-        {/* 模型 ID */}
-        <div className="flex flex-col gap-1.5">
-          <div className="flex items-center justify-between">
-            <label htmlFor="ai-model-id" className="font-mono text-xs uppercase tracking-wider text-muted-foreground">
-              模型 ID (Model ID)
-            </label>
-            <div className="flex items-center gap-2">
-              {availableModels && availableModels.length > 0 && (
-                <button
-                  type="button"
-                  onClick={() => setIsCustomModelInput((prev) => !prev)}
-                  className="font-mono text-xs text-primary underline-offset-4 hover:underline"
-                >
-                  {isCustomModelInput ? '从下拉列表选择' : '手动输入'}
-                </button>
-              )}
-              <button
-                type="button"
-                onClick={handleFetchModels}
-                disabled={isFetchingModels || (!apiKey.trim() && !hasCredential)}
-                title={!apiKey.trim() && !hasCredential ? '请先输入或配置 API Key' : '通过 Base URL 获取可用模型列表'}
-                className="inline-flex items-center gap-1 font-mono text-xs text-muted-foreground transition-colors hover:text-foreground disabled:cursor-not-allowed disabled:opacity-40"
+                  </Form.Control>
+                ) : (
+                  <Select value={state.modelId} onValueChange={state.setModelId} disabled={busy}>
+                    <SelectTrigger id="ai-model-id" className="w-full">
+                      <SelectValue placeholder="选择模型" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {state.models.map((model) => (
+                        <SelectItem key={model.id} value={model.id}>
+                          {model.displayName !== model.id ? `${model.displayName} (${model.id})` : model.id}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                )}
+              </Flex>
+            </Form.Field>
+            <Form.Field name="apiKey">
+              <Flex direction="column" gap="2">
+                <Flex justify="between" align="center" gap="2" wrap="wrap">
+                  <Form.Label htmlFor="ai-model-api-key">API Key</Form.Label>
+                  {state.config?.hasCredential && (
+                    <Text size="2" color="gray">
+                      已保存 {state.config.credentialMask}
+                    </Text>
+                  )}
+                </Flex>
+                <Flex gap="2">
+                  <Form.Control asChild>
+                    <Input
+                      id="ai-model-api-key"
+                      type="password"
+                      autoComplete="new-password"
+                      value={state.apiKey}
+                      disabled={busy || !state.masterKeyAvailable}
+                      onChange={(event) => state.setApiKey(event.target.value)}
+                      placeholder={state.config?.hasCredential ? '留空保留现有凭据' : '输入 API Key'}
+                    />
+                  </Form.Control>
+                  {state.config?.hasCredential && (
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      disabled={busy}
+                      aria-label="清除已保存的 API Key"
+                      onClick={() => state.setClearOpen(true)}
+                    >
+                      <Trash2 aria-hidden="true" />
+                    </Button>
+                  )}
+                </Flex>
+              </Flex>
+            </Form.Field>
+            <Flex align="center" gap="3" wrap="wrap" pt="2">
+              <Button
+                type="submit"
+                disabled={busy || !state.masterKeyAvailable || !state.baseUrl.trim() || !state.modelId.trim()}
+                pending={state.operation === 'save'}
               >
-                <RefreshCw className={`size-3 ${isFetchingModels ? 'animate-spin' : ''}`} />
-                <span>{isFetchingModels ? '拉取中...' : '拉取模型列表'}</span>
-              </button>
-            </div>
-          </div>
-
-          {availableModels && availableModels.length > 0 && !isCustomModelInput ? (
-            <select
-              id="ai-model-id"
-              required
-              value={modelId}
-              onChange={(e) => {
-                if (e.target.value === '__custom__') {
-                  setIsCustomModelInput(true)
-                } else {
-                  setModelId(e.target.value)
-                }
-              }}
-              className="h-10 w-full rounded-md border border-border/80 bg-background px-3 font-mono text-xs text-foreground transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
-            >
-              {!modelId && <option value="">-- 请选择模型（共 {availableModels.length} 个）--</option>}
-              {modelId && !availableModels.some((m) => m.id === modelId) && (
-                <option value={modelId}>[当前模型] {modelId}</option>
-              )}
-              {availableModels.map((m) => (
-                <option key={m.id} value={m.id}>
-                  {m.displayName !== m.id ? `${m.displayName} (${m.id})` : m.id}
-                </option>
-              ))}
-              <option value="__custom__">+ 手动输入其他模型 ID...</option>
-            </select>
-          ) : (
-            <input
-              id="ai-model-id"
-              type="text"
-              required
-              value={modelId}
-              onChange={(e) => setModelId(e.target.value)}
-              placeholder="gpt-4o-mini 或 claude-3-5-haiku-latest"
-              list="ai-available-models-datalist"
-              className="h-10 w-full rounded-md border border-border/80 bg-background px-3 font-mono text-xs text-foreground placeholder:text-muted-foreground/60 transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
-            />
-          )}
-
-          {availableModels && availableModels.length > 0 && (
-            <datalist id="ai-available-models-datalist">
-              {availableModels.map((m) => (
-                <option key={m.id} value={m.id}>
-                  {m.displayName}
-                </option>
-              ))}
-            </datalist>
-          )}
-
-          <div className="flex items-center justify-between text-xs text-muted-foreground">
-            <span>
-              {availableModels && availableModels.length > 0
-                ? isCustomModelInput
-                  ? `已获取 ${availableModels.length} 个可用模型，当前为自由输入模式`
-                  : `已获取 ${availableModels.length} 个可用模型，可直接从下拉菜单选择`
-                : '支持通过右上方按钮拉取服务商模型列表，亦可直接手动输入'}
-            </span>
-            {fetchModelsError && (
-              <span className="font-mono text-red-500 dark:text-red-400">拉取失败: {fetchModelsError}</span>
-            )}
-          </div>
-        </div>
-
-        {/* API Key 凭据 */}
-        <div className="flex flex-col gap-1.5">
-          <div className="flex items-center justify-between">
-            <label htmlFor="ai-api-key" className="font-mono text-xs uppercase tracking-wider text-muted-foreground">
-              API Key 凭据
-            </label>
-            {hasCredential && (
-              <span className="font-mono text-xs text-emerald-600 dark:text-emerald-400">
-                已配置凭据: {config?.credentialMask}
-              </span>
-            )}
-          </div>
-          <div className="relative flex items-center">
-            <input
-              id="ai-api-key"
-              type="password"
-              value={apiKey}
-              onChange={(e) => setApiKey(e.target.value)}
-              placeholder={hasCredential ? '留空表示保留现有凭据；输入将替换' : 'sk-...'}
-              autoComplete="new-password"
-              className="h-10 w-full rounded-md border border-border/80 bg-background pr-10 pl-3 font-mono text-xs text-foreground placeholder:text-muted-foreground/60 transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
-            />
-            {hasCredential && (
-              <button
-                type="button"
-                onClick={handleClearCredential}
-                disabled={isClearing}
-                title="清除已保存的凭据"
-                aria-label="清除已保存的凭据"
-                className="absolute right-2 text-muted-foreground transition-colors hover:text-red-500 focus-visible:outline-none disabled:opacity-50"
+                保存配置
+              </Button>
+              <Button
+                variant="outline"
+                disabled={busy || state.dirty || !state.config?.hasCredential || !state.masterKeyAvailable}
+                pending={state.operation === 'check'}
+                onClick={() => void state.check()}
               >
-                <Trash2 className="size-4" />
-              </button>
-            )}
-          </div>
-          <span className="text-xs text-muted-foreground">
-            {hasCredential
-              ? '当前已安全存储加密凭据。如无变更请留空；点击垃圾桶可彻底清除。'
-              : '凭据将在服务端通过 AES-256-GCM 随机盐加密持久化，接口与界面只展示脱敏掩码。'}
-          </span>
-        </div>
-
-        {/* 底部操作按钮 */}
-        <div className="flex flex-wrap items-center justify-between gap-4 pt-4">
-          <div className="flex items-center gap-3">
-            {/* 保存配置 (主操作) */}
-            <button
-              type="submit"
-              disabled={isSaving || isChecking}
-              className="inline-flex h-9 items-center justify-center rounded-md bg-primary px-4 font-mono text-xs font-medium text-primary-foreground shadow-xs transition-colors hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50"
-            >
-              {isSaving ? (
-                <>
-                  <Loader2 className="mr-2 size-3.5 animate-spin" />
-                  保存中...
-                </>
-              ) : (
-                '保存配置'
+                测试并启用
+              </Button>
+              {state.config && (
+                <Text size="2" color="gray">
+                  版本 {state.config.revision}
+                </Text>
               )}
-            </button>
-
-            {/* 测试并启用 (次操作) */}
-            <button
-              type="button"
-              onClick={handleCheckAndEnable}
-              disabled={isSaving || isChecking || isDirty || !hasCredential}
-              title={
-                isDirty
-                  ? '表单有未保存更改，需先保存'
-                  : !hasCredential
-                    ? '尚未配置凭据'
-                    : '向模型发起连接测试，通过后启用'
-              }
-              className="inline-flex h-9 items-center justify-center rounded-md border border-border bg-background px-4 font-mono text-xs font-medium text-foreground shadow-xs transition-colors hover:border-foreground/30 hover:bg-muted/40 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-40"
+            </Flex>
+          </Flex>
+        </Form.Root>
+      </Flex>
+      <AlertDialog
+        open={state.clearOpen}
+        onOpenChange={(open) => {
+          if (!state.operation) state.setClearOpen(open)
+        }}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>清除 API Key？</AlertDialogTitle>
+            <AlertDialogDescription>
+              已保存的凭据将被删除，写作 Agent、文章摘要与初稿生成将暂停，直到重新配置并测试通过。
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={busy}>取消</AlertDialogCancel>
+            <Button
+              variant="destructive"
+              pending={state.operation === 'clear'}
+              disabled={busy}
+              onClick={() => void state.clearCredential()}
             >
-              {isChecking ? (
-                <>
-                  <Loader2 className="mr-2 size-3.5 animate-spin" />
-                  测试连接中...
-                </>
-              ) : (
-                '测试并启用'
-              )}
-            </button>
-          </div>
-
-          {isDirty && (
-            <span className="font-mono text-xs text-amber-600 dark:text-amber-400">存在未保存修改，请先保存</span>
-          )}
-        </div>
-      </form>
-    </div>
+              清除凭据
+            </Button>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </Box>
   )
 }

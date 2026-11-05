@@ -1,4 +1,5 @@
 import { Hono } from 'hono'
+import { agentsRoute } from './modules/ai/agents.route'
 import { summaryConfigRoute } from './modules/ai/summary-config.route'
 import { authConfigRoute } from './modules/auth/auth-config.route'
 import { authRoute } from './modules/auth/auth.route'
@@ -21,6 +22,7 @@ export function createApp() {
     .route('/comments', commentsRoute)
     .route('/auth', authRoute)
     .route('/ai', summaryConfigRoute)
+    .route('/ai', agentsRoute)
 }
 
 export const app = createApp()

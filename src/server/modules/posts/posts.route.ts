@@ -51,7 +51,8 @@ export function createPostsRoute(
     }),
   )
   route.onError((error, c) => {
-    if (error instanceof PostDraftServiceError) return c.json(createFailureResponse(error.message), error.statusCode)
+    if (error instanceof PostDraftServiceError)
+      return c.json(createFailureResponse(error.message, undefined, error.code), error.statusCode)
     if (error instanceof PostServiceError) return c.json(createFailureResponse(error.message), error.statusCode)
     if (error instanceof z.ZodError)
       return c.json(createFailureResponse(error.issues.map((issue) => issue.message).join('；')), 400)
@@ -168,8 +169,8 @@ export function createPostsRoute(
     if (!published) throw new PostServiceError(400, '请先发布文章')
     if (published.disableAiSummary) throw new PostServiceError(400, '此文章已关闭 AI 摘要')
     const config = await getReadySummaryConfig(database)
-    if (!config) throw new PostServiceError(400, '请先配置并启用 AI 摘要模型')
-    await generateSummaryForPost(published, config, { database })
+    if (!config) throw new PostDraftServiceError(400, '请先在 AI 中配置并启用模型', 'AI_MODEL_NOT_READY')
+    await generateSummaryForPost(published, config, { database, signal: c.req.raw.signal })
     return c.json(createSuccessResponse({ generated: true }))
   })
   return route

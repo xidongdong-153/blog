@@ -29,5 +29,15 @@ export const articleSummaries = sqliteTable('site_article_summaries', {
   updatedAt: integer('updated_at', { mode: 'timestamp_ms' }).notNull(),
 })
 
+export const aiAgentConfigs = sqliteTable('site_ai_agent_configs', {
+  id: text('id').primaryKey(),
+  modelConfigId: text('model_config_id').notNull(),
+  systemPrompt: text('system_prompt').notNull(),
+  toolIds: text('tool_ids', { mode: 'json' }).$type<string[]>().notNull(),
+  revision: integer('revision').notNull(),
+  createdAt: text('created_at').notNull(),
+  updatedAt: text('updated_at').notNull(),
+})
+
 export type ArticleSummaryRecord = typeof articleSummaries.$inferSelect
 export type NewArticleSummaryRecord = typeof articleSummaries.$inferInsert

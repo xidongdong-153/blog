@@ -2,6 +2,7 @@ export interface ApiResponse<T> {
   success: boolean
   data?: T
   error?: string
+  code?: string
   meta: {
     timestamp: number
     requestId?: string
@@ -19,10 +20,11 @@ export function createSuccessResponse<T>(data: T, requestId?: string): ApiRespon
   }
 }
 
-export function createFailureResponse(error: string, requestId?: string): ApiResponse<never> {
+export function createFailureResponse(error: string, requestId?: string, code?: string): ApiResponse<never> {
   return {
     success: false,
     error,
+    ...(code ? { code } : {}),
     meta: {
       timestamp: Date.now(),
       requestId,

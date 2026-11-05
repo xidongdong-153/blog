@@ -1,4 +1,5 @@
 import type { ApiResponse } from '@/server/shared/response'
+import { ApiRequestError } from '@/lib/api-error'
 
 export async function postRequest<T>(path: string, method = 'GET', body?: unknown, signal?: AbortSignal): Promise<T> {
   const response = await fetch(`/api/admin/posts${path}`, {
@@ -10,6 +11,6 @@ export async function postRequest<T>(path: string, method = 'GET', body?: unknow
   })
   const result = (await response.json()) as ApiResponse<T>
   if (!response.ok || !result.success || result.data === undefined)
-    throw new Error(result.error || '请求失败，请稍后重试')
+    throw new ApiRequestError(result.error || '请求失败，请稍后重试', response.status, result.code)
   return result.data
 }

@@ -1,5 +1,6 @@
 import type { GeneratedPostDraft } from '@/lib/post-draft'
 import type { AppDatabase } from '@/server/infra/db/client'
+import type { ReadySummaryConfig } from '@/server/modules/ai/summary-config.service'
 import { randomUUID } from 'node:crypto'
 import { generateText, stepCountIs, ToolChoiceViolationError } from 'ai'
 import { eq } from 'drizzle-orm'
@@ -25,10 +26,12 @@ const DRAFT_SYSTEM_PROMPT = `你为中文个人技术博客撰写可继续编辑
 
 export class PostDraftServiceError extends Error {
   readonly statusCode: 400 | 408 | 409 | 502 | 503 | 504
+  readonly code: string
 
-  constructor(statusCode: 400 | 408 | 409 | 502 | 503 | 504, message: string) {
+  constructor(statusCode: 400 | 408 | 409 | 502 | 503 | 504, message: string, code = 'AI_GENERATION_FAILED') {
     super(message)
     this.statusCode = statusCode
+    this.code = code
     this.name = 'PostDraftServiceError'
   }
 }
@@ -36,8 +39,8 @@ export class PostDraftServiceError extends Error {
 function checkAborted(signal: AbortSignal): void {
   if (signal.aborted) {
     if (signal.reason instanceof DOMException && signal.reason.name === 'TimeoutError')
-      throw new PostDraftServiceError(504, '生成初稿超时，请缩短概述后重试')
-    throw new PostDraftServiceError(408, '初稿生成已取消')
+      throw new PostDraftServiceError(504, '生成初稿超时，请缩短概述后重试', 'AI_RUN_TIMEOUT')
+    throw new PostDraftServiceError(408, '初稿生成已取消', 'AI_RUN_CANCELLED')
   }
 }
 
@@ -55,7 +58,7 @@ async function availableDraftSlug(slug: string, database: AppDatabase, signal: A
 
 export async function generatePostDraft(
   input: unknown,
-  options: { database?: AppDatabase; signal?: AbortSignal } = {},
+  options: { database?: AppDatabase; signal?: AbortSignal; config?: ReadySummaryConfig } = {},
 ): Promise<GeneratedPostDraft> {
   const { overview } = postDraftRequestSchema.parse(input)
   const database = options.database ?? defaultDb
@@ -74,7 +77,7 @@ export async function generatePostDraft(
     signal.addEventListener('abort', onAbort, { once: true })
   })
   try {
-    return await Promise.race([generatePostDraftWithinDeadline(overview, database, signal), aborted])
+    return await Promise.race([generatePostDraftWithinDeadline(overview, database, signal, options.config), aborted])
   } finally {
     if (onAbort) signal.removeEventListener('abort', onAbort)
   }
@@ -84,11 +87,12 @@ async function generatePostDraftWithinDeadline(
   overview: string,
   database: AppDatabase,
   signal: AbortSignal,
+  configSnapshot?: ReadySummaryConfig,
 ): Promise<GeneratedPostDraft> {
   checkAborted(signal)
-  const config = await getReadySummaryConfig(database)
+  const config = configSnapshot ?? (await getReadySummaryConfig(database))
   checkAborted(signal)
-  if (!config) throw new PostDraftServiceError(400, '请先前往 AI 设置配置并启用模型，再生成初稿')
+  if (!config) throw new PostDraftServiceError(400, '请先在 AI 中配置并启用模型', 'AI_MODEL_NOT_READY')
 
   try {
     const model = createSummaryModel({
@@ -99,9 +103,11 @@ async function generatePostDraftWithinDeadline(
       fetch: createRestrictedFetch({ timeoutMs: DRAFT_TIMEOUT_MS }),
     })
     let feedback = ''
+    let toolChoiceViolated = false
     for (let attempt = 0; attempt < MAX_DRAFT_ATTEMPTS; attempt++) {
       checkAborted(signal)
       let result
+      toolChoiceViolated = false
       try {
         result = await generateText({
           model,
@@ -132,6 +138,7 @@ async function generatePostDraftWithinDeadline(
         })
       } catch (error) {
         if (ToolChoiceViolationError.isInstance(error)) {
+          toolChoiceViolated = true
           feedback = '必须通过 submit_post_draft 工具提交，不能只输出普通文本；请精简正文并完整提交全部字段。'
           continue
         }
@@ -172,17 +179,22 @@ async function generatePostDraftWithinDeadline(
       return { ...draft, slug }
     }
     checkAborted(signal)
+    if (toolChoiceViolated)
+      throw new PostDraftServiceError(400, '当前模型未按要求调用 Tool，请检查模型能力与协议', 'AI_TOOL_UNSUPPORTED')
     throw new PostDraftServiceError(502, 'AI 初稿经修正后仍未通过格式或正文校验，请调整概述后重试')
   } catch (error) {
     checkAborted(signal)
     if (error instanceof PostDraftServiceError) throw error
     const safeError = classifyAiError(error)
-    if (safeError.code === 'UPSTREAM_TIMEOUT') throw new PostDraftServiceError(504, '生成初稿超时，请缩短概述后重试')
-    if (safeError.code === 'REQUEST_ABORTED') throw new PostDraftServiceError(408, '初稿生成已取消')
+    if (safeError.code === 'UPSTREAM_TIMEOUT')
+      throw new PostDraftServiceError(504, '生成初稿超时，请缩短概述后重试', 'AI_RUN_TIMEOUT')
+    if (safeError.code === 'REQUEST_ABORTED') throw new PostDraftServiceError(408, '初稿生成已取消', 'AI_RUN_CANCELLED')
     if (safeError.code === 'AUTH_FAILED' || safeError.code === 'CONFIG_INVALID')
-      throw new PostDraftServiceError(400, 'AI 模型配置不可用，请前往 AI 设置检查模型与 API Key')
+      throw new PostDraftServiceError(400, 'AI 模型配置不可用，请检查模型与 API Key', 'AI_MODEL_CONFIG_INVALID')
     if (safeError.code === 'UPSTREAM_UNAVAILABLE')
-      throw new PostDraftServiceError(503, '无法连接 AI 模型，请稍后重试或检查 AI 设置')
-    throw new PostDraftServiceError(502, 'AI 模型生成失败，请稍后重试或检查 AI 设置')
+      throw new PostDraftServiceError(503, '无法连接 AI 模型，请稍后重试或检查模型配置')
+    if (safeError.statusCode === 400 || safeError.statusCode === 422)
+      throw new PostDraftServiceError(400, '当前模型无法完成 Tool 调用，请检查模型能力与协议', 'AI_TOOL_UNSUPPORTED')
+    throw new PostDraftServiceError(502, 'AI 模型生成失败，请稍后重试或检查模型配置')
   }
 }

@@ -43,6 +43,7 @@ export class AiSummaryConfigError extends Error {
 }
 
 export interface ReadySummaryConfig {
+  revision?: number
   protocol: SummaryProtocol
   baseUrl: string
   modelId: string
@@ -491,6 +492,7 @@ export async function getReadySummaryConfig(
     )
 
     return {
+      revision: config.revision,
       protocol: config.protocol as SummaryProtocol,
       baseUrl: config.baseUrl,
       modelId: config.modelId,
