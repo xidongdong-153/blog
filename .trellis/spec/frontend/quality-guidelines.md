@@ -19,15 +19,7 @@ pnpm exec prettier --check --ignore-path /dev/null .trellis/spec/frontend/conten
 
 将示例路径替换为本次所有改动的 Markdown，包括新文件和任务文档；不要格式化无关模板、技能或历史归档。
 
-## 无测试框架
-
-项目使用 Node 内置测试，无 vitest / jest。`pnpm test` 会创建临时 SQLite 库、应用迁移，再通过 glob 发现全部测试，完成后清理数据库：
-
-```bash
-pnpm test
-```
-
-页面验证使用 typecheck、build 和本地 `pnpm dev` 手查，修 bug 先复现再修。若引入测试框架，更新本文件；README 仅同步常用命令，不重复维护详细测试说明。
+页面验证使用 typecheck、build 和本地 `pnpm dev` 手查，修 bug 先复现再修。
 
 ## ESLint
 

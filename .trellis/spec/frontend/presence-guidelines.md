@@ -98,7 +98,6 @@ launchctl print "gui/$(id -u)/com.xdd.presence"
 ## 验证要求
 
 ```bash
-node --experimental-strip-types --test src/lib/presence.test.ts
 $HOME/.hammerspoon/presence/bin/test
 ```
 

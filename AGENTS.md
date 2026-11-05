@@ -9,7 +9,7 @@ Next.js 16 + React 19 + Tailwind CSS 4 + TypeScript 单应用博客，App Router
 主要目录（代码在 `src/`，内容和配置文件在仓库根）：
 
 - `src/app/(site)/`：公开页面，页面私有组件在同级 `_components/` 按功能分组。
-- `src/server/modules/`：服务端业务模块（`posts`、`auth`、`comments`、`links`、`ai`、`presence`、`visitors`、`admin`、`system`），高内聚包含 service、route、types 和对应测试。
+- `src/server/modules/`：服务端业务模块（`posts`、`auth`、`comments`、`links`、`ai`、`presence`、`visitors`、`admin`、`system`），高内聚包含 service、route、types。
 - `src/server/infra/`：跨模块基础设施（数据库 client/schema/migrations、AI 模型客户端与加密、邮件发送等）。
 - `src/lib/content.ts`：公开内容读取入口；文章异步读取数据库公开快照，笔记同步读文件。文章管理与校验在 `src/server/modules/posts/` 和 `src/lib/posts.ts`。
 - `src/site.config.ts`：站点标题、导航、社交链接。
@@ -31,7 +31,7 @@ pnpm build         # 生产构建
 
 - 涉及 README、docs、注释、JSDoc、提示词、错误提示等说明性文本，先读 `xdd-plain-docs` 技能再动笔。
 - 日常开发允许直接更新 `main`；开始任务前先获取最新 `origin/main`，工作区干净时用 `git pull --ff-only origin main` 对齐。较大改动可按需切独立分支。
-- 每次代码修改后按顺序过质量门：`pnpm typecheck`、`pnpm lint`、`pnpm format:check`，全过才算完成；涉及服务端业务模块或核心工具改动时必须运行 `pnpm test`。
+- 每次代码修改后按顺序过质量门：`pnpm typecheck`、`pnpm lint`、`pnpm format:check`，全过才算完成。
 - 推送 `main` 和目标为 `main` 的 Pull Request 自动运行质量检查，不自动发布。发布时在 Actions 手动运行 `CI/CD`，选择 `main` 并勾选「确认发布到生产环境」，检查通过后部署，无需环境人工审批。完整流程详见 [.trellis/spec/frontend/git-workflow.md](.trellis/spec/frontend/git-workflow.md)。
 - 功能状态以 [.trellis/spec/frontend/feature-status.md](.trellis/spec/frontend/feature-status.md) 为唯一清单，实现后更新状态并删掉对应占位代码。README 只保留项目简介、本地启动、常用检查、核心路径和维护文档链接，不添加详细维护说明。
 - 新增页面放进 `src/app/(site)/`，页面专属组件放 `src/app/(site)/_components/` 对应分组，不建第二套目录结构。

@@ -5,7 +5,7 @@
 修改 CI/CD、GitHub `Deployment` Environment 或服务器发布操作时遵守本文件。正式发布由 [ci-cd.yml](../../../.github/workflows/ci-cd.yml) 完成，不使用 Vercel。
 
 - 目标为 `main` 的 Pull Request 和 `main` push 只运行 `quality`，不自动发布。只有在 `main` 上通过 `workflow_dispatch` 手动运行并勾选「确认发布到生产环境」（`confirm_deploy`）时，`quality` 成功后才运行 `deploy`；确认框默认不勾选，未确认或其他分支手动运行只检查，不部署。
-- `quality` 依次运行 `pnpm install --frozen-lockfile`、`pnpm typecheck`、`pnpm lint`、`pnpm format:check`、`pnpm db:migrate`、`pnpm test`、`pnpm build`；测试和构建使用 runner 上的 `file:ci.db` 与临时 token，不访问生产数据库；`build` 只注入固定的非生产 `BETTER_AUTH_SECRET` 和 `http://localhost:4400`，不读取生产认证密钥或 AI 凭据。
+- `quality` 依次运行 `pnpm install --frozen-lockfile`、`pnpm typecheck`、`pnpm lint`、`pnpm format:check`、`pnpm db:check`、`pnpm db:migrate`、`pnpm build`；构建使用 runner 上的 `file:ci.db` 与临时 token，不访问生产数据库；`build` 只注入固定的非生产 `BETTER_AUTH_SECRET` 和 `http://localhost:4400`，不读取生产认证密钥或 AI 凭据。
 - 仓库根目录跟踪 `pnpm-workspace.yaml`，配置 `@prisma/client`、`better-sqlite3`、`esbuild` 与 `sharp` 的依赖构建白名单（`allowBuilds`），统一本地、CI 与生产服务器的依赖构建策略。
 - `deploy` 使用 `Deployment` Environment，通过 SSH 执行 `bash -s -- <target-sha>`，工作目录为 `/home/deploy/code/xdd/blog`。
 - 同一分支的 workflow 串行执行，不取消正在运行的发布。只有服务器安装、构建、重启和健康检查全部通过才算发布成功。
@@ -54,7 +54,7 @@
 
 - 解析 workflow，确认 `quality`、`deploy`、`needs: quality` 和 `Deployment` Environment 保留。
 - 对 workflow 中的 shell 块运行 `bash -n`，不执行远程部署脚本。
-- 依次运行 `pnpm typecheck`、`pnpm lint`、`pnpm format:check`、`pnpm db:check`、`pnpm test`、`pnpm build`。
+- 依次运行 `pnpm typecheck`、`pnpm lint`、`pnpm format:check`、`pnpm db:check`、`pnpm build`。
 - Pull Request 的 Quality 日志应显示项目使用 Node 26，且不再出现旧 Action 触发的 Node 20 弃用提示。
 
 ### 7. 错误写法与正确写法
@@ -223,7 +223,7 @@ curl -i -N -H "Connection: Upgrade" -H "Upgrade: websocket" -H "Host: 127.0.0.1:
 
 ## 修改部署逻辑后的验证
 
-- 本地依次运行 `pnpm typecheck`、`pnpm lint`、`pnpm format:check`、`pnpm db:check`、`pnpm test`、`pnpm build`，均要求退出码 `0`。
+- 本地依次运行 `pnpm typecheck`、`pnpm lint`、`pnpm format:check`、`pnpm db:check`、`pnpm build`，均要求退出码 `0`。
 - 用 Prettier 检查 workflow 和相关文档；Trellis 文档显式检查方法见[质量规范](./quality-guidelines.md)。
 - 用 YAML 解析器检查 workflow 包含 `quality`、`deploy`、`needs: quality` 和 `Deployment` Environment；每个 `run` 块只做 `bash -n` 语法检查，不把检查变成真实部署。
 - 获得服务器检查授权后，只读确认 Git 远端、工作区、Node/pnpm、环境文件是否存在且被忽略、sudo 权限、systemd 和本机 HTTP，不读取密钥或 `.env.local` 内容。

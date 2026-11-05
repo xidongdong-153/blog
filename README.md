@@ -30,7 +30,6 @@ pnpm dev
 pnpm typecheck
 pnpm lint
 pnpm format:check
-pnpm test
 pnpm build
 ```
 

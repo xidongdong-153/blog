@@ -3,9 +3,6 @@
 /.pnp
 .pnp.*
 
-# testing
-/coverage
-
 # 本地文章草稿
 /content/drafts/
 

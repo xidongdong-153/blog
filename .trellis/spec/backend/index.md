@@ -28,7 +28,6 @@ Hono 4 + Drizzle ORM + Turso（libSQL）。Hono 应用已通过 `src/app/api/[[.
 pnpm typecheck     # next typegen && tsc --noEmit
 pnpm lint          # eslint .
 pnpm format:check  # prettier --check .
-pnpm test          # 单元与集成测试（14 个测试文件）
 pnpm build         # 生产构建（31 个路由静态/动态验证）
 pnpm db:verify     # 改了连接配置或执行迁移后跑
 ```

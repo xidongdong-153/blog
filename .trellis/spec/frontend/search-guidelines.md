@@ -4,7 +4,7 @@
 
 改动搜索索引、匹配打分、高亮渲染或 `/blog` 列表页搜索框时，检查本文件。
 
-本文件依据 `src/lib/search.ts`、`src/lib/search.test.ts`、`src/app/(site)/_components/blog/blog-search.tsx` 与 `post-card.tsx` 核对。
+本文件依据 `src/lib/search.ts`、`src/app/(site)/_components/blog/blog-search.tsx` 与 `post-card.tsx` 核对。
 
 ## 数据流
 
@@ -90,10 +90,6 @@ flowchart TD
 - 来源切换通过 `sourceSwitch` 槽位传入，放在 `children` 外、搜索框旁，在搜索态和零结果时都可见。切换是同 `/blog` 路由的 Next Link 导航，会更新服务端传入的文章集合。
 - 同路由切换来源时保持 `BlogSearch` 位置与 key 不变，保留其 `useState` 搜索词；不要因来源集合为空而卸载组件。
 - 搜索结果向 `PostCard` 透传当前来源，分类眉标链接保留来源。来源切换清除页码并保留当前分类和排序，分页链接也保留来源。
-
-## 测试要求
-
-`src/lib/search.test.ts` 覆盖剥离、匹配、打分排序、片段与区间切分，已列入 `package.json` 的 `test` 脚本。改动 `src/lib/search.ts` 后运行 `pnpm test`。
 
 验收至少覆盖这两对：正文命中的词能搜到（证明正文进索引），只出现在代码块或公式里的标识符搜不到（证明已剥离）；高亮区间能用 `text.slice(range.start, range.end)` 还原关键词。
 

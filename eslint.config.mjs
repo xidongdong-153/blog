@@ -30,8 +30,6 @@ const baseConfig = antfu({
     '*~',
     '**/*.md',
     '**/*.mdx',
-    'coverage',
-    '.nyc_output',
     '.cache',
     'temp',
     'tmp',

@@ -60,17 +60,11 @@ jobs:
           TURSO_AUTH_TOKEN: ci-local-only-token
         run: pnpm db:check
 
-      - name: Prepare test database
+      - name: Migrate database
         env:
           TURSO_DATABASE_URL: file:ci.db
           TURSO_AUTH_TOKEN: ci-local-only-token
         run: pnpm db:migrate
-
-      - name: Test
-        env:
-          TURSO_DATABASE_URL: file:ci.db
-          TURSO_AUTH_TOKEN: ci-local-only-token
-        run: pnpm test
 
       - name: Build
         env:

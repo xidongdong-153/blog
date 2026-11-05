@@ -5,7 +5,7 @@
 ```text
 src/server/
 ├── app.ts                 Hono 应用入口与路由链式组装，导出 app 和 AppType
-├── modules/               业务域模块（高内聚包含 service、route、types、test）
+├── modules/               业务域模块（高内聚包含 service、route、types）
 │   ├── auth/              账号认证与权限（Better Auth 实例、authService、authRoute）
 │   ├── comments/          评论系统（评论树、平铺回复、置顶、邮件软删除凭证）
 │   ├── links/             友链管理（申请流、频控、审核与详情查询）
@@ -33,7 +33,6 @@ src/server/
 - `<域>.service.ts`：领域业务逻辑、数据库读写、状态转换与异常抛出。该服务直接被 Hono 路由和 Next.js 服务端页面调用。
 - `<域>.route.ts`：Hono 路由定义。负责解析 HTTP 请求输入、校验参数、调用当前域 service，并将领域错误映射为 HTTP 状态码。
 - `<域>.types.ts`：当前领域的公共入参、返回值 DTO 和展示对象类型。页面组件需要类型时从该文件导入。
-- `*.test.ts`：随模块就近存放的自动化测试文件，覆盖 service 业务规则与 route HTTP 契约。
 
 跨模块协作规则：
 
@@ -61,14 +60,14 @@ src/server/
 
 ## 放置规则速查
 
-| 要加什么 | 放哪 |
-| --- | --- |
-| 业务逻辑与数据库查询 | `src/server/modules/<域>/<域>.service.ts` |
-| HTTP API 端点 | `src/server/modules/<域>/<域>.route.ts` 并在 `src/server/app.ts` 链式挂载 |
-| 领域类型定义 | `src/server/modules/<域>/<域>.types.ts` |
-| 新数据库表 | `src/server/infra/db/schema/<域>.ts` 并在 `schema/index.ts` 导出 |
-| 外部技术服务适配 | `src/server/infra/` |
-| 跨模块无状态工具 | `src/server/shared/` |
+| 要加什么             | 放哪                                                                      |
+| -------------------- | ------------------------------------------------------------------------- |
+| 业务逻辑与数据库查询 | `src/server/modules/<域>/<域>.service.ts`                                 |
+| HTTP API 端点        | `src/server/modules/<域>/<域>.route.ts` 并在 `src/server/app.ts` 链式挂载 |
+| 领域类型定义         | `src/server/modules/<域>/<域>.types.ts`                                   |
+| 新数据库表           | `src/server/infra/db/schema/<域>.ts` 并在 `schema/index.ts` 导出          |
+| 外部技术服务适配     | `src/server/infra/`                                                       |
+| 跨模块无状态工具     | `src/server/shared/`                                                      |
 
 ## 反模式
 

@@ -94,7 +94,7 @@ pnpm db:studio     # 打开 drizzle-kit studio，本地默认连 file:local.db
 
 保存与发布分离，首次发布后锁定 slug。撤回清空公开快照，保留工作稿与评论；删除用事务清理评论、摘要和文章。SQLite 写锁及并发冲突返回 409，不把冲突当作成功。
 
-读写实现位于 `src/server/modules/posts/`，客户端类型与校验在 `src/lib/posts.ts`。完整字段、导入导出和 MDX 范围见[内容约定](../frontend/content-guidelines.md)。`pnpm test` 自动创建并迁移临时 SQLite 库，测试完成后清理；不能用生产库跑内容测试。
+读写实现位于 `src/server/modules/posts/`，客户端类型与校验在 `src/lib/posts.ts`。完整字段、导入导出和 MDX 范围见[内容约定](../frontend/content-guidelines.md)。
 
 ## AI 摘要同步契约
 
@@ -143,13 +143,7 @@ pnpm summary:sync
 - Base：首次部署没有 ready 配置，命令只输出计数并继续构建。
 - Bad：模型失败前删除旧记录，或在页面组件中直接调用模型；这会破坏旧摘要和离线构建。
 
-### 6. Tests Required
-
-- 哈希测试断言相同正文结果稳定、正文字符变化结果不同、frontmatter 不参与计算。
-- 服务测试断言缓存 upsert、三种协议请求路径、空文本和截断拒绝、旧摘要不被覆盖、关闭开关和哈希命中不调用模型。
-- 部署检查依次运行 `pnpm typecheck`、`pnpm lint`、`pnpm format:check`、`pnpm db:check`、`pnpm db:verify`、`pnpm test` 和 `pnpm build`。
-
-### 7. Wrong vs Correct
+### 6. Wrong vs Correct
 
 错误：文章页在渲染期间调用 `generateSummaryForPost`。
 

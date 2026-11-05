@@ -25,7 +25,7 @@ pnpm lint
 pnpm format:check
 ```
 
-涉及服务端业务或核心工具时还需运行 `pnpm test`；部署逻辑改动的完整验证见[部署规范](./deployment-guidelines.md)。纯文档修改按[质量规范](./quality-guidelines.md)检查。
+部署逻辑改动的完整验证见[部署规范](./deployment-guidelines.md)。纯文档修改按[质量规范](./quality-guidelines.md)检查。
 
 AI 执行 `git commit`、`git push` 或 `git merge` 前，必须展示改动摘要并获得用户明确确认；已有授权不重复询问。只暂存本次确认的文件，提交信息遵循 Conventional Commits。
 

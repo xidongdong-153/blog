@@ -62,10 +62,4 @@ MDX 允许 Markdown、预设 HTML 元素和现有 Callout、Collapse、Video；�
 
 笔记保留原日期解析和 draft 语义，本次不迁移数据库、不新增笔记后台。不能将其宽松日期解析作为博文写入校验规则。
 
-## 测试
-
-`pnpm test` 在临时 SQLite 数据库应用迁移后运行全部 Node 测试，不读取生产数据库；测试文件通过 glob 自动发现。
-
-需要公开文章时使用 `t.after(await createBlogPostFixture(slug))`。fixture 异步写入数据库，返回异步清理函数；`frontmatter.draft: true` 或兼容参数 `directory: 'drafts'` 创建不可公开访问的工作稿，不再写本地文章目录。
-
 必测工作/公开版本隔离、版本冲突、发布失败保留旧内容、撤回后的公开接口、关联删除、MDX 约束、导入事务与正文往返保真。编辑器同时检查中文输入、撤销、键盘保存和窄屏预览。
