@@ -36,6 +36,40 @@
   --animate-skill-fade-in: skill-fade-in 320ms ease both;
   --animate-ui-expand: ui-expand var(--ui-duration) var(--ui-ease);
   --animate-ui-collapse: ui-collapse var(--ui-duration) var(--ui-ease);
+  --animate-rb-shiny: rb-shiny 2.8s linear infinite;
+  --animate-rb-star-movement-bottom: rb-star-movement-bottom 6s linear infinite alternate;
+  --animate-rb-star-movement-top: rb-star-movement-top 6s linear infinite alternate;
+}
+
+@keyframes rb-shiny {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+@keyframes rb-star-movement-bottom {
+  0% {
+    transform: translate(0%, 0%);
+    opacity: 1;
+  }
+  100% {
+    transform: translate(-100%, 0%);
+    opacity: 0.35;
+  }
+}
+
+@keyframes rb-star-movement-top {
+  0% {
+    transform: translate(0%, 0%);
+    opacity: 1;
+  }
+  100% {
+    transform: translate(100%, 0%);
+    opacity: 0.35;
+  }
 }
 
 @keyframes ui-expand {

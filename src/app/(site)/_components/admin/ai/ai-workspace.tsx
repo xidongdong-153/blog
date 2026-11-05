@@ -7,9 +7,9 @@ import type { ManagedPost } from '@/lib/posts'
 import type { AiSummaryConfigDto } from '@/server/modules/ai/ai.types'
 import { useChat } from '@ai-sdk/react'
 import * as Form from '@radix-ui/react-form'
-import { Avatar, Badge, Box, Callout, Flex, Grid, Heading, ScrollArea, Text } from '@radix-ui/themes'
+import { Avatar, Badge, Box, Callout, Code, Flex, Grid, Heading, Text } from '@radix-ui/themes'
 import { DefaultChatTransport } from 'ai'
-import { ArrowRight, Check, Settings2, Wrench } from 'lucide-react'
+import { ArrowLeft, ArrowRight, Cpu, FileText, MessageSquare, Settings2, Sparkles, Wrench } from 'lucide-react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { useMemo, useRef, useState } from 'react'
 import {
@@ -33,6 +33,7 @@ import {
   AlertDialogTitle,
 } from '../ui/alert-dialog'
 import { Button } from '../ui/button'
+import { SpotlightCard } from '../ui/spotlight-card'
 import { Switch } from '../ui/switch'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../ui/tabs'
 import { Textarea } from '../ui/textarea'
@@ -44,7 +45,7 @@ import { useModelSettings } from './use-model-settings'
 
 type WorkspaceTab = 'agents' | 'models' | 'tools'
 
-/** 模型、Agent 配置与临时会话共用一个状态边界，切换页签不丢输入。 */
+/** 模型、Agent 配置与临时会话共用一个状态边界，点击 Agent 转入独立对话/配置视图，避免纵向堆叠。 */
 export function AiWorkspace({
   initialAgents,
   initialModelConfig,
@@ -59,8 +60,10 @@ export function AiWorkspace({
   const router = useRouter()
   const searchParams = useSearchParams()
   const tabParam = searchParams.get('tab')
+  const initialAgentParam = searchParams.get('agent')
   const tab: WorkspaceTab = tabParam === 'models' || tabParam === 'tools' ? tabParam : 'agents'
   const [agent, setAgent] = useState(initialAgents.find((item) => item.id === 'writer') ?? null)
+  const [activeAgentView, setActiveAgentView] = useState<boolean>(initialAgentParam === 'writer')
   const [agentPanel, setAgentPanel] = useState('conversation')
   const [agentDraft, setAgentDraft] = useState<AiAgentConfigInput>({
     revision: agent?.revision ?? 0,
@@ -120,12 +123,28 @@ export function AiWorkspace({
   )
   const configurationBusy = agentSaving || Boolean(model.operation)
 
+  function syncUrl(nextTab: WorkspaceTab, openWriter: boolean) {
+    const url = new URL(window.location.href)
+    url.searchParams.set('tab', nextTab)
+    if (openWriter) url.searchParams.set('agent', 'writer')
+    else url.searchParams.delete('agent')
+    window.history.replaceState(null, '', `${url.pathname}${url.search}${url.hash}`)
+  }
+
   function selectTab(value: string) {
     const next: WorkspaceTab = value === 'models' || value === 'tools' ? value : 'agents'
-    const url = new URL(window.location.href)
-    url.searchParams.set('tab', next)
-    url.searchParams.set('agent', 'writer')
-    window.history.replaceState(null, '', `${url.pathname}${url.search}${url.hash}`)
+    syncUrl(next, next === 'agents' ? activeAgentView : false)
+  }
+
+  function openAgent(panel: 'conversation' | 'configuration' = 'conversation') {
+    setAgentPanel(panel)
+    setActiveAgentView(true)
+    syncUrl('agents', true)
+  }
+
+  function closeAgent() {
+    setActiveAgentView(false)
+    syncUrl('agents', false)
   }
 
   async function send() {
@@ -277,7 +296,8 @@ export function AiWorkspace({
   function applyPrefill(text: string) {
     setInput(text)
     setAgentPanel('conversation')
-    selectTab('agents')
+    setActiveAgentView(true)
+    syncUrl('agents', true)
     setPendingPrefill(null)
   }
 
@@ -300,239 +320,421 @@ export function AiWorkspace({
 
   return (
     <Box className="min-w-0 pb-10">
-      <Flex align="center" justify="between" gap="3" wrap="wrap" className="mb-6">
-        <Heading as="h1" size="7" className="font-serif">
-          AI
-        </Heading>
-        <Badge color={modelReady ? 'green' : 'amber'}>{modelReady ? '模型就绪' : '模型未就绪'}</Badge>
+      <Flex direction="column" gap="2" className="mb-6">
+        <Flex align="center" gap="2" className="font-mono text-xs tracking-wider text-muted-foreground">
+          <Text>// ADMIN</Text>
+          <Text color="gray">•</Text>
+          <Text className="font-medium text-primary">AI 工作台</Text>
+        </Flex>
+        <Flex align="center" justify="between" gap="3" wrap="wrap">
+          <Heading as="h1" size="7" className="font-serif">
+            AI
+          </Heading>
+          <Flex align="center" gap="2" wrap="wrap">
+            {modelConfig?.modelId && (
+              <Code variant="soft" size="2" className="font-mono !break-all !whitespace-normal">
+                {modelConfig.modelId}
+              </Code>
+            )}
+            <Badge color={modelReady ? 'green' : 'amber'}>{modelReady ? '模型就绪' : '模型未就绪'}</Badge>
+          </Flex>
+        </Flex>
       </Flex>
+
       <Tabs value={tab} onValueChange={selectTab} className="min-w-0 gap-5">
-        <TabsList variant="line" aria-label="AI 工作区" className="max-w-full flex-wrap">
-          <TabsTrigger value="agents">Agent 管理台</TabsTrigger>
+        <TabsList variant="line" aria-label="AI 工作区" className="max-w-full flex-wrap border-b border-border pb-1">
+          <TabsTrigger value="agents" onClick={() => setActiveAgentView(false)}>
+            Agent 管理台
+          </TabsTrigger>
           <TabsTrigger value="models">模型配置{model.dirty && <Badge color="gray">未保存</Badge>}</TabsTrigger>
           <TabsTrigger value="tools">Tool 列表</TabsTrigger>
         </TabsList>
+
         <TabsContent value="agents" className="min-w-0">
-          <ScrollArea scrollbars="horizontal" type="auto" className="pb-3">
-            <Flex gap="3" py="2">
-              <Button
-                variant="outline"
-                aria-pressed="true"
-                className="h-auto min-h-28 w-28 shrink-0 flex-col gap-2 border-primary bg-accent py-3"
-                onClick={() => selectTab('agents')}
-              >
-                <Avatar src={agent.avatar} alt={agent.name} fallback="写" radius="full" size="5" />
-                <Text size="2" weight="medium">
-                  {agent.name}
-                </Text>
-                <Check aria-hidden="true" className="size-3.5" />
-              </Button>
-            </Flex>
-          </ScrollArea>
-          <Flex direction="column" gap="1" pt="3" pb="5">
-            <Heading as="h2" size="5">
-              {agent.name}
-            </Heading>
-            <Text size="2" color="gray">
-              {agent.description}
-            </Text>
-          </Flex>
-          <Tabs value={agentPanel} onValueChange={setAgentPanel} className="min-w-0">
-            <TabsList aria-label="写作 Agent">
-              <TabsTrigger value="conversation">对话</TabsTrigger>
-              <TabsTrigger value="configuration">配置{agentDirty && <Badge color="gray">未保存</Badge>}</TabsTrigger>
-            </TabsList>
-            <TabsContent value="conversation" className="min-w-0">
-              <AiConversation
-                agent={agent}
-                tools={tools}
-                chat={chat}
-                input={input}
-                onInputChange={setInput}
-                onSend={() => void send()}
-                onStop={() => void stop()}
-                onClear={() => setClearOpen(true)}
-                onOpenModels={() => selectTab('models')}
-                modelReady={modelReady}
-                configurationBusy={configurationBusy || clearing}
-                notice={notice}
-                saves={saves}
-                onSave={(key, draft, slug) => void saveDraft(key, draft, slug)}
-                onSlugChange={(key, slug) => setSaves((current) => ({ ...current, [key]: { slug, status: 'idle' } }))}
-              />
-            </TabsContent>
-            <TabsContent value="configuration" className="min-w-0 max-w-3xl py-5">
-              <Form.Root
-                onSubmit={(event) => {
-                  event.preventDefault()
-                  void saveAgent()
-                }}
-              >
-                <Flex direction="column" gap="5">
-                  <Flex justify="between" align="center" gap="3" wrap="wrap">
-                    <Heading as="h3" size="4">
-                      写作配置
-                    </Heading>
-                    <Text size="2" color="gray">
-                      版本 {agent.revision}
-                    </Text>
-                  </Flex>
-                  <Flex gap="3" align="center" wrap="wrap">
-                    <Text size="2">默认模型：{modelConfig?.modelId || '未配置'}</Text>
-                    <Button variant="link" size="sm" onClick={() => selectTab('models')}>
-                      <Settings2 aria-hidden="true" />
-                      模型配置
-                    </Button>
-                  </Flex>
-                  <Form.Field name="systemPrompt">
-                    <Flex direction="column" gap="2">
-                      <Form.Label htmlFor="ai-agent-system-prompt">系统提示词</Form.Label>
-                      <Form.Control asChild>
-                        <Textarea
-                          id="ai-agent-system-prompt"
-                          value={agentDraft.systemPrompt}
-                          maxLength={MAX_AI_SYSTEM_PROMPT_LENGTH}
-                          required
-                          disabled={running || configurationBusy}
-                          rows={10}
-                          className="min-h-64 resize-y [field-sizing:fixed]"
-                          onChange={(event) =>
-                            setAgentDraft((current) => ({ ...current, systemPrompt: event.target.value }))
-                          }
-                          aria-describedby="ai-agent-prompt-limit"
-                        />
-                      </Form.Control>
-                      <Text id="ai-agent-prompt-limit" size="1" color="gray">
-                        {agentDraft.systemPrompt.length} / {MAX_AI_SYSTEM_PROMPT_LENGTH}
-                      </Text>
-                    </Flex>
-                  </Form.Field>
-                  <Flex direction="column" gap="3">
-                    <Heading as="h3" size="3">
-                      可用 Tool
-                    </Heading>
-                    {tools.map((tool) => (
+          {!activeAgentView ? (
+            /* Agent 管理台卡片列表视图：点击 Agent 转到临时对话页 */
+            <Grid columns={{ initial: '1', md: initialAgents.length > 1 ? '2' : '1' }} gap="5" py="3">
+              {initialAgents.map((item) => {
+                const enabledCount = item.toolIds.length
+                return (
+                  <SpotlightCard
+                    key={item.id}
+                    onClick={() => openAgent('conversation')}
+                    className="cursor-pointer p-5 transition-colors hover:border-primary/50 sm:p-6"
+                  >
+                    <Flex direction="column" justify="between" gap="5" className="h-full min-w-0">
+                      <Flex direction="column" gap="4" className="min-w-0">
+                        <Flex align="start" justify="between" gap="3" wrap="wrap">
+                          <Flex align="center" gap="3" className="min-w-0">
+                            <Avatar src={item.avatar} alt={item.name} fallback="写" radius="full" size="4" />
+                            <Flex direction="column" gap="1" className="min-w-0">
+                              <Flex align="center" gap="2" wrap="wrap">
+                                <Heading as="h2" size="4" className="font-serif">
+                                  {item.name}
+                                </Heading>
+                                <Code variant="soft" size="1" className="font-mono">
+                                  {item.id}
+                                </Code>
+                              </Flex>
+                              <Text size="2" color="gray" className="break-words">
+                                {item.description}
+                              </Text>
+                            </Flex>
+                          </Flex>
+                          <Badge color={modelReady ? 'green' : 'amber'}>{modelReady ? '可对话' : '待配置模型'}</Badge>
+                        </Flex>
+
+                        <Grid columns={{ initial: '1', sm: '2' }} gap="3">
+                          <Box className="rounded-lg border border-border/70 bg-muted/35 p-3.5">
+                            <Text size="1" color="gray" className="font-mono uppercase tracking-wider">
+                              关联模型
+                            </Text>
+                            <Text as="p" size="2" className="mt-1 font-mono text-xs break-all whitespace-normal">
+                              {modelConfig?.modelId || '未配置'}
+                            </Text>
+                          </Box>
+                          <Box className="rounded-lg border border-border/70 bg-muted/35 p-3.5">
+                            <Text size="1" color="gray" className="font-mono uppercase tracking-wider">
+                              已启用 Tool
+                            </Text>
+                            <Text as="p" size="2" className="mt-1 font-mono text-xs">
+                              {enabledCount} / {tools.length} 个能力已挂载
+                            </Text>
+                          </Box>
+                        </Grid>
+                      </Flex>
+
                       <Flex
-                        key={tool.id}
                         align="center"
                         justify="between"
-                        gap="4"
-                        className="border-b border-border py-3"
+                        gap="2"
+                        wrap="wrap"
+                        className="border-t border-border/60 pt-4"
                       >
-                        <Flex direction="column" gap="1">
-                          <Text as="label" htmlFor={`agent-tool-${tool.id}`} weight="medium" size="2">
-                            {tool.name}
-                          </Text>
-                          <Text size="2" color="gray">
-                            {tool.description}
-                          </Text>
-                        </Flex>
-                        <Switch
-                          id={`agent-tool-${tool.id}`}
-                          checked={agentDraft.toolIds.includes(tool.id)}
-                          disabled={running || configurationBusy}
-                          onCheckedChange={(checked) =>
-                            setAgentDraft((current) => ({
-                              ...current,
-                              toolIds: checked
-                                ? [...current.toolIds, tool.id]
-                                : current.toolIds.filter((id) => id !== tool.id),
-                            }))
-                          }
-                        />
+                        <Button
+                          onClick={(event) => {
+                            event.stopPropagation()
+                            openAgent('conversation')
+                          }}
+                        >
+                          <MessageSquare aria-hidden="true" />
+                          {chat.messages.length > 0 ? `继续临时对话 (${chat.messages.length})` : '进入临时对话'}
+                          <ArrowRight aria-hidden="true" />
+                        </Button>
+                        <Button
+                          variant="outline"
+                          onClick={(event) => {
+                            event.stopPropagation()
+                            openAgent('configuration')
+                          }}
+                        >
+                          <Settings2 aria-hidden="true" />
+                          Agent 配置
+                          {agentDirty && <Badge color="gray">未保存</Badge>}
+                        </Button>
                       </Flex>
-                    ))}
-                  </Flex>
-                  {running && (
-                    <Text size="2" color="gray">
-                      对话结束后可修改 Agent 配置。
-                    </Text>
-                  )}
-                  {agentError && (
-                    <Callout.Root color="red" role="alert">
-                      <Callout.Text>{agentError}</Callout.Text>
-                    </Callout.Root>
-                  )}
-                  {agentMessage && (
-                    <Text size="2" role="status">
-                      {agentMessage}
-                    </Text>
-                  )}
-                  <Button
-                    type="submit"
-                    className="self-start"
-                    pending={agentSaving}
-                    disabled={running || configurationBusy || !agentDirty}
-                  >
-                    保存 Agent 配置
+                    </Flex>
+                  </SpotlightCard>
+                )
+              })}
+            </Grid>
+          ) : (
+            /* 点击 Agent 后转入的专属临时对话 / 配置页 */
+            <Tabs value={agentPanel} onValueChange={setAgentPanel} className="min-w-0 gap-4 py-2">
+              <Flex
+                align="center"
+                justify="between"
+                gap="3"
+                wrap="wrap"
+                className="rounded-xl border border-border bg-card/50 px-3.5 py-2.5 sm:px-4"
+              >
+                <Flex align="center" gap="3" wrap="wrap" className="min-w-0">
+                  <Button variant="ghost" size="sm" onClick={closeAgent} className="h-8 px-2.5 text-xs">
+                    <ArrowLeft aria-hidden="true" />
+                    返回 Agent 管理台
                   </Button>
-                </Flex>
-              </Form.Root>
-            </TabsContent>
-          </Tabs>
-        </TabsContent>
-        <TabsContent value="models">
-          <AiSummarySettingsForm state={model} running={running} />
-        </TabsContent>
-        <TabsContent value="tools">
-          <Grid columns={{ initial: '1', md: '2' }} gap="5" py="5">
-            {tools.map((tool) => (
-              <Flex key={tool.id} direction="column" gap="4" className="min-w-0 rounded-lg border border-border p-5">
-                <Flex align="center" justify="between" gap="3">
-                  <Flex align="center" gap="2">
-                    <Wrench aria-hidden="true" className="size-4" />
-                    <Heading as="h2" size="4">
-                      {tool.name}
+                  <Text color="gray" aria-hidden="true">
+                    /
+                  </Text>
+                  <Flex align="center" gap="2" className="min-w-0">
+                    <Avatar src={agent.avatar} alt={agent.name} fallback="写" radius="full" size="2" />
+                    <Heading as="h2" size="3" className="font-serif">
+                      {agent.name}
                     </Heading>
                   </Flex>
-                  <Badge color={agent.toolIds.includes(tool.id) ? 'green' : 'gray'}>
-                    {agent.toolIds.includes(tool.id) ? '已启用' : '未启用'}
-                  </Badge>
                 </Flex>
-                <Text size="2">{tool.description}</Text>
-                <Flex direction="column" gap="2">
-                  <Text size="2" weight="medium">
-                    输入
-                  </Text>
-                  <Text size="2" color="gray">
-                    {tool.inputDescription}
-                  </Text>
-                  <Text size="2" weight="medium">
-                    输出
-                  </Text>
-                  <Text size="2" color="gray">
-                    {tool.outputDescription}
-                  </Text>
-                </Flex>
-                <Text size="2" color="gray">
-                  使用默认模型 · {agent.name}
-                </Text>
-                <Flex mt="auto" gap="2" wrap="wrap">
-                  <Button
-                    variant="outline"
-                    disabled={running || !agent.toolIds.includes(tool.id)}
-                    onClick={() => useTool(tool)}
-                  >
-                    在写作 Agent 中使用
-                    <ArrowRight aria-hidden="true" />
-                  </Button>
-                  {!agent.toolIds.includes(tool.id) && (
-                    <Button
-                      variant="link"
-                      onClick={() => {
-                        setAgentPanel('configuration')
-                        selectTab('agents')
-                      }}
-                    >
-                      配置 Tool
-                    </Button>
-                  )}
-                </Flex>
+
+                <TabsList aria-label="写作 Agent">
+                  <TabsTrigger value="conversation">对话</TabsTrigger>
+                  <TabsTrigger value="configuration">
+                    配置{agentDirty && <Badge color="gray">未保存</Badge>}
+                  </TabsTrigger>
+                </TabsList>
               </Flex>
-            ))}
+
+              <TabsContent value="conversation" className="min-w-0">
+                <AiConversation
+                  agent={agent}
+                  tools={tools}
+                  chat={chat}
+                  input={input}
+                  onInputChange={setInput}
+                  onSend={() => void send()}
+                  onStop={() => void stop()}
+                  onClear={() => setClearOpen(true)}
+                  onOpenModels={() => selectTab('models')}
+                  onUseTool={useTool}
+                  modelId={modelConfig?.modelId}
+                  modelReady={modelReady}
+                  configurationBusy={configurationBusy || clearing}
+                  notice={notice}
+                  saves={saves}
+                  onSave={(key, draft, slug) => void saveDraft(key, draft, slug)}
+                  onSlugChange={(key, slug) => setSaves((current) => ({ ...current, [key]: { slug, status: 'idle' } }))}
+                />
+              </TabsContent>
+
+              <TabsContent value="configuration" className="min-w-0">
+                <Box className="w-full rounded-xl border border-border bg-card/50 p-5 sm:p-6">
+                  <Form.Root
+                    onSubmit={(event) => {
+                      event.preventDefault()
+                      void saveAgent()
+                    }}
+                  >
+                    <Flex direction="column" gap="5">
+                      <Flex
+                        justify="between"
+                        align="center"
+                        gap="3"
+                        wrap="wrap"
+                        className="border-b border-border/60 pb-4"
+                      >
+                        <Flex direction="column" gap="1">
+                          <Heading as="h3" size="4" className="font-serif">
+                            写作配置
+                          </Heading>
+                          <Flex gap="2" align="center" wrap="wrap">
+                            <Text size="2" color="gray" className="break-all">
+                              默认模型：{modelConfig?.modelId || '未配置'}
+                            </Text>
+                            <Button
+                              variant="link"
+                              size="sm"
+                              className="h-auto px-1 py-0"
+                              onClick={() => selectTab('models')}
+                            >
+                              <Settings2 aria-hidden="true" />
+                              模型配置
+                            </Button>
+                          </Flex>
+                        </Flex>
+                        <Badge color="gray" className="font-mono">
+                          版本 r{agent.revision}
+                        </Badge>
+                      </Flex>
+
+                      <Grid columns={{ initial: '1', lg: '2' }} gap="6">
+                        <Form.Field name="systemPrompt">
+                          <Flex direction="column" gap="2">
+                            <Flex justify="between" align="center" gap="2" wrap="wrap">
+                              <Form.Label htmlFor="ai-agent-system-prompt" className="text-sm font-medium">
+                                系统提示词
+                              </Form.Label>
+                              <Text id="ai-agent-prompt-limit" size="1" color="gray" className="font-mono tabular-nums">
+                                {agentDraft.systemPrompt.length} / {MAX_AI_SYSTEM_PROMPT_LENGTH}
+                              </Text>
+                            </Flex>
+                            <Form.Control asChild>
+                              <Textarea
+                                id="ai-agent-system-prompt"
+                                value={agentDraft.systemPrompt}
+                                maxLength={MAX_AI_SYSTEM_PROMPT_LENGTH}
+                                required
+                                disabled={running || configurationBusy}
+                                rows={10}
+                                className="min-h-60 resize-y font-mono text-xs leading-relaxed [field-sizing:fixed]"
+                                onChange={(event) =>
+                                  setAgentDraft((current) => ({ ...current, systemPrompt: event.target.value }))
+                                }
+                                aria-describedby="ai-agent-prompt-limit"
+                              />
+                            </Form.Control>
+                          </Flex>
+                        </Form.Field>
+
+                        <Flex direction="column" gap="3">
+                          <Heading as="h3" size="3">
+                            可用 Tool
+                          </Heading>
+                          <Flex direction="column" gap="3">
+                            {tools.map((tool) => {
+                              const enabled = agentDraft.toolIds.includes(tool.id)
+                              return (
+                                <Flex
+                                  key={tool.id}
+                                  align="center"
+                                  justify="between"
+                                  gap="4"
+                                  className="rounded-lg border border-border/80 bg-background p-3.5"
+                                >
+                                  <Flex direction="column" gap="1" className="min-w-0">
+                                    <Flex align="center" gap="2" wrap="wrap">
+                                      <Text as="label" htmlFor={`agent-tool-${tool.id}`} weight="medium" size="2">
+                                        {tool.name}
+                                      </Text>
+                                      <Code variant="soft" size="1" className="font-mono">
+                                        {tool.id}
+                                      </Code>
+                                    </Flex>
+                                    <Text size="2" color="gray">
+                                      {tool.description}
+                                    </Text>
+                                  </Flex>
+                                  <Switch
+                                    id={`agent-tool-${tool.id}`}
+                                    checked={enabled}
+                                    disabled={running || configurationBusy}
+                                    onCheckedChange={(checked) =>
+                                      setAgentDraft((current) => ({
+                                        ...current,
+                                        toolIds: checked
+                                          ? [...current.toolIds, tool.id]
+                                          : current.toolIds.filter((id) => id !== tool.id),
+                                      }))
+                                    }
+                                  />
+                                </Flex>
+                              )
+                            })}
+                          </Flex>
+                        </Flex>
+                      </Grid>
+
+                      {running && (
+                        <Text size="2" color="gray">
+                          对话结束后可修改 Agent 配置。
+                        </Text>
+                      )}
+                      {agentError && (
+                        <Callout.Root color="red" role="alert">
+                          <Callout.Text>{agentError}</Callout.Text>
+                        </Callout.Root>
+                      )}
+                      {agentMessage && (
+                        <Text size="2" role="status">
+                          {agentMessage}
+                        </Text>
+                      )}
+                      <Flex align="center" gap="3" className="border-t border-border/60 pt-3">
+                        <Button
+                          type="submit"
+                          pending={agentSaving}
+                          disabled={running || configurationBusy || !agentDirty}
+                        >
+                          保存 Agent 配置
+                        </Button>
+                      </Flex>
+                    </Flex>
+                  </Form.Root>
+                </Box>
+              </TabsContent>
+            </Tabs>
+          )}
+        </TabsContent>
+
+        <TabsContent value="models" className="min-w-0">
+          <AiSummarySettingsForm state={model} running={running} />
+        </TabsContent>
+
+        <TabsContent value="tools" className="min-w-0">
+          <Grid columns={{ initial: '1', md: '2' }} gap="5" py="3">
+            {tools.map((tool) => {
+              const isEnabled = agent.toolIds.includes(tool.id)
+              return (
+                <SpotlightCard key={tool.id} className="p-5">
+                  <Flex direction="column" gap="4" className="h-full min-w-0">
+                    <Flex align="center" justify="between" gap="3" wrap="wrap">
+                      <Flex align="center" gap="2" className="min-w-0">
+                        {tool.id === 'post-draft' ? (
+                          <FileText aria-hidden="true" className="size-4 shrink-0 text-primary" />
+                        ) : (
+                          <Sparkles aria-hidden="true" className="size-4 shrink-0 text-primary" />
+                        )}
+                        <Heading as="h2" size="4" className="font-serif">
+                          {tool.name}
+                        </Heading>
+                        <Code variant="soft" size="1" className="font-mono">
+                          {tool.id}
+                        </Code>
+                      </Flex>
+                      <Badge color={isEnabled ? 'green' : 'gray'}>{isEnabled ? '已启用' : '未启用'}</Badge>
+                    </Flex>
+
+                    <Text size="2" className="leading-relaxed">
+                      {tool.description}
+                    </Text>
+
+                    <Grid columns="1" gap="3">
+                      <Box className="rounded-md border border-border/70 bg-muted/35 p-3">
+                        <Text size="1" weight="medium" color="gray" className="font-mono uppercase tracking-wider">
+                          Input · 输入
+                        </Text>
+                        <Text as="p" size="2" color="gray" className="mt-1">
+                          {tool.inputDescription}
+                        </Text>
+                      </Box>
+                      <Box className="rounded-md border border-border/70 bg-muted/35 p-3">
+                        <Text size="1" weight="medium" color="gray" className="font-mono uppercase tracking-wider">
+                          Output · 输出
+                        </Text>
+                        <Text as="p" size="2" color="gray" className="mt-1">
+                          {tool.outputDescription}
+                        </Text>
+                      </Box>
+                    </Grid>
+
+                    <Flex
+                      mt="auto"
+                      pt="3"
+                      align="center"
+                      justify="between"
+                      gap="2"
+                      wrap="wrap"
+                      className="border-t border-border/60"
+                    >
+                      <Flex align="center" gap="2" className="text-muted-foreground">
+                        <Cpu aria-hidden="true" className="size-3.5" />
+                        <Text size="1" color="gray" className="font-mono">
+                          默认模型 · {agent.name}
+                        </Text>
+                      </Flex>
+                      <Flex gap="2" wrap="wrap">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          disabled={running || !isEnabled}
+                          onClick={() => useTool(tool)}
+                        >
+                          在写作 Agent 中使用
+                          <ArrowRight aria-hidden="true" />
+                        </Button>
+                        {!isEnabled && (
+                          <Button variant="link" size="sm" onClick={() => openAgent('configuration')}>
+                            <Wrench aria-hidden="true" />
+                            配置 Tool
+                          </Button>
+                        )}
+                      </Flex>
+                    </Flex>
+                  </Flex>
+                </SpotlightCard>
+              )
+            })}
           </Grid>
         </TabsContent>
       </Tabs>
+
       <AlertDialog
         open={clearOpen}
         onOpenChange={(open) => {
@@ -559,6 +761,7 @@ export function AiWorkspace({
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
       <AlertDialog
         open={pendingPrefill !== null}
         onOpenChange={(open) => {

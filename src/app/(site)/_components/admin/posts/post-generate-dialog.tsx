@@ -3,6 +3,7 @@
 import type { RefObject } from 'react'
 import * as Form from '@radix-ui/react-form'
 import { Callout, Checkbox, Flex, Text } from '@radix-ui/themes'
+import { Sparkles } from 'lucide-react'
 import Link from 'next/link'
 import { useEffect, useRef, useState } from 'react'
 import { isAiModelError } from '@/lib/ai-agent'
@@ -18,6 +19,8 @@ import {
   AlertDialogTitle,
 } from '../ui/alert-dialog'
 import { Button } from '../ui/button'
+import { ShinyText } from '../ui/shiny-text'
+import { StarBorder } from '../ui/star-border'
 import { Textarea } from '../ui/textarea'
 
 /** 输入概述生成初稿；取消或关闭时丢弃尚未完成的生成结果。 */
@@ -98,41 +101,50 @@ export function PostGenerateDialog({
             }}
           >
             <AlertDialogHeader>
-              <AlertDialogTitle>AI 生成初稿</AlertDialogTitle>
+              <AlertDialogTitle className="flex items-center gap-2 font-serif">
+                <Sparkles aria-hidden="true" className="size-4 text-primary" />
+                AI 生成初稿
+              </AlertDialogTitle>
               <AlertDialogDescription>根据内容概述填入文章属性与正文，生成后可继续编辑。</AlertDialogDescription>
             </AlertDialogHeader>
             <Form.Field name="overview" className="flex min-w-0 flex-col gap-2">
-              <Form.Label htmlFor="post-draft-overview" className="text-sm font-medium">
-                内容概述
-              </Form.Label>
-              <Form.Control asChild>
-                <Textarea
-                  ref={overviewRef}
-                  id="post-draft-overview"
-                  value={overview}
-                  maxLength={MAX_DRAFT_OVERVIEW_LENGTH}
-                  required
-                  disabled={generating}
-                  aria-describedby="post-draft-overview-limit"
-                  placeholder="例如：写一篇面向 React 开发者的 Next.js 缓存入门，说明常见误区，并给出代码示例。"
-                  className="min-h-40 resize-y [field-sizing:fixed]"
-                  onChange={(event) => setOverview(event.target.value)}
-                />
-              </Form.Control>
-              <Flex justify="between" gap="2" wrap="wrap">
-                <Form.Message match="valueMissing" className="text-sm text-destructive">
-                  请输入内容概述
-                </Form.Message>
-                <Text id="post-draft-overview-limit" size="1" className="ml-auto tabular-nums text-muted-foreground">
+              <Flex justify="between" align="center" gap="2" wrap="wrap">
+                <Form.Label htmlFor="post-draft-overview" className="text-sm font-medium">
+                  内容概述
+                </Form.Label>
+                <Text
+                  id="post-draft-overview-limit"
+                  size="1"
+                  className="ml-auto font-mono tabular-nums text-muted-foreground"
+                >
                   {overview.length} / {MAX_DRAFT_OVERVIEW_LENGTH}
                 </Text>
               </Flex>
+              <StarBorder active={generating} contentClassName="p-0.5">
+                <Form.Control asChild>
+                  <Textarea
+                    ref={overviewRef}
+                    id="post-draft-overview"
+                    value={overview}
+                    maxLength={MAX_DRAFT_OVERVIEW_LENGTH}
+                    required
+                    disabled={generating}
+                    aria-describedby="post-draft-overview-limit"
+                    placeholder="例如：写一篇面向 React 开发者的 Next.js 缓存入门，说明常见误区，并给出代码示例。"
+                    className="min-h-40 resize-y border-0 bg-transparent shadow-none focus-visible:ring-0 [field-sizing:fixed]"
+                    onChange={(event) => setOverview(event.target.value)}
+                  />
+                </Form.Control>
+              </StarBorder>
+              <Form.Message match="valueMissing" className="text-sm text-destructive">
+                请输入内容概述
+              </Form.Message>
             </Form.Field>
             {hasExistingContent && (
               <Text
                 as="label"
                 size="2"
-                className="flex cursor-pointer items-start gap-3 rounded-md border border-border p-3 leading-relaxed"
+                className="flex cursor-pointer items-start gap-3 rounded-lg border border-border bg-muted/30 p-3 leading-relaxed"
               >
                 <Checkbox
                   checked={replaceConfirmed}
@@ -156,8 +168,8 @@ export function PostGenerateDialog({
               </Callout.Root>
             )}
             {generating && (
-              <Text role="status" size="2" className="text-muted-foreground">
-                正在生成初稿，请稍候…
+              <Text role="status" size="2">
+                <ShinyText>正在生成初稿，请稍候…</ShinyText>
               </Text>
             )}
             <AlertDialogFooter>

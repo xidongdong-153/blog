@@ -17,6 +17,7 @@ const themeTokens = {
   '--gray-6': 'hsl(var(--border))',
   '--accent-9': 'hsl(var(--primary))',
   '--accent-contrast': 'hsl(var(--primary-foreground))',
+  minHeight: 0,
 } as CSSProperties
 
 /** 将组件库主题限制在 AI 界面内，并跟随站点明暗主题。 */
@@ -40,7 +41,7 @@ export function AiThemeProvider({ children }: { children: ReactNode }) {
       radius="medium"
       panelBackground="solid"
       hasBackground={false}
-      className="min-h-0 min-w-0 text-foreground"
+      className="!min-h-0 min-w-0 text-foreground"
       style={themeTokens}
     >
       {children}
