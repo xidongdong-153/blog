@@ -12,7 +12,7 @@ export function AdminNavigation() {
       {[
         { href: '/admin', label: '总览' },
         { href: '/admin/posts', label: '文章' },
-        { href: '/settings/ai', label: 'AI 设置' },
+        { href: '/admin/ai', label: 'AI 设置' },
       ].map(({ href, label }) => {
         const active = href === '/admin' ? pathname === href : pathname.startsWith(href)
         return (

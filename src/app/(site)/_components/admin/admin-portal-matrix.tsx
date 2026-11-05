@@ -79,7 +79,7 @@ export function AdminPortalMatrix({ aiService, engagement, system }: AdminPortal
             </div>
 
             <Link
-              href="/settings/ai"
+              href="/admin/ai"
               className="inline-flex items-center justify-between rounded-md border border-border/70 bg-background px-3 py-1.5 font-mono text-xs text-foreground transition-all hover:bg-muted"
             >
               <span>前往配置</span>

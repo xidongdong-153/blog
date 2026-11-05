@@ -83,7 +83,7 @@ export function CommentAuthCard({ providers, isOwner }: CommentAuthCardProps) {
                   作者
                 </span>
                 <Link
-                  href="/settings/ai"
+                  href="/admin/ai"
                   title="AI 摘要配置"
                   aria-label="AI 摘要配置"
                   className="rounded p-1 text-muted-foreground transition-colors hover:bg-muted/60 hover:text-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"

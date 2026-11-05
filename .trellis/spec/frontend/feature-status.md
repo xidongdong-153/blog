@@ -30,7 +30,7 @@
 | OG 图自动生成                                            | 未开始 | 计划 `src/app/(site)/blog/[slug]/opengraph-image.tsx`，用 `next/og`                                                                                              |
 | 代码块高亮与复制                                         | 已实现 | `src/app/(site)/_components/blog/mdx-content.tsx`                                                                                                                |
 | Mac 实时活动（独立采集与首页展示）                       | 已实现 | `src/lib/presence.ts`、`src/server/modules/presence/`、`$HOME/.hammerspoon/presence/`                                                                            |
-| AI 摘要模型配置                                          | 已实现 | `src/app/(site)/settings/ai/`、`src/server/modules/ai/`                                                                                                          |
+| AI 摘要模型配置                                          | 已实现 | `src/app/(site)/admin/ai/`、`src/server/modules/ai/`                                                                                                             |
 | AI 摘要同步与展示                                        | 已实现 | `scripts/sync-summaries.ts`、`src/server/modules/ai/summary.service.ts`、`src/app/(site)/_components/blog/ai-summary.tsx`、`src/app/(site)/blog/[slug]/page.tsx` |
 | 访客统计与文章实时在线状态                               | 已实现 | `server.ts`、`src/lib/visitor.ts`、`src/server/modules/visitors/`、`src/app/(site)/_components/visitor/`                                                         |
 | 顶栏站长登录入口与弹窗                                   | 已实现 | `src/app/(site)/_components/site/site-header.tsx`、`src/app/(site)/_components/site/header-auth.tsx`、`src/app/(site)/_components/site/auth-modal.tsx`           |

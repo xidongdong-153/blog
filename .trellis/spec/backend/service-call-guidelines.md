@@ -20,7 +20,7 @@ flowchart TD
     P_REV["links/review/page.tsx"] -->|getFriendReviewDetail| S_LINK
     P_STAT["status/page.tsx"] -->|getStatusPageData| S_SYS["system.service.ts"]
     P_BLOG["blog/[slug]/page.tsx"] -->|getArticleSummaryBySlug| S_AI["summary.service.ts"]
-    P_SET["settings/ai/page.tsx"] -->|getAiSummaryConfig / getSession| S_CONF["summary-config.service.ts"]
+    P_SET["admin/ai/page.tsx"] -->|getAiSummaryConfig / getSession| S_CONF["summary-config.service.ts"]
     P_SET --> S_AUTH["auth.service.ts"]
     SCR_AI["scripts/sync-summaries.ts"] -->|syncAllArticleSummaries| S_AI
   end
@@ -63,6 +63,7 @@ export default async function LinksPage() {
 ```
 
 禁止反模式：
+
 - 禁止在服务端组件中调用 `fetch('http://localhost:4400/api/...')` 自发 HTTP 请求，这会引入不必要的网络往返、自死锁风险和额外请求头处理。
 - 禁止在服务端组件中绕过 service 层直接手写复杂 SQL；业务逻辑与数据拼装必须收敛在 `*.service.ts` 中。
 
