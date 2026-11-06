@@ -379,7 +379,7 @@ export function AiConversation({
                   value={input}
                   maxLength={MAX_AI_MESSAGE_LENGTH}
                   rows={3}
-                  className="min-h-24 resize-y bg-background [field-sizing:fixed]"
+                  className="min-h-24 resize-y [field-sizing:fixed]"
                   placeholder="描述选题生成初稿，或粘贴正文并说明需要摘要…"
                   aria-describedby="ai-message-limit"
                   onChange={(event) => onInputChange(event.target.value)}

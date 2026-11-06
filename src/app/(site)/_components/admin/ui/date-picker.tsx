@@ -30,10 +30,10 @@ export function DatePicker({
       <PopoverTrigger asChild>
         <Button
           id={id}
-          variant="outline"
+          variant="ghost"
           disabled={disabled}
           aria-describedby={`${id}-value`}
-          className="w-full justify-between font-normal"
+          className="w-full justify-between border-0 bg-muted/40 font-normal hover:bg-muted/60 focus:outline-none focus-visible:outline-none focus-visible:ring-0 focus-visible:ring-offset-0"
         >
           <span id={`${id}-value`} className={value ? '' : 'text-muted-foreground'}>
             {value ? formatDate(value) : '选择日期'}

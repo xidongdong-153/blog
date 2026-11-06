@@ -88,7 +88,7 @@ export function MarkdownEditor({
         'aria-multiline': 'true',
         spellcheck: 'false',
         class:
-          'min-h-[560px] p-5 text-sm leading-7 text-foreground caret-foreground selection:bg-primary/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring',
+          'min-h-[560px] p-5 text-sm leading-7 text-foreground caret-foreground selection:bg-primary/20 outline-none focus:outline-none focus-visible:outline-none focus-visible:ring-0',
       },
       handlePaste(view, event) {
         if (!view.editable || !event.clipboardData) return false
