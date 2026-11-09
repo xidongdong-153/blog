@@ -18,7 +18,10 @@ export function Section({ index, title, align = 'left', children }: SectionProps
   const isRight = align === 'right'
 
   return (
-    <section className="flex flex-col gap-y-6">
+    <section
+      className="entrance flex flex-col gap-y-6"
+      style={{ animationDelay: `${Math.min(Math.max(Number(index) || 0, 0) * 60 + 240, 360)}ms` }}
+    >
       <h2 className="flex items-center gap-3 font-mono text-xs font-medium tracking-wider text-muted-foreground">
         {isRight && <span aria-hidden="true" className="h-px flex-1 bg-border/60" />}
         <span className="text-primary">{index}</span>

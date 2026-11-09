@@ -32,7 +32,7 @@ export function Hero({ profile }: HeroProps) {
 
       <div className="relative z-10 flex flex-col items-center gap-6">
         {/* 署名式元数据：无状态点、底色与胶囊轮廓 */}
-        <div className="flex w-full max-w-md items-center justify-center gap-3 font-mono text-xs tracking-wider text-muted-foreground sm:gap-4">
+        <div className="entrance flex w-full max-w-md items-center justify-center gap-3 font-mono text-xs tracking-wider text-muted-foreground sm:gap-4">
           <span aria-hidden="true" className="h-px w-6 shrink-0 bg-border/70 sm:w-10" />
           <div className="flex items-center justify-center whitespace-nowrap">
             {profile.location && (
@@ -65,27 +65,29 @@ export function Hero({ profile }: HeroProps) {
             width={80}
             height={80}
             priority
-            className="size-16 rounded-full object-cover ring-1 ring-border/60 sm:size-20"
+            className="entrance size-16 rounded-full object-cover ring-1 ring-border/60 [--entrance-delay:60ms] sm:size-20"
           />
         ) : (
-          <div className="flex size-16 select-none items-center justify-center rounded-full bg-muted/60 font-serif text-xl font-bold text-foreground ring-1 ring-border/60 sm:size-20">
+          <div className="entrance flex size-16 select-none items-center justify-center rounded-full bg-muted/60 font-serif text-xl font-bold text-foreground ring-1 ring-border/60 [--entrance-delay:60ms] sm:size-20">
             {siteConfig.author.trim().slice(0, 1)}
           </div>
         )}
 
         {/* 英文主标题与开发方向 */}
         <div className="flex flex-col items-center gap-4">
-          <h1 className="text-balance font-serif text-4xl font-normal leading-[1.08] tracking-normal text-foreground sm:text-6xl lg:text-7xl">
+          <h1 className="entrance text-balance font-serif text-4xl font-normal leading-[1.08] tracking-normal text-foreground [--entrance-delay:120ms] sm:text-6xl lg:text-7xl">
             <span className="block">Building software</span>{' '}
             <span className="block">
               and <span className="italic text-primary">AI agents.</span>
             </span>
           </h1>
-          <p className="text-balance font-serif text-base text-muted-foreground sm:text-lg">{profile.tagline}</p>
+          <p className="entrance text-balance font-serif text-base text-muted-foreground [--entrance-delay:180ms] sm:text-lg">
+            {profile.tagline}
+          </p>
         </div>
 
         {/* CTA 排：黑胶囊 + 描边胶囊 + GitHub 图标 */}
-        <div className="flex flex-wrap items-center justify-center gap-3 pt-2">
+        <div className="entrance flex flex-wrap items-center justify-center gap-3 pt-2 [--entrance-delay:240ms]">
           <Link
             href="/blog"
             className="inline-flex items-center justify-center rounded-full bg-foreground px-6 py-2.5 text-xs font-medium text-background transition-opacity hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background sm:text-sm"

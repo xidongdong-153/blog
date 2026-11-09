@@ -29,7 +29,7 @@ export default async function HomePage() {
     .slice(0, 5)
 
   return (
-    <div className="mx-auto flex w-full flex-col gap-12 md:w-4/5 lg:w-5/6">
+    <div data-page-entrance className="mx-auto flex w-full flex-col gap-12 md:w-4/5 lg:w-5/6">
       {/* 卷首 Hero */}
       <Hero profile={profileConfig} />
 
@@ -79,7 +79,9 @@ export default async function HomePage() {
       )}
 
       {/* 站点统计 */}
-      <SiteStats />
+      <div className="entrance [--entrance-delay:360ms]">
+        <SiteStats />
+      </div>
     </div>
   )
 }

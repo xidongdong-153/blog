@@ -131,7 +131,10 @@ MDX 渲染走异步 RSC（`mdx-content.tsx` 的 `compileMDX`），不需要 clie
 ## 页面切换视图过渡 (View Transitions)
 
 - 采用 Next.js 路由模板 `src/app/(site)/template.tsx` 重新挂载机制驱动入场，并在 `next.config.ts` 开启 `experimental.viewTransition: true` 配合原生 CSS 视图过渡。禁止引入 Framer Motion 等额外客户端动画库。
-- 动效采用纯交叉溶解（Pure Cross-Dissolve）：零空间位移、零虚化滤镜，`.page-transition-enter` 与 `::view-transition-new(root)` 统一执行 160ms 快速平滑透明度淡入，退场执行 120ms 加速淡出，专注抹平浏览器硬切白闪。
+- 普通页面保留 160ms 透明度淡入，原生视图过渡退场为 120ms。首页和 `/blog` 根节点声明 `data-page-entrance`，模板通过 `.page-transition-enter:not(:has([data-page-entrance]))` 排除整页淡入，避免与内容块动画叠加。排除条件写在原 CSS 选择器上，不能用 Tailwind 分层工具类覆盖未分层的动画声明。
+- 首页 Hero 按署名、头像、主标题、简介和按钮依次入场，延迟为 0–240ms；下方 Section 与统计延迟为 300–360ms。文章页按标题、精选系列、搜索栏、工具栏和条目展开。共享 Tailwind 工具类 `entrance` 执行 480ms 淡入与 10px 上移，曲线为 `cubic-bezier(0.22, 1, 0.36, 1)`，不添加动画库或客户端状态。
+- `PostCard` 仅在传入 `entranceIndex` 时播放，条目延迟从 180ms 起每项增加 60ms，封顶 360ms。主列表 section 的 key 包含来源、分类、排序和页码，参数切换时重播列表，`BlogSearch` 自身保持稳定以保留输入；搜索结果使用文章 slug 作 key，不因每次键入重建全部结果。
+- `entrance` 使用 backwards 填充，结束后不保留 transform 或透明度。内容无须等待脚本初始化；键盘焦点进入时立即可见；打印和减少动态效果模式不播放内容块入场。动画只在挂载时触发，不在滚动时反复触发。
 - 常驻组件（`header`、`footer`、`#global-ambient-backdrop`）留在 `src/app/(site)/layout.tsx`，通过 `view-transition-name: persistent-site-chrome` 配合 `animation: none;` 隔离，避免页面切换时导航栏与背景发生晃动。
 - 必须包含 `@media (prefers-reduced-motion: reduce)` 无障碍媒体查询，在用户开启减少动态效果时回退至即时切换。
 

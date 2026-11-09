@@ -22,6 +22,7 @@ export interface PostCardProps {
   post: BlogPost
   detailed?: boolean
   className?: string
+  entranceIndex?: number
   as?: 'li' | 'article' | 'div'
   /** 是否突出显示更新时间（如按最近更新排序时） */
   showUpdatedDate?: boolean
@@ -60,6 +61,7 @@ export function PostCard({
   post,
   detailed = true,
   className = '',
+  entranceIndex,
   as: Component = 'li',
   showUpdatedDate = false,
   currentSource = 'all',
@@ -72,13 +74,21 @@ export function PostCard({
 
   const containerClasses = [
     'post-item group/item relative flex flex-col border-b border-border/40 pb-7 pt-4 transition-colors',
+    entranceIndex !== undefined && 'entrance',
     className,
   ]
     .filter(Boolean)
     .join(' ')
 
   return (
-    <Component className={containerClasses}>
+    <Component
+      className={containerClasses}
+      style={
+        entranceIndex === undefined
+          ? undefined
+          : { animationDelay: `${180 + Math.min(Math.max(entranceIndex, 0), 3) * 60}ms` }
+      }
+    >
       {/* 顶部技术等宽眉标 (Mono Kicker) */}
       <div className="mb-2 flex flex-wrap items-center gap-2 font-mono text-xs tracking-wider text-muted-foreground">
         {post.draft ? (

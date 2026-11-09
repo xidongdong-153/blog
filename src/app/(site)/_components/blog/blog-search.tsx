@@ -38,7 +38,7 @@ export function BlogSearch({
 
   return (
     <div className="flex flex-col gap-6">
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+      <div className="entrance flex flex-col gap-3 [--entrance-delay:120ms] sm:flex-row sm:items-center sm:justify-between">
         <div className="flex min-w-0 flex-1 items-center gap-2 sm:max-w-md">
           <label htmlFor="site-search" className="sr-only">
             搜索文章
@@ -64,7 +64,7 @@ export function BlogSearch({
         </div>
         {sourceSwitch}
       </div>
-      {!isSearching && toolbar}
+      {!isSearching && <div className="entrance [--entrance-delay:180ms]">{toolbar}</div>}
       <div className={`grid gap-y-10 ${sidebar ? 'lg:grid-cols-[minmax(0,3fr)_minmax(0,1fr)] lg:gap-x-8' : ''}`}>
         {isSearching ? (
           <section aria-label="搜索结果" className="flex min-w-0 flex-col">
@@ -74,8 +74,14 @@ export function BlogSearch({
                   找到 {hits.length} 篇
                 </p>
                 <ul className="flex flex-col text-start">
-                  {hits.map((hit) => (
-                    <PostCard key={hit.post.slug} post={hit.post} hit={hit} currentSource={currentSource} />
+                  {hits.map((hit, index) => (
+                    <PostCard
+                      key={hit.post.slug}
+                      post={hit.post}
+                      hit={hit}
+                      currentSource={currentSource}
+                      entranceIndex={index}
+                    />
                   ))}
                 </ul>
               </>
@@ -88,7 +94,7 @@ export function BlogSearch({
         ) : (
           children
         )}
-        {sidebar}
+        {sidebar && <div className="entrance min-w-0 [--entrance-delay:180ms]">{sidebar}</div>}
       </div>
     </div>
   )
