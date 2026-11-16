@@ -2,7 +2,7 @@ import { getAllBlogPosts } from '@/lib/content'
 import { siteConfig } from '@/site.config'
 
 function escapeXml(unsafe: string): string {
-  return unsafe.replace(/[<>&'"]/g, (c) => {
+  return unsafe.replace(/[^\t\n\r\u0020-\uD7FF\uE000-\uFFFD\u{10000}-\u{10FFFF}]/gu, '').replace(/[<>&'"]/g, (c) => {
     switch (c) {
       case '<':
         return '&lt;'
@@ -32,12 +32,17 @@ export async function GET(): Promise<Response> {
     .map((post) => {
       const postUrl = `${baseUrl}/blog/${post.slug}`
       const pubDate = new Date(post.date).toUTCString()
+      const categoriesXml = post.tags
+        .map(escapeXml)
+        .filter(Boolean)
+        .map((tag) => `\n      <category>${tag}</category>`)
+        .join('')
 
       return `    <item>
       <title>${escapeXml(post.title)}</title>
       <link>${postUrl}</link>
       <guid isPermaLink="true">${postUrl}</guid>
-      <description>${escapeXml(post.description || '')}</description>
+      <description>${escapeXml(post.description || '')}</description>${categoriesXml}
       <pubDate>${pubDate}</pubDate>
     </item>`
     })
