@@ -55,18 +55,22 @@ export function buildBlogListUrl({
   return query ? `/blog?${query}` : '/blog'
 }
 
+const CJK_SCRIPT_RE = /[\p{Script=Han}\p{Script=Hiragana}\p{Script=Katakana}\p{Script=Hangul}]/gu
+
+/** 统计正文有效中文字符数与英文词数，供阅读时间与写作字数共享。 */
+export function getArticleWordCounts(content: string): { cjkChars: number; words: number; total: number } {
+  const clean = content.replace(/```[\s\S]*?```/g, '').replace(/<[^>]+>/g, '')
+  const cjkChars = (clean.match(CJK_SCRIPT_RE) ?? []).length
+  const words = (clean.replace(CJK_SCRIPT_RE, ' ').match(/[-\w]+/g) ?? []).length
+  return { cjkChars, words, total: cjkChars + words }
+}
+
 /**
  * 估算文章或笔记阅读时间（分钟），按中文 350 字/分钟、英文 160 词/分钟估算。
  * 格式如 "预计阅读 1 分钟"。
  */
 export function calculateReadingTime(content: string): string {
-  const clean = content.replace(/```[\s\S]*?```/g, '').replace(/<[^>]+>/g, '')
-  const cjkChars = (clean.match(/[\p{Script=Han}\p{Script=Hiragana}\p{Script=Katakana}\p{Script=Hangul}]/gu) ?? [])
-    .length
-  const words = (
-    clean.replace(/[\p{Script=Han}\p{Script=Hiragana}\p{Script=Katakana}\p{Script=Hangul}]/gu, ' ').match(/[-\w]+/g) ??
-    []
-  ).length
+  const { cjkChars, words } = getArticleWordCounts(content)
   const minutes = Math.max(1, Math.ceil(cjkChars / 350 + words / 160))
   return `预计阅读 ${minutes} 分钟`
 }

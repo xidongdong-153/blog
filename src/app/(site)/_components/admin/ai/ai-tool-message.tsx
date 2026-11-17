@@ -91,7 +91,7 @@ export function AiToolMessage({
                 <Code variant="soft" size="1" className="!break-all !whitespace-normal">
                   {toolId}
                 </Code>
-                <Badge color={failed || invalidOutput ? 'red' : succeeded ? 'green' : active ? 'blue' : 'gray'}>
+                <Badge color={failed || invalidOutput ? 'red' : succeeded ? 'jade' : active ? 'jade' : 'gray'}>
                   {status}
                 </Badge>
                 {isRunning && (
@@ -198,7 +198,7 @@ export function AiToolMessage({
                   </Code>
                 ))}
               </Flex>
-              <Badge color="green">初稿就绪</Badge>
+              <Badge color="jade">初稿就绪</Badge>
             </Flex>
 
             <Flex align="start" gap="3" className="min-w-0">

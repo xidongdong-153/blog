@@ -34,8 +34,8 @@ export function SpotlightCard({
       data-slot="spotlight-card"
       onPointerMove={handlePointerMove}
       className={cn(
-        'group/spotlight relative overflow-hidden rounded-xl border border-border bg-card transition-[border-color,box-shadow] duration-(--ui-duration) ease-(--ui-ease)',
-        'before:pointer-events-none before:absolute before:inset-0 before:rounded-[inherit] before:bg-[radial-gradient(280px_circle_at_var(--spotlight-x,50%)_var(--spotlight-y,50%),hsl(var(--primary)/0.09),transparent_75%)] before:opacity-0 before:transition-opacity before:duration-300 hover:before:opacity-100 motion-reduce:before:hidden',
+        'group/spotlight relative overflow-hidden rounded-xl border border-hair bg-card/88 shadow-[var(--surface-shadow)] transition-[border-color,box-shadow] duration-(--ui-duration) ease-(--ui-ease)',
+        'before:pointer-events-none before:absolute before:inset-0 before:rounded-[inherit] before:bg-[radial-gradient(280px_circle_at_var(--spotlight-x,50%)_var(--spotlight-y,50%),hsl(var(--primary)/0.07),transparent_75%)] before:opacity-0 before:transition-opacity before:duration-300 hover:before:opacity-100 motion-reduce:before:hidden',
         className,
       )}
       {...props}

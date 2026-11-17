@@ -92,14 +92,14 @@ export function AiConversation({
   }
 
   return (
-    <Box className="w-full min-w-0 overflow-hidden rounded-xl border border-border bg-card/40">
+    <Box className="w-full min-w-0 overflow-hidden rounded-xl border border-hair bg-card/88 shadow-[var(--surface-shadow)]">
       {/* 聊天窗口顶部状态条 */}
       <Flex
         align="center"
         justify="between"
         gap="3"
         wrap="wrap"
-        className="border-b border-border/70 bg-background/60 px-4 py-2.5 sm:px-5"
+        className="border-b border-hair bg-background/60 px-4 py-2.5 sm:px-5"
       >
         <Flex align="center" gap="2" wrap="wrap" className="min-w-0">
           <Button
@@ -235,7 +235,7 @@ export function AiConversation({
                       return null
                     })}
                   </Flex>
-                  <Avatar fallback="你" size="2" radius="full" color="blue" className="mt-1 shrink-0" />
+                  <Avatar fallback="你" size="2" radius="full" color="jade" className="mt-1 shrink-0" />
                 </Flex>
               )
             }

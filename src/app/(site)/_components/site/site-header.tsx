@@ -114,15 +114,19 @@ export function SiteHeader({ posts = [], categories = [] }: SiteHeaderProps) {
 
   // 滚动显隐与顶部模糊背板判定
   useEffect(() => {
-    if (isAdminRoute) {
-      setVisible(true)
-      setScrolled(false)
-      return
-    }
-
     const updateHeader = () => {
       const currentScrollY = window.scrollY
-      setScrolled(currentScrollY > 40)
+      setScrolled(currentScrollY > (isAdminRoute ? 12 : 40))
+
+      if (isAdminRoute) {
+        if (!lastVisibleRef.current) {
+          lastVisibleRef.current = true
+          setVisible(true)
+        }
+        lastScrollY.current = currentScrollY
+        rafIdRef.current = null
+        return
+      }
 
       const delta = currentScrollY - lastScrollY.current
       if (currentScrollY <= 140) {
@@ -173,6 +177,8 @@ export function SiteHeader({ posts = [], categories = [] }: SiteHeaderProps) {
   // 全局 ⌘K / Ctrl+K 搜索快捷键 & 自定义打开事件
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
+      if (event.defaultPrevented) return
+      if (event.target instanceof Element && event.target.closest('[data-mdx-editor="true"]')) return
       if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === 'k') {
         event.preventDefault()
         setSearchOpen((prev) => !prev)

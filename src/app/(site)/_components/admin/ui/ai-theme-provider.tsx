@@ -16,11 +16,13 @@ const themeTokens = {
   '--gray-11': 'hsl(var(--muted-foreground))',
   '--gray-6': 'hsl(var(--border))',
   '--accent-9': 'hsl(var(--primary))',
+  '--accent-a3': 'hsl(var(--primary) / 0.12)',
   '--accent-contrast': 'hsl(var(--primary-foreground))',
+  '--focus-8': 'hsl(var(--ring))',
   minHeight: 0,
 } as CSSProperties
 
-/** 将组件库主题限制在 AI 界面内，并跟随站点明暗主题。 */
+/** 将组件库主题限制在 AI 界面内，并对齐松烟墨青主色与站点明暗主题。 */
 export function AiThemeProvider({ children }: { children: ReactNode }) {
   const [appearance, setAppearance] = useState<'light' | 'dark'>('light')
 
@@ -36,8 +38,8 @@ export function AiThemeProvider({ children }: { children: ReactNode }) {
   return (
     <Theme
       appearance={appearance}
-      accentColor="blue"
-      grayColor="sand"
+      accentColor="jade"
+      grayColor="sage"
       radius="medium"
       panelBackground="solid"
       hasBackground={false}

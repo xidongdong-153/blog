@@ -142,6 +142,7 @@ export function CommandSearchModal({ isOpen, onClose, posts }: CommandSearchModa
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key === 'Escape') {
         event.preventDefault()
+        event.stopPropagation()
         onClose()
         return
       }

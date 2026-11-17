@@ -41,7 +41,7 @@ export default async function AdminDashboardPage() {
   const dashboardData = await getAdminDashboardData(session.user)
 
   return (
-    <div className="mx-auto flex w-full max-w-5xl flex-col gap-10 py-6 sm:py-10">
+    <div className="flex w-full flex-col gap-10 py-2 sm:py-4">
       {/* 1. 顶部信息与系统状态条 */}
       <AdminHeader user={dashboardData.adminUser} system={dashboardData.system} />
 

@@ -3,6 +3,7 @@ import type { AdminRecentComment } from '@/server/modules/admin/admin.types'
 import { ArrowUpRight, MessageSquare, Pin } from 'lucide-react'
 import Link from 'next/link'
 import { formatDate, formatRelativeTime } from '@/lib/content'
+import { PaperSurface } from '../site/paper-surface'
 
 interface AdminRecentCommentsProps {
   recentComments: AdminRecentComment[]
@@ -15,42 +16,41 @@ export function AdminRecentComments({ recentComments }: AdminRecentCommentsProps
   const hasComments = recentComments.length > 0
 
   return (
-    <div className="flex flex-col gap-3.5 rounded-lg border border-border/60 bg-card/40 p-4.5 transition-all hover:border-border">
-      <div className="flex items-center justify-between">
+    <div className="relative isolate flex flex-col gap-3.5 overflow-hidden rounded-xl p-5">
+      <PaperSurface />
+      <div className="flex items-center justify-between gap-2">
         <div className="flex items-center gap-2 font-mono text-xs tracking-wider text-muted-foreground">
           <span>// 03. 最新评论</span>
-          <span className="text-border">•</span>
-          <span>最新 {recentComments.length} 条</span>
+          <span aria-hidden="true">·</span>
+          <span className="tabular-nums">最新 {recentComments.length} 条</span>
         </div>
 
         <Link
           href="/blog"
-          className="font-mono text-xs text-muted-foreground transition-colors hover:text-foreground hover:underline"
+          className="font-mono text-xs text-muted-foreground underline-offset-4 transition-colors hover:text-primary hover:underline"
         >
-          浏览文章列表 ↗
+          文章列表 ↗
         </Link>
       </div>
 
       {!hasComments ? (
-        <div className="flex flex-col items-center justify-center gap-2 py-6 text-center">
+        <div className="flex flex-col items-center justify-center gap-2 py-8 text-center">
           <div className="flex size-9 items-center justify-center rounded-full bg-muted text-muted-foreground">
-            <MessageSquare className="size-4" />
+            <MessageSquare className="size-4" aria-hidden="true" />
           </div>
-          <div className="text-sm font-medium text-foreground">暂无评论</div>
-          <p className="max-w-xs text-xs text-muted-foreground">暂无评论。</p>
+          <p className="text-sm text-muted-foreground">暂无评论。</p>
         </div>
       ) : (
-        <div className="flex flex-col divide-y divide-border/40">
+        <div className="flex flex-col divide-y divide-hair">
           {recentComments.map((comment) => {
             const fallbackInitial = (comment.authorName || '访客').charAt(0).toUpperCase()
             const postHref = comment.postSlug ? `/blog/${comment.postSlug}#comment-${comment.id}` : '/blog'
 
             return (
-              <div key={comment.id} className="flex flex-col gap-2 py-3 first:pt-1 last:pb-1">
-                {/* 评论者与时间 */}
+              <div key={comment.id} className="flex flex-col gap-2 py-3.5 first:pt-1 last:pb-1">
                 <div className="flex items-center justify-between gap-2">
-                  <div className="flex items-center gap-2 min-w-0">
-                    <div className="flex size-6 shrink-0 items-center justify-center overflow-hidden rounded-full border border-border/60 bg-muted text-[10px] font-medium text-foreground">
+                  <div className="flex min-w-0 items-center gap-2">
+                    <div className="flex size-6 shrink-0 items-center justify-center overflow-hidden rounded-full border border-hair bg-muted text-xs font-medium text-foreground">
                       {comment.authorImage ? (
                         <img src={comment.authorImage} alt={comment.authorName} className="size-full object-cover" />
                       ) : (
@@ -59,8 +59,8 @@ export function AdminRecentComments({ recentComments }: AdminRecentCommentsProps
                     </div>
                     <span className="truncate text-xs font-medium text-foreground">{comment.authorName}</span>
                     {comment.isPinned && (
-                      <span className="inline-flex items-center gap-0.5 rounded bg-primary/10 px-1 py-0.2 font-mono text-[9px] text-primary">
-                        <Pin className="size-2.5" />
+                      <span className="inline-flex items-center gap-0.5 rounded-md bg-primary/10 px-1.5 py-0.5 font-mono text-xs text-primary">
+                        <Pin className="size-2.5" aria-hidden="true" />
                         置顶
                       </span>
                     )}
@@ -69,25 +69,23 @@ export function AdminRecentComments({ recentComments }: AdminRecentCommentsProps
                   <time
                     dateTime={comment.createdAt}
                     title={formatDate(comment.createdAt)}
-                    className="shrink-0 font-mono text-[11px] text-muted-foreground"
+                    className="shrink-0 font-mono text-xs tabular-nums text-muted-foreground"
                   >
                     {formatRelativeTime(comment.createdAt)}
                   </time>
                 </div>
 
-                {/* 评论正文摘要 */}
-                <p className="text-xs leading-relaxed text-muted-foreground line-clamp-2 pl-8">
+                <p className="line-clamp-2 pl-8 text-xs leading-relaxed text-muted-foreground">
                   {comment.contentSnippet}
                 </p>
 
-                {/* 所属文章关联直达链接 */}
                 <div className="flex items-center justify-end pl-8">
                   <Link
                     href={postHref}
-                    className="inline-flex items-center gap-1 font-mono text-[11px] text-muted-foreground transition-colors hover:text-primary hover:underline"
+                    className="inline-flex items-center gap-1 font-mono text-xs text-muted-foreground underline-offset-4 transition-colors hover:text-primary hover:underline"
                   >
-                    <span>关联: {comment.postTitle}</span>
-                    <ArrowUpRight className="size-3" />
+                    <span className="max-w-xs truncate">{comment.postTitle}</span>
+                    <ArrowUpRight className="size-3 shrink-0" aria-hidden="true" />
                   </Link>
                 </div>
               </div>

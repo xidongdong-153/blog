@@ -30,7 +30,7 @@ function SelectTrigger({
       data-slot="select-trigger"
       data-size={size}
       className={cn(
-        "flex min-w-0 w-fit items-center justify-between gap-2 rounded-md border-0 bg-muted/40 px-3 py-2 text-sm font-normal whitespace-nowrap shadow-none transition-colors duration-(--ui-duration) motion-reduce:transition-none outline-none hover:bg-muted/60 focus:bg-muted/50 focus:outline-none focus-visible:outline-none focus-visible:ring-0 disabled:cursor-not-allowed disabled:opacity-50 data-[placeholder]:text-muted-foreground data-[size=default]:h-11 data-[size=sm]:h-8 *:data-[slot=select-value]:min-w-0 *:data-[slot=select-value]:truncate *:data-[slot=select-value]:text-left aria-invalid:text-destructive dark:aria-invalid:text-destructive [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4 [&_svg:not([class*='text-'])]:text-muted-foreground",
+        "flex min-w-0 w-fit items-center justify-between gap-2 rounded-md border border-hair bg-muted/45 px-3 py-2 text-sm font-normal whitespace-nowrap shadow-none transition-[background-color,border-color,color] duration-(--ui-duration) motion-reduce:transition-none outline-none hover:bg-muted/65 focus:border-primary/45 focus:bg-card/90 focus-visible:outline-2 focus-visible:outline-solid focus-visible:outline-offset-2 focus-visible:outline-ring disabled:cursor-not-allowed disabled:opacity-50 data-[placeholder]:text-muted-foreground data-[size=default]:h-11 data-[size=sm]:h-8 *:data-[slot=select-value]:min-w-0 *:data-[slot=select-value]:truncate *:data-[slot=select-value]:text-left aria-invalid:border-destructive/60 aria-invalid:text-destructive dark:aria-invalid:text-destructive [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4 [&_svg:not([class*='text-'])]:text-muted-foreground",
         className,
       )}
       {...props}
@@ -57,7 +57,7 @@ function SelectContent({
       <SelectPrimitive.Content
         data-slot="select-content"
         className={cn(
-          'relative z-[80] max-h-(--radix-select-content-available-height) min-w-32 max-w-(--radix-select-content-available-width) overflow-hidden rounded-md border border-border bg-popover text-popover-foreground shadow-md duration-(--ui-duration) ease-(--ui-ease) data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:animate-in data-[state=open]:fade-in-0 motion-reduce:animate-none',
+          'relative z-[80] max-h-(--radix-select-content-available-height) min-w-32 max-w-(--radix-select-content-available-width) overflow-hidden rounded-md border border-hair bg-popover text-popover-foreground shadow-[var(--surface-shadow)] duration-(--ui-duration) ease-(--ui-ease) data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:animate-in data-[state=open]:fade-in-0 motion-reduce:animate-none',
           position === 'popper' && 'w-(--radix-select-trigger-width)',
           className,
         )}

@@ -33,9 +33,9 @@ export function DatePicker({
           variant="ghost"
           disabled={disabled}
           aria-describedby={`${id}-value`}
-          className="w-full justify-between border-0 bg-muted/40 font-normal hover:bg-muted/60 focus:outline-none focus-visible:outline-none focus-visible:ring-0 focus-visible:ring-offset-0"
+          className="w-full justify-between border border-hair bg-muted/45 font-normal hover:bg-muted/65 focus:border-primary/45 focus:bg-card/90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring focus-visible:ring-0 focus-visible:ring-offset-0"
         >
-          <span id={`${id}-value`} className={value ? '' : 'text-muted-foreground'}>
+          <span id={`${id}-value`} className={`tabular-nums ${value ? '' : 'text-muted-foreground'}`}>
             {value ? formatDate(value) : '选择日期'}
           </span>
           <CalendarDays className="text-muted-foreground" />

@@ -144,7 +144,7 @@ export function PostGenerateDialog({
               <Text
                 as="label"
                 size="2"
-                className="flex cursor-pointer items-start gap-3 rounded-lg border border-border bg-muted/30 p-3 leading-relaxed"
+                className="flex cursor-pointer items-start gap-3 rounded-lg border border-hair bg-muted/35 p-3 leading-relaxed"
               >
                 <Checkbox
                   checked={replaceConfirmed}

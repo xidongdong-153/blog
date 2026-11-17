@@ -1,41 +1,79 @@
 'use client'
 
+import type { RefObject } from 'react'
 import type { ManagedPost, PostDocument, PostInput } from '@/lib/posts'
-import { ArrowLeft, ChevronDown, Columns2, ExternalLink, Eye, FilePenLine, Save } from 'lucide-react'
+import {
+  ArrowLeft,
+  ArrowUpDown,
+  Columns2,
+  ExternalLink,
+  Eye,
+  FilePenLine,
+  Maximize2,
+  Minimize2,
+  Save,
+  SlidersHorizontal,
+  Sparkles,
+} from 'lucide-react'
 import dynamic from 'next/dynamic'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react'
+import { createPortal } from 'react-dom'
 import { toast } from 'sonner'
-import { BLOG_CATEGORY_LABELS } from '@/lib/blog-meta'
+import { BLOG_CATEGORY_LABELS, calculateReadingTime, getArticleWordCounts } from '@/lib/blog-meta'
+import { formatDate } from '@/lib/date'
 import { generatedPostDraftSchema } from '@/lib/post-draft'
 import { createEmptyPost } from '@/lib/posts'
-import { REGISTERED_SERIES } from '@/lib/series'
+import { PaperSurface } from '../../site/paper-surface'
 import { Button } from '../ui/button'
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '../ui/collapsible'
-import { DatePicker } from '../ui/date-picker'
-import { Input } from '../ui/input'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select'
-import { Switch } from '../ui/switch'
 import { Tabs, TabsList, TabsTrigger } from '../ui/tabs'
-import { Textarea } from '../ui/textarea'
 import { LiveMdxPreview } from './live-mdx-preview'
 import { postRequest } from './post-api'
 import { PostConfirmDialog } from './post-confirm-dialog'
 import { PostGenerateDialog } from './post-generate-dialog'
+import { PostPropertiesPanel } from './post-properties-panel'
 
 const MarkdownEditor = dynamic(() => import('./markdown-editor').then((module) => module.MarkdownEditor), {
   ssr: false,
   loading: () => (
     <div
-      className="min-h-[610px] animate-pulse rounded-lg border border-border bg-muted/30 motion-reduce:animate-none"
+      className="h-[max(460px,calc(100dvh-23rem))] rounded-xl border border-hair bg-muted/25"
       aria-label="编辑器加载中"
     />
   ),
 })
 
 type EditorMode = 'edit' | 'split' | 'preview'
+type SplitRatio = 'equal' | 'editor-wide'
 
+function resolveInspectorErrorTarget(message: string): string | null {
+  if (message.includes('文章地址')) return 'post-slug'
+  if (message.includes('日期')) return 'post-date'
+  if (message.includes('图片')) return 'post-cover'
+  if (message.includes('主题色')) return 'post-color'
+  if (message.includes('排序')) return 'post-order'
+  if (message.includes('专栏')) return 'post-series'
+  return null
+}
+
+const XL_MEDIA_QUERY = '(min-width: 1280px)'
+
+function subscribeXlMedia(onChange: () => void) {
+  const media = window.matchMedia(XL_MEDIA_QUERY)
+  media.addEventListener('change', onChange)
+  return () => media.removeEventListener('change', onChange)
+}
+
+function getXlSnapshot() {
+  return window.matchMedia(XL_MEDIA_QUERY).matches
+}
+
+function getXlServerSnapshot() {
+  return true
+}
+
+/** 纸面优先文章写作工作台：直写标题摘要、分栏文章级预览、专注写作模式与可收放侧边属性栏。 */
 export function PostEditor({ initial }: { initial?: ManagedPost }) {
   const router = useRouter()
   const [pendingNavigation, setPendingNavigation] = useState<string | null>(null)
@@ -55,13 +93,67 @@ export function PostEditor({ initial }: { initial?: ManagedPost }) {
   const busy = operation !== null
   const [error, setError] = useState('')
   const [mode, setMode] = useState<EditorMode>('split')
+  const [splitRatio, setSplitRatio] = useState<SplitRatio>('equal')
+  const [syncScroll, setSyncScroll] = useState(true)
+  const [writerFocus, setWriterFocus] = useState(false)
+  const [desktopInspectorOpen, setDesktopInspectorOpen] = useState(true)
+  const [sheetInspectorOpen, setSheetInspectorOpen] = useState(false)
   const [confirmPublish, setConfirmPublish] = useState(false)
+
   const busyRef = useRef(false)
+  const editorScrollRef = useRef<HTMLDivElement | null>(null)
+  const previewScrollRef = useRef<HTMLDivElement | null>(null)
+  const suppressEditorUntilRef = useRef(0)
+  const suppressPreviewUntilRef = useRef(0)
+  const needsInitialPreviewSyncRef = useRef(false)
+  const syncScrollRef = useRef(syncScroll)
+  syncScrollRef.current = syncScroll
+  const modeRef = useRef(mode)
+  modeRef.current = mode
+  const descriptionRef = useRef<HTMLTextAreaElement | null>(null)
+  const inspectorButtonRef = useRef<HTMLButtonElement | null>(null)
+  const sheetDialogRef = useRef<HTMLDivElement | null>(null)
+  const pendingFocusTargetRef = useRef<string | null>(null)
+  const isXl = useSyncExternalStore(subscribeXlMedia, getXlSnapshot, getXlServerSnapshot)
+  const showSheet = !isXl && !writerFocus && sheetInspectorOpen
   const dirty = JSON.stringify(input) !== savedInput
 
   const setDocument = useCallback(<K extends keyof PostDocument>(field: K, value: PostDocument[K]) => {
     setInput((current) => ({ ...current, document: { ...current.document, [field]: value } }))
   }, [])
+
+  const closeSheet = useCallback(() => {
+    setSheetInspectorOpen(false)
+    window.requestAnimationFrame(() => {
+      inspectorButtonRef.current?.focus()
+    })
+  }, [])
+
+  function openInspectorAndFocus(targetId: string) {
+    if (writerFocus) setWriterFocus(false)
+    pendingFocusTargetRef.current = targetId
+    if (window.matchMedia(XL_MEDIA_QUERY).matches) {
+      setDesktopInspectorOpen(true)
+    } else {
+      setSheetInspectorOpen(true)
+    }
+    window.requestAnimationFrame(() => {
+      const target = document.getElementById(targetId)
+      if (target) {
+        pendingFocusTargetRef.current = null
+        target.focus()
+        target.scrollIntoView({ block: 'nearest' })
+      }
+    })
+  }
+
+  function toggleInspector() {
+    if (window.matchMedia(XL_MEDIA_QUERY).matches) {
+      setDesktopInspectorOpen((current) => !current)
+    } else {
+      setSheetInspectorOpen((current) => !current)
+    }
+  }
 
   async function persist(): Promise<ManagedPost> {
     const body = { ...input }
@@ -138,7 +230,10 @@ export function PostEditor({ initial }: { initial?: ManagedPost }) {
     } catch (cause) {
       previewWindow?.close()
       setConfirmPublish(false)
-      setError(cause instanceof Error ? cause.message : '操作失败，请稍后重试')
+      const message = cause instanceof Error ? cause.message : '操作失败，请稍后重试'
+      setError(message)
+      const fieldId = resolveInspectorErrorTarget(message)
+      if (fieldId) openInspectorAndFocus(fieldId)
     } finally {
       busyRef.current = false
       setOperation(null)
@@ -155,22 +250,195 @@ export function PostEditor({ initial }: { initial?: ManagedPost }) {
     return () => media.removeEventListener('change', adapt)
   }, [])
 
+  useEffect(() => {
+    const media = window.matchMedia(XL_MEDIA_QUERY)
+    const onResize = (event: MediaQueryListEvent) => {
+      if (event.matches) setSheetInspectorOpen(false)
+    }
+    media.addEventListener('change', onResize)
+    return () => media.removeEventListener('change', onResize)
+  }, [])
+
+  // 窄屏属性抽屉焦点进入、Tab 焦点捕获与背景滚动锁定
+  useEffect(() => {
+    if (!showSheet) return
+    const prevOverflow = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+
+    const focusTimer = window.requestAnimationFrame(() => {
+      const pendingId = pendingFocusTargetRef.current
+      if (pendingId) {
+        const target = document.getElementById(pendingId)
+        if (target) {
+          pendingFocusTargetRef.current = null
+          target.focus()
+          target.scrollIntoView({ block: 'nearest' })
+          return
+        }
+      }
+      const container = sheetDialogRef.current
+      if (!container) return
+      const firstFocusable = container.querySelector<HTMLElement>(
+        'button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), a[href], [tabindex]:not([tabindex="-1"])',
+      )
+      firstFocusable?.focus()
+    })
+
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key !== 'Tab' || !sheetDialogRef.current) return
+      if (document.activeElement?.closest('[data-radix-popper-content-wrapper], [role="listbox"]')) return
+      const focusables = Array.from(
+        sheetDialogRef.current.querySelectorAll<HTMLElement>(
+          'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])',
+        ),
+      ).filter((el) => el.offsetParent !== null)
+      if (focusables.length === 0) return
+      const first = focusables[0]
+      const last = focusables[focusables.length - 1]
+      const active = document.activeElement
+      if (!sheetDialogRef.current.contains(active)) {
+        event.preventDefault()
+        first.focus()
+        return
+      }
+      if (event.shiftKey && active === first) {
+        event.preventDefault()
+        last.focus()
+      } else if (!event.shiftKey && active === last) {
+        event.preventDefault()
+        first.focus()
+      }
+    }
+
+    document.addEventListener('keydown', onKeyDown, true)
+    return () => {
+      window.cancelAnimationFrame(focusTimer)
+      document.removeEventListener('keydown', onKeyDown, true)
+      document.body.style.overflow = prevOverflow
+    }
+  }, [showSheet])
+
+  const handlePreviewRendered = useCallback(() => {
+    if (!needsInitialPreviewSyncRef.current || modeRef.current !== 'split' || !syncScrollRef.current) return
+    const editorEl = editorScrollRef.current
+    const previewEl = previewScrollRef.current
+    if (!editorEl || !previewEl) return
+    const maxFrom = editorEl.scrollHeight - editorEl.clientHeight
+    const maxTo = previewEl.scrollHeight - previewEl.clientHeight
+    if (maxFrom <= 0 || maxTo <= 0) return
+    needsInitialPreviewSyncRef.current = false
+    suppressPreviewUntilRef.current = performance.now() + 80
+    previewEl.scrollTop = (editorEl.scrollTop / maxFrom) * maxTo
+  }, [])
+
+  // 分栏模式双向比例同步滚动
+  useEffect(() => {
+    if (mode !== 'split' || !syncScroll) return
+    needsInitialPreviewSyncRef.current = true
+    let attached = false
+    let cleanupListeners: (() => void) | null = null
+
+    function bind() {
+      const editorEl = editorScrollRef.current
+      const previewEl = previewScrollRef.current
+      if (!editorEl || !previewEl || attached) return false
+      attached = true
+
+      const sync = (
+        from: HTMLDivElement,
+        to: HTMLDivElement,
+        suppressSelfUntil: RefObject<number>,
+        suppressOtherUntil: RefObject<number>,
+      ) => {
+        if (performance.now() < suppressSelfUntil.current) return
+        const maxFrom = from.scrollHeight - from.clientHeight
+        const maxTo = to.scrollHeight - to.clientHeight
+        if (maxFrom <= 0 || maxTo <= 0) return
+        const nextTop = (from.scrollTop / maxFrom) * maxTo
+        if (Math.abs(to.scrollTop - nextTop) <= 1) return
+        suppressOtherUntil.current = performance.now() + 80
+        to.scrollTop = nextTop
+      }
+
+      const onEditorScroll = () => sync(editorEl, previewEl, suppressEditorUntilRef, suppressPreviewUntilRef)
+      const onPreviewScroll = () => sync(previewEl, editorEl, suppressPreviewUntilRef, suppressEditorUntilRef)
+      editorEl.addEventListener('scroll', onEditorScroll, { passive: true })
+      previewEl.addEventListener('scroll', onPreviewScroll, { passive: true })
+
+      // 刚切入分栏时若预览已有高度则同步一次当前阅读比例，否则交由 onRendered 接力对齐
+      window.requestAnimationFrame(() => {
+        if (previewEl.scrollHeight - previewEl.clientHeight > 0) {
+          needsInitialPreviewSyncRef.current = false
+          sync(editorEl, previewEl, suppressEditorUntilRef, suppressPreviewUntilRef)
+        }
+      })
+
+      cleanupListeners = () => {
+        editorEl.removeEventListener('scroll', onEditorScroll)
+        previewEl.removeEventListener('scroll', onPreviewScroll)
+      }
+      return true
+    }
+
+    if (!bind()) {
+      const timer = window.setInterval(() => {
+        if (bind()) window.clearInterval(timer)
+      }, 150)
+      return () => {
+        window.clearInterval(timer)
+        cleanupListeners?.()
+      }
+    }
+
+    return () => {
+      cleanupListeners?.()
+    }
+  }, [mode, syncScroll])
+
   const saveRef = useRef(() => {
     void perform('save')
   })
   saveRef.current = () => {
     void perform('save')
   }
+
   useEffect(() => {
     function handleKey(event: KeyboardEvent) {
-      if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 's' && !event.isComposing) {
+      if (event.isComposing) return
+      const key = event.key.toLowerCase()
+      if ((event.ctrlKey || event.metaKey) && key === 's') {
         event.preventDefault()
         saveRef.current()
+        return
+      }
+      if ((event.ctrlKey || event.metaKey) && event.shiftKey && key === 'f') {
+        event.preventDefault()
+        setWriterFocus((current) => !current)
+        return
+      }
+      if (event.key === 'Escape') {
+        if (event.defaultPrevented) return
+        const hasOpenPopup = Boolean(
+          document.querySelector('[role="menu"], [role="listbox"], [data-radix-popper-content-wrapper]'),
+        )
+        if (hasOpenPopup) return
+        if (showSheet) {
+          event.preventDefault()
+          closeSheet()
+          return
+        }
+        const hasOtherDialog = Boolean(document.querySelector('[role="dialog"], [role="alertdialog"]'))
+        if (hasOtherDialog) return
+        if (writerFocus && !generateOpen && !confirmPublish && !leaveOpen) {
+          event.preventDefault()
+          setWriterFocus(false)
+        }
       }
     }
     window.addEventListener('keydown', handleKey)
     return () => window.removeEventListener('keydown', handleKey)
-  }, [])
+  }, [writerFocus, showSheet, closeSheet, generateOpen, confirmPublish, leaveOpen])
+
   useEffect(() => {
     if (!dirty) return
     function beforeUnload(event: BeforeUnloadEvent) {
@@ -197,321 +465,379 @@ export function PostEditor({ initial }: { initial?: ManagedPost }) {
   }, [dirty])
 
   const doc = input.document
+  const wordStats = useMemo(() => getArticleWordCounts(doc.content), [doc.content])
+  const readingTime = useMemo(() => calculateReadingTime(doc.content), [doc.content])
+  const slugMissing = !input.slug.trim()
+
+  const propertiesPanel = (
+    <PostPropertiesPanel
+      slug={input.slug}
+      slugLocked={Boolean(record?.slugLocked)}
+      document={doc}
+      tagsText={tagsText}
+      busy={busy}
+      onSlugChange={(value) => setInput((current) => ({ ...current, slug: value }))}
+      onDocumentChange={setDocument}
+      onTagsTextChange={setTagsText}
+      onClose={() => {
+        if (isXl) setDesktopInspectorOpen(false)
+        else closeSheet()
+      }}
+    />
+  )
+
   return (
-    <div className="flex flex-col gap-6 pb-8">
-      <header className="flex flex-wrap items-center justify-between gap-4 border-b border-border pb-5">
-        <div className="flex min-w-0 items-center gap-4">
-          <Button asChild variant="outline" size="icon">
-            <Link href="/admin/posts" aria-label="返回文章列表">
-              <ArrowLeft />
-            </Link>
-          </Button>
-          <div>
-            <h1 className="text-xl font-medium">{record ? '编辑文章' : '新建文章'}</h1>
-            <p className="mt-1 text-xs text-muted-foreground" aria-live="polite">
-              {record?.published ? '已发布' : '草稿'} · {busy ? '处理中…' : dirty || !record ? '未保存' : '已保存'}
-              {record?.published && record.hasUnpublishedChanges ? ' · 有未发布修改' : ''}
-            </p>
+    <div data-writer-focus={writerFocus ? 'true' : 'false'} className="group/writer flex flex-col gap-5 pb-10">
+      {/* 吸顶写作动作栏 */}
+      <header className="sticky top-[4.5rem] z-30 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-hair bg-background/88 px-3.5 py-2.5 shadow-[var(--surface-shadow)] backdrop-blur-md transition-[top] duration-200 group-data-[writer-focus=true]/writer:top-2 sm:px-4">
+        <div className="flex min-w-0 flex-wrap items-center gap-3">
+          {writerFocus ? (
+            <Button variant="outline" size="sm" className="min-h-11 sm:min-h-9" onClick={() => setWriterFocus(false)}>
+              <Minimize2 aria-hidden="true" />
+              退出专注
+            </Button>
+          ) : (
+            <Button asChild variant="outline" size="icon-sm" className="size-11 sm:size-9">
+              <Link href="/admin/posts" aria-label="返回文章列表">
+                <ArrowLeft />
+              </Link>
+            </Button>
+          )}
+
+          <div className="flex min-w-0 flex-wrap items-center gap-2 font-mono text-xs tabular-nums" aria-live="polite">
+            <span
+              className={`rounded-md px-2 py-0.5 font-medium ${
+                record?.published
+                  ? 'bg-emerald-700/10 text-emerald-700 dark:bg-emerald-400/10 dark:text-emerald-400'
+                  : 'bg-muted text-muted-foreground'
+              }`}
+            >
+              {record?.published ? '已发布' : '草稿'}
+            </span>
+            {record && <span className="text-muted-foreground">r{record.revision}</span>}
+            <span className="text-muted-foreground">{busy ? '处理中…' : dirty || !record ? '未保存' : '已保存'}</span>
+            {record?.published && record.hasUnpublishedChanges && (
+              <span className="rounded-md bg-amber-700/10 px-2 py-0.5 text-amber-700 dark:bg-amber-400/10 dark:text-amber-400">
+                有未发布修改
+              </span>
+            )}
+            {writerFocus && (
+              <span className="hidden text-muted-foreground sm:inline">
+                · {wordStats.total} 字 · {readingTime}
+              </span>
+            )}
           </div>
         </div>
+
         <div className="flex flex-wrap items-center gap-2">
+          {!writerFocus && (
+            <>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setWriterFocus(true)}
+                aria-label="专注写作"
+                aria-pressed={writerFocus}
+                className="min-h-11 sm:min-h-9"
+              >
+                <Maximize2 aria-hidden="true" />
+                <span className="hidden sm:inline">专注写作</span>
+              </Button>
+              <Button
+                ref={inspectorButtonRef}
+                variant="outline"
+                size="sm"
+                onClick={toggleInspector}
+                className="relative min-h-11 sm:min-h-9"
+                aria-label="切换文章属性栏"
+                aria-expanded={isXl ? desktopInspectorOpen : showSheet}
+              >
+                <SlidersHorizontal aria-hidden="true" />
+                <span>属性</span>
+                {slugMissing && (
+                  <span aria-label="待填写文章地址" className="size-1.5 rounded-full bg-amber-600 dark:bg-amber-400" />
+                )}
+              </Button>
+              <Button
+                ref={generateButtonRef}
+                variant="outline"
+                size="sm"
+                disabled={busy && operation !== 'generate'}
+                onClick={() => setGenerateOpen(true)}
+                className="min-h-11 sm:min-h-9"
+              >
+                <Sparkles aria-hidden="true" />
+                <span className="hidden md:inline">AI 生成初稿</span>
+                <span className="md:hidden">AI 初稿</span>
+              </Button>
+            </>
+          )}
+
           <Button
-            ref={generateButtonRef}
             variant="outline"
-            disabled={busy && operation !== 'generate'}
-            onClick={() => setGenerateOpen(true)}
-          >
-            AI 生成初稿
-          </Button>
-          <Button
-            variant="outline"
+            size="sm"
             disabled={busy}
             pending={operation === 'save'}
             onClick={() => {
               void perform('save')
             }}
+            className="min-h-11 sm:min-h-9"
           >
-            <Save />
-            保存草稿
+            <Save aria-hidden="true" />
+            <span>保存</span>
+            <kbd className="hidden font-mono text-xs text-muted-foreground xl:inline">⌘S</kbd>
           </Button>
+
+          {!writerFocus && (
+            <Button
+              variant="outline"
+              size="sm"
+              disabled={busy}
+              pending={operation === 'preview'}
+              aria-label="保存并外部预览"
+              onClick={() => {
+                void perform('preview')
+              }}
+              className="min-h-11 sm:min-h-9"
+            >
+              <ExternalLink aria-hidden="true" />
+              <span className="hidden sm:inline">外部预览</span>
+            </Button>
+          )}
+
           <Button
-            variant="outline"
+            size="sm"
             disabled={busy}
-            pending={operation === 'preview'}
-            onClick={() => {
-              void perform('preview')
-            }}
+            pending={operation === 'publish'}
+            onClick={() => setConfirmPublish(true)}
+            className="min-h-11 sm:min-h-9"
           >
-            <ExternalLink />
-            保存并外部预览
-          </Button>
-          <Button disabled={busy} pending={operation === 'publish'} onClick={() => setConfirmPublish(true)}>
             {record?.published ? '发布更新' : '发布'}
           </Button>
         </div>
       </header>
+
       {error && (
         <p
           role="alert"
-          className="rounded-md border border-red-600/40 bg-red-600/5 p-3 text-sm text-red-700 dark:text-red-400"
+          className="rounded-xl border border-destructive/35 bg-destructive/5 px-4 py-3 text-sm text-destructive"
         >
           {error}
         </p>
       )}
-      <section aria-label="文章属性" className="min-w-0">
-        <Collapsible defaultOpen className="overflow-hidden rounded-lg border border-border">
-          <CollapsibleTrigger asChild>
-            <Button variant="ghost" className="group w-full justify-between rounded-none px-4">
-              文章属性
-              <ChevronDown className="transition-transform duration-(--ui-duration) group-data-[state=open]:rotate-180 motion-reduce:transition-none" />
-            </Button>
-          </CollapsibleTrigger>
-          <CollapsibleContent>
-            <fieldset disabled={busy} className="flex min-w-0 flex-col gap-5 p-4 pt-3 sm:p-5 sm:pt-3">
-              <div className="grid min-w-0 gap-5 sm:grid-cols-2">
-                <label className="flex min-w-0 flex-col gap-2 text-sm font-medium" htmlFor="post-title">
-                  标题
-                  <Input
-                    id="post-title"
-                    maxLength={240}
-                    value={doc.title}
-                    disabled={busy}
-                    onChange={(event) => setDocument('title', event.target.value)}
-                    placeholder="文章标题"
-                    className="text-lg md:text-lg"
-                  />
-                </label>
-                <label htmlFor="post-slug" className="flex min-w-0 flex-col gap-2 text-sm font-medium">
-                  文章地址
-                  <Input
-                    id="post-slug"
-                    value={input.slug}
-                    maxLength={128}
-                    required
-                    disabled={record?.slugLocked || busy}
-                    onChange={(event) => setInput((current) => ({ ...current, slug: event.target.value }))}
-                    placeholder="my-first-post"
-                    pattern="[a-z0-9]+(-[a-z0-9]+)*"
-                    aria-describedby="post-slug-hint"
-                  />
-                  <span id="post-slug-hint" className="text-xs font-normal text-muted-foreground">
-                    {record?.slugLocked ? '发布后地址固定' : '小写字母、数字和连字符'}
-                  </span>
-                </label>
-              </div>
-              <div className="grid min-w-0 items-start gap-5 lg:grid-cols-2">
-                <label htmlFor="post-description" className="flex min-w-0 flex-col gap-2 text-sm font-medium">
-                  描述
-                  <Textarea
-                    id="post-description"
-                    value={doc.description}
-                    maxLength={1000}
-                    rows={3}
-                    className="min-h-28 resize-y font-normal [field-sizing:fixed]"
-                    onChange={(event) => setDocument('description', event.target.value)}
-                  />
-                </label>
-                <div className="grid min-w-0 gap-5 sm:grid-cols-3">
-                  <div className="flex min-w-0 flex-col gap-2 text-sm font-medium">
-                    <label htmlFor="post-category">分类</label>
-                    <Select
-                      value={doc.category}
-                      disabled={busy}
-                      onValueChange={(value) => setDocument('category', value as PostDocument['category'])}
-                    >
-                      <SelectTrigger id="post-category" className="w-full">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {Object.entries(BLOG_CATEGORY_LABELS).map(([value, label]) => (
-                          <SelectItem key={value} value={value}>
-                            {label}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <label htmlFor="post-tags" className="flex min-w-0 flex-col gap-2 text-sm font-medium sm:col-span-2">
-                    标签
-                    <Input
-                      id="post-tags"
-                      value={tagsText}
-                      maxLength={1800}
-                      onChange={(event) => {
-                        setTagsText(event.target.value)
-                        setDocument(
-                          'tags',
-                          event.target.value
-                            .split(/[,，]/)
-                            .map((tag) => tag.trim())
-                            .filter(Boolean),
-                        )
-                      }}
-                      placeholder="用逗号分隔"
-                    />
-                  </label>
-                </div>
-              </div>
-              <div className="grid min-w-0 gap-5 border-t border-border pt-5 sm:grid-cols-2 lg:grid-cols-6">
-                <div className="flex min-w-0 flex-col gap-2 text-sm font-medium">
-                  <label htmlFor="post-date">文章日期</label>
-                  <DatePicker
-                    id="post-date"
-                    value={doc.date}
-                    required
-                    disabled={busy}
-                    onValueChange={(value) => setDocument('date', value)}
-                  />
-                </div>
-                <div className="flex min-w-0 flex-col gap-2 text-sm font-medium">
-                  <label htmlFor="post-updated-date">内容更新日期</label>
-                  <DatePicker
-                    id="post-updated-date"
-                    value={doc.updatedDate}
-                    disabled={busy}
-                    onValueChange={(value) => setDocument('updatedDate', value)}
-                  />
-                </div>
-                <label htmlFor="post-cover" className="flex min-w-0 flex-col gap-2 text-sm font-medium lg:col-span-3">
-                  封面 URL
-                  <Input
-                    id="post-cover"
-                    value={doc.heroImage}
-                    maxLength={2048}
-                    onChange={(event) => setDocument('heroImage', event.target.value)}
-                    placeholder="https:// 或 /images/…"
-                  />
-                </label>
-                <label htmlFor="post-color" className="flex min-w-0 flex-col gap-2 text-sm font-medium">
-                  主题色
-                  <Input
-                    id="post-color"
-                    value={doc.heroColor}
-                    maxLength={7}
-                    onChange={(event) => setDocument('heroColor', event.target.value)}
-                    placeholder="#659eb9"
-                  />
-                </label>
-              </div>
-              <div className="grid min-w-0 items-start gap-5 sm:grid-cols-2 lg:grid-cols-6">
-                <div className="flex min-w-0 flex-col gap-2 text-sm font-medium sm:col-span-2 lg:col-span-3">
-                  <label htmlFor="post-series">专栏</label>
-                  <Select
-                    value={doc.series?.id ?? 'none'}
-                    disabled={busy}
-                    onValueChange={(value) =>
-                      setDocument('series', value === 'none' ? undefined : { id: value, order: doc.series?.order ?? 1 })
-                    }
-                  >
-                    <SelectTrigger id="post-series" className="w-full">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="none">无</SelectItem>
-                      {Object.values(REGISTERED_SERIES).map((series) => (
-                        <SelectItem key={series.id} value={series.id}>
-                          {series.title}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                {doc.series && (
-                  <>
-                    <label htmlFor="post-order" className="flex min-w-0 flex-col gap-2 text-sm font-medium">
-                      专栏排序
-                      <Input
-                        id="post-order"
-                        type="number"
-                        min={1}
-                        max={100000}
-                        value={doc.series.order}
-                        onChange={(event) => {
-                          if (doc.series) setDocument('series', { ...doc.series, order: Number(event.target.value) })
-                        }}
-                      />
-                    </label>
-                    <label
-                      htmlFor="post-group"
-                      className="flex min-w-0 flex-col gap-2 text-sm font-medium lg:col-span-2"
-                    >
-                      章节分组
-                      <Input
-                        id="post-group"
-                        value={doc.series.group ?? ''}
-                        maxLength={120}
-                        onChange={(event) => {
-                          if (doc.series) setDocument('series', { ...doc.series, group: event.target.value })
-                        }}
-                      />
-                    </label>
-                  </>
-                )}
-              </div>
-              <div className="grid gap-x-8 gap-y-1 border-t border-border pt-3 sm:grid-cols-2 lg:flex lg:gap-8">
-                <label
-                  htmlFor="post-ai-generated"
-                  className="flex min-h-11 cursor-pointer items-center justify-between gap-4 text-sm"
-                >
-                  AI 生成
-                  <Switch
-                    id="post-ai-generated"
-                    disabled={busy}
-                    checked={doc.aiGenerated}
-                    onCheckedChange={(checked) => setDocument('aiGenerated', checked)}
-                  />
-                </label>
-                <label
-                  htmlFor="post-disable-summary"
-                  className="flex min-h-11 cursor-pointer items-center justify-between gap-4 text-sm"
-                >
-                  关闭 AI 摘要
-                  <Switch
-                    id="post-disable-summary"
-                    disabled={busy}
-                    checked={doc.disableAiSummary}
-                    onCheckedChange={(checked) => setDocument('disableAiSummary', checked)}
-                  />
-                </label>
-              </div>
-            </fieldset>
-          </CollapsibleContent>
-        </Collapsible>
-      </section>
-      <Tabs value={mode} onValueChange={(value) => setMode(value as EditorMode)} className="min-w-0 gap-5">
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <TabsList aria-label="编辑器视图">
-            <TabsTrigger id="post-tab-edit" value="edit" aria-controls="post-editor-panel">
-              <FilePenLine className="size-4" />
-              编辑
-            </TabsTrigger>
-            <TabsTrigger
-              id="post-tab-split"
-              value="split"
-              aria-controls="post-editor-panel"
-              className="hidden lg:inline-flex"
-            >
-              <Columns2 className="size-4" />
-              分栏
-            </TabsTrigger>
-            <TabsTrigger id="post-tab-preview" value="preview" aria-controls="post-editor-panel">
-              <Eye className="size-4" />
-              预览
-            </TabsTrigger>
-          </TabsList>
-        </div>
-        <div
-          id="post-editor-panel"
-          role="tabpanel"
-          aria-labelledby={`post-tab-${mode}`}
-          className={`grid min-w-0 gap-5 ${mode === 'split' ? 'lg:grid-cols-2' : ''}`}
-        >
-          <div className={mode === 'preview' ? 'hidden' : 'min-w-0'}>
-            <MarkdownEditor value={doc.content} onChange={(value) => setDocument('content', value)} disabled={busy} />
+
+      {/* 主工作区：纸面正文（左/中）+ 可收放属性抽屉（右） */}
+      <div className={`flex min-w-0 items-start gap-6 ${writerFocus ? 'mx-auto w-full max-w-6xl' : ''}`}>
+        <div className="relative isolate min-w-0 flex-1 overflow-hidden rounded-xl p-5 sm:p-7">
+          <PaperSurface />
+
+          {/* 文章题头：分类 · 日期 · 可点击 slug · 实时阅读时长 */}
+          <div className="mb-5 flex flex-col gap-3 border-b border-hair pb-5">
+            <div className="flex flex-wrap items-center gap-x-2.5 gap-y-1 font-mono text-xs text-muted-foreground">
+              <span className="text-primary">{BLOG_CATEGORY_LABELS[doc.category]}</span>
+              <span aria-hidden="true">·</span>
+              <time dateTime={doc.date} className="tabular-nums">
+                {formatDate(doc.date)}
+              </time>
+              <span aria-hidden="true">·</span>
+              <button
+                type="button"
+                onClick={() => openInspectorAndFocus('post-slug')}
+                className={`cursor-pointer rounded-sm text-left underline-offset-4 transition-colors hover:text-primary hover:underline focus-visible:outline-2 focus-visible:outline-ring ${
+                  slugMissing ? 'text-amber-700 dark:text-amber-400' : ''
+                }`}
+              >
+                {input.slug ? `/blog/${input.slug}` : '设置文章地址…'}
+              </button>
+              <span aria-hidden="true">·</span>
+              <span className="tabular-nums">
+                {wordStats.total} 字 · {readingTime}
+              </span>
+            </div>
+
+            <label htmlFor="post-title" className="sr-only">
+              标题
+            </label>
+            <textarea
+              id="post-title"
+              rows={1}
+              maxLength={240}
+              disabled={busy}
+              value={doc.title}
+              placeholder="输入文章标题"
+              onChange={(event) => setDocument('title', event.target.value.replace(/[\r\n]+/g, ' '))}
+              onKeyDown={(event) => {
+                if (event.key === 'Enter' && !event.nativeEvent.isComposing) {
+                  event.preventDefault()
+                  descriptionRef.current?.focus()
+                }
+              }}
+              className="w-full resize-none [field-sizing:content] border-0 bg-transparent p-0 font-serif text-2xl leading-[1.28] font-medium tracking-tight text-foreground caret-primary selection:bg-primary/20 placeholder:text-muted-foreground focus:outline-none sm:text-3xl lg:text-4xl"
+            />
+
+            <label htmlFor="post-description" className="sr-only">
+              描述
+            </label>
+            <textarea
+              ref={descriptionRef}
+              id="post-description"
+              rows={1}
+              maxLength={1000}
+              disabled={busy}
+              value={doc.description}
+              placeholder="添加一句文章导语或摘要（可选）"
+              onChange={(event) => setDocument('description', event.target.value)}
+              className="w-full resize-none [field-sizing:content] border-0 bg-transparent p-0 text-sm leading-relaxed text-muted-foreground caret-primary selection:bg-primary/20 placeholder:text-muted-foreground focus:outline-none"
+            />
           </div>
-          {mode !== 'edit' && <LiveMdxPreview source={doc.content} />}
+
+          {/* 视图模式与分栏控制 */}
+          <Tabs value={mode} onValueChange={(value) => setMode(value as EditorMode)} className="min-w-0 gap-4">
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <TabsList aria-label="编辑器视图">
+                <TabsTrigger id="post-tab-edit" value="edit" aria-controls="post-editor-panel">
+                  <FilePenLine className="size-4" />
+                  编辑
+                </TabsTrigger>
+                <TabsTrigger
+                  id="post-tab-split"
+                  value="split"
+                  aria-controls="post-editor-panel"
+                  className="hidden lg:inline-flex"
+                >
+                  <Columns2 className="size-4" />
+                  分栏
+                </TabsTrigger>
+                <TabsTrigger id="post-tab-preview" value="preview" aria-controls="post-editor-panel">
+                  <Eye className="size-4" />
+                  预览
+                </TabsTrigger>
+              </TabsList>
+
+              {mode === 'split' && (
+                <div className="hidden items-center gap-2 font-mono text-xs lg:flex">
+                  <div
+                    className="inline-flex rounded-md border border-hair bg-muted/40 p-0.5"
+                    role="group"
+                    aria-label="分栏比例"
+                  >
+                    <button
+                      type="button"
+                      aria-pressed={splitRatio === 'equal'}
+                      onClick={() => setSplitRatio('equal')}
+                      className={`cursor-pointer rounded-sm px-2.5 py-1.5 transition-colors focus-visible:outline-2 focus-visible:outline-ring ${
+                        splitRatio === 'equal'
+                          ? 'bg-card text-foreground shadow-2xs'
+                          : 'text-muted-foreground hover:text-foreground'
+                      }`}
+                    >
+                      1:1
+                    </button>
+                    <button
+                      type="button"
+                      aria-pressed={splitRatio === 'editor-wide'}
+                      onClick={() => setSplitRatio('editor-wide')}
+                      className={`cursor-pointer rounded-sm px-2.5 py-1.5 transition-colors focus-visible:outline-2 focus-visible:outline-ring ${
+                        splitRatio === 'editor-wide'
+                          ? 'bg-card text-foreground shadow-2xs'
+                          : 'text-muted-foreground hover:text-foreground'
+                      }`}
+                    >
+                      3:2
+                    </button>
+                  </div>
+
+                  <button
+                    type="button"
+                    aria-pressed={syncScroll}
+                    onClick={() => setSyncScroll((current) => !current)}
+                    className={`inline-flex h-9 cursor-pointer items-center gap-1.5 rounded-md border px-2.5 transition-colors focus-visible:outline-2 focus-visible:outline-ring ${
+                      syncScroll
+                        ? 'border-primary/40 bg-primary/10 text-primary'
+                        : 'border-hair bg-background/60 text-muted-foreground hover:text-foreground'
+                    }`}
+                  >
+                    <ArrowUpDown className="size-3.5" aria-hidden="true" />
+                    <span>同步滚动</span>
+                  </button>
+                </div>
+              )}
+            </div>
+
+            <div
+              id="post-editor-panel"
+              role="tabpanel"
+              aria-labelledby={`post-tab-${mode}`}
+              className={`grid min-w-0 gap-4 ${
+                mode === 'split' ? (splitRatio === 'editor-wide' ? 'lg:grid-cols-[3fr_2fr]' : 'lg:grid-cols-2') : ''
+              }`}
+            >
+              <div className={mode === 'preview' ? 'hidden' : 'min-w-0'}>
+                <MarkdownEditor
+                  value={doc.content}
+                  onChange={(value) => setDocument('content', value)}
+                  disabled={busy}
+                  scrollRef={editorScrollRef}
+                  focusMode={writerFocus}
+                />
+              </div>
+              {mode !== 'edit' && (
+                <div className={mode === 'split' ? 'hidden min-w-0 lg:block' : 'min-w-0'}>
+                  <LiveMdxPreview
+                    source={doc.content}
+                    title={doc.title}
+                    description={doc.description}
+                    category={doc.category}
+                    date={doc.date}
+                    updatedDate={doc.updatedDate}
+                    tags={doc.tags}
+                    heroImage={doc.heroImage}
+                    heroColor={doc.heroColor}
+                    aiGenerated={doc.aiGenerated}
+                    series={doc.series}
+                    scrollRef={previewScrollRef}
+                    focusMode={writerFocus}
+                    onRendered={handlePreviewRendered}
+                  />
+                </div>
+              )}
+            </div>
+          </Tabs>
         </div>
-      </Tabs>
+
+        {/* 宽屏右侧内嵌属性栏 */}
+        {isXl && !writerFocus && desktopInspectorOpen && (
+          <aside
+            aria-label="文章属性面板"
+            className="hidden xl:sticky xl:top-[8.75rem] xl:block xl:max-h-[calc(100dvh-10rem)] xl:w-[340px] xl:shrink-0 xl:overflow-y-auto"
+          >
+            {propertiesPanel}
+          </aside>
+        )}
+      </div>
+
+      {/* 窄屏属性检查器抽屉（Portal 挂载于 body 顶层，z-75 高于页头 z-70 且低于弹层 z-80，带焦点捕获） */}
+      {showSheet &&
+        createPortal(
+          <div className="xl:hidden">
+            <div
+              aria-hidden="true"
+              onClick={closeSheet}
+              className="fixed inset-0 z-[74] bg-black/45 backdrop-blur-[1px]"
+            />
+            <div
+              ref={sheetDialogRef}
+              role="dialog"
+              aria-modal="true"
+              aria-label="文章属性"
+              className="fixed inset-y-0 right-0 z-[75] w-[min(100vw,22rem)] overflow-y-auto border-l border-hair bg-background/96 p-4 shadow-xl backdrop-blur-md"
+            >
+              {propertiesPanel}
+            </div>
+          </div>,
+          document.body,
+        )}
+
       {generateOpen && (
         <PostGenerateDialog
           hasExistingContent={Boolean(record) || dirty}

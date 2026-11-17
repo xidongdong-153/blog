@@ -262,12 +262,22 @@ html[data-backdrop-fx='off'] #site-film-backdrop {
   opacity: 0 !important;
 }
 
-html:has([data-reader-focus='true']) #global-ambient-backdrop {
+html:has([data-reader-focus='true'], [data-writer-focus='true']) #global-ambient-backdrop {
   opacity: 0.16;
 }
 
-html:has([data-reader-focus='true']) #site-film-backdrop {
+html:has([data-reader-focus='true'], [data-writer-focus='true']) #site-film-backdrop {
   opacity: 0.55;
+}
+
+html:has([data-writer-focus='true']) #site-header,
+html:has([data-writer-focus='true']) #site-footer,
+html:has([data-writer-focus='true']) [data-slot='admin-nav'] {
+  display: none;
+}
+
+html:has([data-writer-focus='true']) main {
+  padding-block: 1rem;
 }
 
 body {

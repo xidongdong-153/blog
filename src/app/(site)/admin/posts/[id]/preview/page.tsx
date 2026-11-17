@@ -1,9 +1,13 @@
 import type { Metadata } from 'next'
 import Image from 'next/image'
+import Link from 'next/link'
 import { notFound } from 'next/navigation'
+import { AiGeneratedLabel } from '@/app/(site)/_components/blog/ai-generated-label'
 import { MdxContent } from '@/app/(site)/_components/blog/mdx-content'
 import { TableOfContents } from '@/app/(site)/_components/blog/toc'
+import { PaperSurface } from '@/app/(site)/_components/site/paper-surface'
 import { BLOG_CATEGORY_LABELS, calculateReadingTime, extractHeadings, formatDate } from '@/lib/content'
+import { REGISTERED_SERIES } from '@/lib/series'
 import { sanitizeCssColor } from '@/lib/utils'
 import { requirePostAdmin } from '@/server/modules/posts/posts-admin'
 import { validatePostCompilation } from '@/server/modules/posts/posts-compile'
@@ -41,10 +45,18 @@ export default async function PreviewPostPage({
   if (error) {
     return (
       <div className="mx-auto max-w-3xl">
-        <h1 className="text-xl font-medium">无法预览</h1>
+        <div className="mb-4 flex items-center justify-between gap-3">
+          <h1 className="font-serif text-2xl font-medium">无法预览</h1>
+          <Link
+            href={`/admin/posts/${post.id}/edit`}
+            className="font-mono text-xs text-primary underline-offset-4 hover:underline"
+          >
+            ← 返回编辑器
+          </Link>
+        </div>
         <pre
           role="alert"
-          className="mt-4 whitespace-pre-wrap break-words rounded-md border border-border p-4 text-sm text-red-700 dark:text-red-400"
+          className="mt-4 whitespace-pre-wrap break-words rounded-xl border border-destructive/35 bg-destructive/5 p-4 text-sm text-destructive"
         >
           {error}
         </pre>
@@ -53,33 +65,85 @@ export default async function PreviewPostPage({
   }
   const headings = extractHeadings(doc.content)
   const safeHeroColor = sanitizeCssColor(doc.heroColor)
+  const seriesInfo = doc.series ? REGISTERED_SERIES[doc.series.id] : null
+
   return (
     <div className="mx-auto w-full max-w-5xl">
       {safeHeroColor && <style>{`:root { --page-highlight: ${safeHeroColor} }`}</style>}
-      <p className="mb-6 border-b border-border pb-3 text-xs text-muted-foreground">
-        工作稿预览 · 版本 {post.revision}
-      </p>
-      <div className="gap-10 lg:flex lg:items-start">
+      <div className="relative isolate mb-8 flex flex-wrap items-center justify-between gap-3 overflow-hidden rounded-xl px-4 py-2.5 text-xs">
+        <PaperSurface />
+        <div className="flex flex-wrap items-center gap-2 font-mono text-muted-foreground tabular-nums">
+          <span className="font-medium text-foreground">工作稿预览</span>
+          <span aria-hidden="true">·</span>
+          <span>r{post.revision}</span>
+          <span aria-hidden="true">·</span>
+          <span>{post.published ? '已发布（预览当前工作稿）' : '草稿'}</span>
+        </div>
+        <Link
+          href={`/admin/posts/${post.id}/edit`}
+          className="inline-flex min-h-8 items-center gap-1 font-mono text-xs text-primary underline-offset-4 hover:underline"
+        >
+          <span>← 返回编辑器</span>
+        </Link>
+      </div>
+
+      <div className="gap-12 lg:flex lg:items-start">
         <article id="content" className="min-w-0 flex-1 break-words">
-          {doc.heroImage && (
-            <div className="relative mb-6 aspect-video overflow-hidden rounded-lg">
-              <Image src={doc.heroImage} alt={doc.title} fill unoptimized className="object-cover" />
+          <header className="flex flex-col items-start gap-3.5 border-b border-hair pb-7 text-left">
+            {doc.heroImage && (
+              <div className="relative mb-3 aspect-video w-full overflow-hidden rounded-xl border border-hair">
+                <Image src={doc.heroImage} alt={doc.title} fill unoptimized className="object-cover" />
+              </div>
+            )}
+
+            {seriesInfo && (
+              <span className="font-mono text-xs text-primary">
+                专栏：{seriesInfo.title} · 第 {doc.series?.order} 讲
+              </span>
+            )}
+
+            <h1 className="max-w-3xl text-balance font-serif text-3xl font-medium leading-[1.24] tracking-tight text-foreground sm:text-4xl lg:text-[2.5rem]">
+              {doc.title || '未命名文章'}
+            </h1>
+
+            <div className="flex flex-wrap items-center justify-start gap-x-2 gap-y-1 font-mono text-xs text-muted-foreground">
+              <time dateTime={doc.date}>{formatDate(doc.date)}</time>
+              {doc.updatedDate && (
+                <>
+                  <span aria-hidden="true">·</span>
+                  <span>(已编辑 {formatDate(doc.updatedDate)})</span>
+                </>
+              )}
+              <span aria-hidden="true">·</span>
+              <span>{BLOG_CATEGORY_LABELS[doc.category]}</span>
+              {doc.tags.length > 0 && (
+                <>
+                  <span aria-hidden="true">/</span>
+                  <span>{doc.tags.slice(0, 4).join(', ')}</span>
+                </>
+              )}
+              <span aria-hidden="true">·</span>
+              <span>{calculateReadingTime(doc.content)}</span>
+              {doc.aiGenerated && (
+                <>
+                  <span aria-hidden="true">·</span>
+                  <AiGeneratedLabel aiGenerated={doc.aiGenerated} />
+                </>
+              )}
             </div>
-          )}
-          <div className="mb-3 flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted-foreground">
-            <span>{BLOG_CATEGORY_LABELS[doc.category]}</span>
-            <time dateTime={doc.date}>{formatDate(doc.date)}</time>
-            <span>{calculateReadingTime(doc.content)}</span>
-            {doc.aiGenerated && <span>AI 生成</span>}
-          </div>
-          <h1 className="font-serif text-3xl font-medium tracking-tight sm:text-4xl">{doc.title || '未命名文章'}</h1>
-          {doc.description && <p className="mt-3 leading-relaxed text-muted-foreground">{doc.description}</p>}
-          <div className="mt-8">
+
+            {doc.description && (
+              <p className="max-w-2xl text-sm leading-relaxed text-muted-foreground">{doc.description}</p>
+            )}
+          </header>
+
+          <div className="mt-10">
             <MdxContent source={doc.content} />
           </div>
         </article>
+
         {headings.length > 0 && (
-          <aside className="sticky top-20 hidden max-h-[calc(100vh-6rem)] w-56 shrink-0 overflow-y-auto lg:block">
+          <aside className="sticky top-20 hidden max-h-[calc(100vh-6rem)] w-52 shrink-0 overflow-y-auto lg:block">
             <TableOfContents headings={headings} />
           </aside>
         )}

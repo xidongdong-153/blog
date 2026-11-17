@@ -29,14 +29,14 @@ export function AiSummarySettingsForm({ state, running }: { state: ModelSettings
   const busy = Boolean(state.operation) || running
   return (
     <Box className="w-full min-w-0 py-3">
-      <Box className="w-full rounded-xl border border-border bg-card/50 p-5 sm:p-6">
+      <Box className="w-full rounded-xl border border-hair bg-card/88 p-5 shadow-[var(--surface-shadow)] sm:p-6">
         <Flex direction="column" gap="6">
-          <Flex justify="between" align="center" gap="3" wrap="wrap" className="border-b border-border/60 pb-4">
+          <Flex justify="between" align="center" gap="3" wrap="wrap" className="border-b border-hair pb-4">
             <Flex align="center" gap="3" wrap="wrap">
               <Heading as="h2" size="5" className="font-serif">
                 默认模型
               </Heading>
-              <Badge color={state.config?.status === 'ready' ? 'green' : 'amber'}>
+              <Badge color={state.config?.status === 'ready' ? 'jade' : 'amber'}>
                 {state.config?.status === 'ready' ? '已启用' : state.config ? '待测试' : '未配置'}
               </Badge>
               {state.dirty && <Badge color="gray">未保存</Badge>}

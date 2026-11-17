@@ -133,7 +133,9 @@ export function AiWorkspace({
 
   function selectTab(value: string) {
     const next: WorkspaceTab = value === 'models' || value === 'tools' ? value : 'agents'
-    syncUrl(next, next === 'agents' ? activeAgentView : false)
+    const keepWriter = next === 'agents' && tab === 'agents' ? activeAgentView : false
+    if (next === 'agents' && tab !== 'agents') setActiveAgentView(false)
+    syncUrl(next, keepWriter)
   }
 
   function openAgent(panel: 'conversation' | 'configuration' = 'conversation') {
@@ -321,13 +323,13 @@ export function AiWorkspace({
   return (
     <Box className="min-w-0 pb-10">
       <Flex direction="column" gap="2" className="mb-6">
-        <Flex align="center" gap="2" className="font-mono text-xs tracking-wider text-muted-foreground">
+        <Flex align="center" gap="2" className="font-mono text-xs tracking-[0.22em] text-muted-foreground uppercase">
           <Text>// ADMIN</Text>
-          <Text color="gray">•</Text>
+          <Text color="gray">·</Text>
           <Text className="font-medium text-primary">AI 工作台</Text>
         </Flex>
         <Flex align="center" justify="between" gap="3" wrap="wrap">
-          <Heading as="h1" size="7" className="font-serif">
+          <Heading as="h1" size="7" className="font-serif tracking-tight">
             AI
           </Heading>
           <Flex align="center" gap="2" wrap="wrap">
@@ -336,7 +338,7 @@ export function AiWorkspace({
                 {modelConfig.modelId}
               </Code>
             )}
-            <Badge color={modelReady ? 'green' : 'amber'}>{modelReady ? '模型就绪' : '模型未就绪'}</Badge>
+            <Badge color={modelReady ? 'jade' : 'amber'}>{modelReady ? '模型就绪' : '模型未就绪'}</Badge>
           </Flex>
         </Flex>
       </Flex>
@@ -381,7 +383,7 @@ export function AiWorkspace({
                               </Text>
                             </Flex>
                           </Flex>
-                          <Badge color={modelReady ? 'green' : 'amber'}>{modelReady ? '可对话' : '待配置模型'}</Badge>
+                          <Badge color={modelReady ? 'jade' : 'amber'}>{modelReady ? '可对话' : '待配置模型'}</Badge>
                         </Flex>
 
                         <Grid columns={{ initial: '1', sm: '2' }} gap="3">
@@ -446,7 +448,7 @@ export function AiWorkspace({
                 justify="between"
                 gap="3"
                 wrap="wrap"
-                className="rounded-xl border border-border bg-card/50 px-3.5 py-2.5 sm:px-4"
+                className="rounded-xl border border-hair bg-card/88 px-3.5 py-2.5 shadow-[var(--surface-shadow)] sm:px-4"
               >
                 <Flex align="center" gap="3" wrap="wrap" className="min-w-0">
                   <Button variant="ghost" size="sm" onClick={closeAgent} className="h-8 px-2.5 text-xs">
@@ -495,7 +497,7 @@ export function AiWorkspace({
               </TabsContent>
 
               <TabsContent value="configuration" className="min-w-0">
-                <Box className="w-full rounded-xl border border-border bg-card/50 p-5 sm:p-6">
+                <Box className="w-full rounded-xl border border-hair bg-card/88 p-5 shadow-[var(--surface-shadow)] sm:p-6">
                   <Form.Root
                     onSubmit={(event) => {
                       event.preventDefault()
@@ -668,7 +670,7 @@ export function AiWorkspace({
                           {tool.id}
                         </Code>
                       </Flex>
-                      <Badge color={isEnabled ? 'green' : 'gray'}>{isEnabled ? '已启用' : '未启用'}</Badge>
+                      <Badge color={isEnabled ? 'jade' : 'gray'}>{isEnabled ? '已启用' : '未启用'}</Badge>
                     </Flex>
 
                     <Text size="2" className="leading-relaxed">

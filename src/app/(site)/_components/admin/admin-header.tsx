@@ -1,6 +1,7 @@
 /* eslint-disable next/no-img-element */
 import type { AdminSystemStatus, AdminUserSummary } from '@/server/modules/admin/admin.types'
 import { Activity, Database, Server, ShieldCheck } from 'lucide-react'
+import { PaperSurface } from '../site/paper-surface'
 
 interface AdminHeaderProps {
   user: AdminUserSummary
@@ -27,71 +28,69 @@ export function AdminHeader({ user, system }: AdminHeaderProps) {
   const isDbOk = system.dbStatus === 'connected'
 
   return (
-    <header className="flex flex-col gap-5 border-b border-border/50 pb-6">
+    <header className="flex flex-col gap-5 border-b border-hair pb-6">
       <div className="flex flex-col gap-2">
-        <div className="flex items-center gap-2 font-mono text-xs tracking-wider text-muted-foreground">
+        <div className="flex items-center gap-2 font-mono text-xs tracking-[0.22em] text-muted-foreground uppercase">
           <span>// ADMIN</span>
-          <span className="text-border">•</span>
-          <span className="text-primary font-medium">控制台</span>
+          <span aria-hidden="true">·</span>
+          <span className="font-medium text-primary">控制台</span>
         </div>
 
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <h1 className="font-serif text-3xl font-medium tracking-tight text-foreground sm:text-4xl">管理面板</h1>
-            <p className="mt-1 text-sm text-muted-foreground">查看内容数据、待办审批与系统状态。</p>
+            <p className="mt-1.5 text-sm text-muted-foreground">查看内容数据、待办审批与系统状态。</p>
           </div>
 
-          {/* 站长资料卡片 */}
-          <div className="flex items-center gap-3 rounded-lg border border-border/60 bg-card/40 px-3.5 py-2 backdrop-blur-xs">
-            <div className="relative flex size-9 shrink-0 items-center justify-center overflow-hidden rounded-full border border-border/70 bg-muted text-xs font-medium text-foreground">
+          {/* 站长资料纸卡 */}
+          <div className="relative isolate flex items-center gap-3 overflow-hidden rounded-xl px-4 py-2.5">
+            <PaperSurface />
+            <div className="relative flex size-9 shrink-0 items-center justify-center overflow-hidden rounded-full border border-hair bg-muted text-xs font-medium text-foreground">
               {user.image ? (
                 <img src={user.image} alt={user.name} className="size-full object-cover" />
               ) : (
                 <span>{fallbackLetter}</span>
               )}
-              <span className="absolute bottom-0 right-0 size-2 rounded-full bg-emerald-500 ring-1 ring-background" />
+              <span className="absolute right-0 bottom-0 size-2 rounded-full bg-emerald-600 ring-1 ring-background dark:bg-emerald-400" />
             </div>
 
-            <div className="flex flex-col">
+            <div className="flex min-w-0 flex-col">
               <div className="flex items-center gap-1.5">
                 <span className="text-xs font-semibold text-foreground">{user.name}</span>
-                <span className="inline-flex items-center gap-0.5 rounded bg-primary/10 px-1 py-0.5 font-mono text-[9px] font-medium text-primary">
-                  <ShieldCheck className="size-2.5" />
+                <span className="inline-flex items-center gap-0.5 rounded-md bg-primary/10 px-1.5 py-0.5 font-mono text-xs font-medium text-primary">
+                  <ShieldCheck className="size-3" aria-hidden="true" />
                   站长
                 </span>
               </div>
-              {user.email && <span className="truncate font-mono text-[10px] text-muted-foreground">{user.email}</span>}
+              {user.email && <span className="truncate font-mono text-xs text-muted-foreground">{user.email}</span>}
             </div>
           </div>
         </div>
       </div>
 
       {/* 实时环境状态指示条 */}
-      <div className="flex flex-wrap items-center gap-2 pt-1 font-mono text-xs">
-        {/* 数据库连接状态 */}
+      <div className="flex flex-wrap items-center gap-2 pt-1 font-mono text-xs tabular-nums">
         <div
           className={`inline-flex items-center gap-1.5 rounded-md border px-2.5 py-1 ${
             isDbOk
-              ? 'border-emerald-500/30 bg-emerald-500/5 text-emerald-700 dark:text-emerald-300'
-              : 'border-rose-500/30 bg-rose-500/5 text-rose-700 dark:text-rose-300'
+              ? 'border-emerald-700/25 bg-emerald-700/5 text-emerald-700 dark:border-emerald-400/25 dark:bg-emerald-400/5 dark:text-emerald-400'
+              : 'border-rose-600/30 bg-rose-600/5 text-rose-700 dark:border-rose-400/30 dark:bg-rose-400/5 dark:text-rose-400'
           }`}
         >
-          <Database className="size-3.5" />
+          <Database className="size-3.5" aria-hidden="true" />
           <span>{system.dbProvider === 'turso' ? 'Turso' : 'Local SQLite'}</span>
           <span className="opacity-40">/</span>
           <span>{isDbOk ? `${system.dbLatencyMs}ms` : '连接异常'}</span>
         </div>
 
-        {/* 运行时长 */}
-        <div className="inline-flex items-center gap-1.5 rounded-md border border-border/60 bg-card/40 px-2.5 py-1 text-muted-foreground">
-          <Activity className="size-3.5 text-primary" />
+        <div className="inline-flex items-center gap-1.5 rounded-md border border-hair bg-card/75 px-2.5 py-1 text-muted-foreground">
+          <Activity className="size-3.5 text-primary" aria-hidden="true" />
           <span>运行时间</span>
           <span className="text-foreground">{formatUptime(system.uptimeSeconds)}</span>
         </div>
 
-        {/* Node 环境与平台 */}
-        <div className="inline-flex items-center gap-1.5 rounded-md border border-border/60 bg-card/40 px-2.5 py-1 text-muted-foreground">
-          <Server className="size-3.5" />
+        <div className="inline-flex items-center gap-1.5 rounded-md border border-hair bg-card/75 px-2.5 py-1 text-muted-foreground">
+          <Server className="size-3.5" aria-hidden="true" />
           <span>Node {system.nodeVersion}</span>
           <span className="opacity-40">·</span>
           <span>{system.platform}</span>
