@@ -60,6 +60,7 @@ export function SiteHeader({ posts = [], categories = [] }: SiteHeaderProps) {
   const navRef = useRef<HTMLElement>(null)
   const labelRefs = useRef<Record<string, HTMLSpanElement | null>>({})
   const menuButtonRef = useRef<HTMLButtonElement>(null)
+  const searchButtonRef = useRef<HTMLButtonElement>(null)
   const blogMenuItemRef = useRef<HTMLLIElement>(null)
   const blogLinkRef = useRef<HTMLAnchorElement>(null)
   const skipFocusOpenRef = useRef(false)
@@ -177,6 +178,15 @@ export function SiteHeader({ posts = [], categories = [] }: SiteHeaderProps) {
     }
   }, [isAdminRoute])
 
+  useEffect(() => {
+    if (!searchOpen) return
+    setVisible(true)
+    lastVisibleRef.current = true
+    scrollDeltaRef.current = 0
+    setExpanded(false)
+    setBlogMenuOpen(false)
+  }, [searchOpen])
+
   // 全局 ⌘K / Ctrl+K 搜索快捷键 & 自定义打开事件
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
@@ -184,7 +194,7 @@ export function SiteHeader({ posts = [], categories = [] }: SiteHeaderProps) {
       if (event.target instanceof Element && event.target.closest('[data-mdx-editor="true"]')) return
       if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === 'k') {
         event.preventDefault()
-        setSearchOpen((prev) => !prev)
+        if (!event.repeat && !event.isComposing) setSearchOpen((prev) => !prev)
       }
     }
     const onCustomOpen = () => setSearchOpen(true)
@@ -286,9 +296,10 @@ export function SiteHeader({ posts = [], categories = [] }: SiteHeaderProps) {
       <header
         id="site-header"
         ref={headerRef}
-        data-visible={visible || expanded}
+        data-visible={visible || expanded || searchOpen}
         data-scrolled={scrolled}
-        className="sticky top-0 z-[70] h-[4.5rem] w-full transition-[transform,translate,opacity,background-color,border-color] duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-opacity data-[scrolled=false]:border-b data-[scrolled=false]:border-transparent data-[scrolled=true]:border-b data-[scrolled=true]:border-hair data-[scrolled=true]:bg-background/85 data-[scrolled=true]:backdrop-blur-md data-[visible=false]:pointer-events-none data-[visible=false]:motion-safe:-translate-y-1.5 data-[visible=false]:opacity-0 data-[visible=true]:pointer-events-auto data-[visible=true]:translate-y-0 data-[visible=true]:opacity-100"
+        data-search-open={searchOpen}
+        className="sticky top-0 z-[70] h-[4.5rem] w-full transition-[transform,translate,opacity,background-color,border-color] duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-opacity data-[search-open=true]:transition-none data-[scrolled=false]:border-b data-[scrolled=false]:border-transparent data-[scrolled=true]:border-b data-[scrolled=true]:border-hair data-[scrolled=true]:bg-background/85 data-[scrolled=true]:backdrop-blur-md data-[visible=false]:pointer-events-none data-[visible=false]:motion-safe:-translate-y-1.5 data-[visible=false]:opacity-0 data-[visible=true]:pointer-events-auto data-[visible=true]:translate-y-0 data-[visible=true]:opacity-100"
       >
         <div className="mx-auto flex h-full max-w-7xl items-center justify-between gap-3 px-6 sm:gap-6 lg:px-8">
           <PresenceStatus />
@@ -477,9 +488,13 @@ export function SiteHeader({ posts = [], categories = [] }: SiteHeaderProps) {
             {/* 右侧分隔线与工具操作区（无框搜索 + 账号 + 移动菜单） */}
             <div className="flex items-center gap-3 border-l border-hair pl-2.5 sm:gap-3.5 sm:pl-4">
               <button
+                ref={searchButtonRef}
                 type="button"
                 onClick={() => setSearchOpen(true)}
                 aria-label="全站搜索 (⌘K)"
+                aria-haspopup="dialog"
+                aria-expanded={searchOpen}
+                aria-controls="command-search-dialog"
                 title="搜索 (⌘K)"
                 className="group/ink hit-expand relative flex size-8 cursor-pointer items-center justify-center gap-1.5 text-muted-foreground transition-colors duration-200 hover:text-primary focus-visible:text-primary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring md:h-9 md:w-auto md:px-1.5"
               >
@@ -549,7 +564,7 @@ export function SiteHeader({ posts = [], categories = [] }: SiteHeaderProps) {
         </div>
       </header>
 
-      <CommandSearchModal isOpen={searchOpen} onClose={handleCloseSearch} posts={posts} />
+      <CommandSearchModal isOpen={searchOpen} onClose={handleCloseSearch} posts={posts} triggerRef={searchButtonRef} />
     </>
   )
 }

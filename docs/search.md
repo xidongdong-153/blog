@@ -1,5 +1,5 @@
 ---
-description: '浏览器搜索索引、来源过滤、评分、高亮与文章列表布局'
+description: '全局搜索开合动效、浏览器搜索索引、来源过滤、评分与高亮'
 status: implemented
 paths:
   - 'src/lib/search.ts'
@@ -7,15 +7,30 @@ paths:
   - 'src/app/(site)/blog/page.tsx'
   - 'src/app/(site)/_components/blog/blog-search.tsx'
   - 'src/app/(site)/_components/blog/post-card.tsx'
+  - 'src/app/(site)/_components/site/command-search-modal.tsx'
+  - 'src/app/(site)/_components/site/use-search-motion.ts'
+  - 'src/app/(site)/_components/site/site-header.tsx'
 ---
 
 # 站内搜索
 
 ## 范围与依据
 
-改动搜索索引、匹配打分、高亮渲染或 `/blog` 列表页搜索框时，检查本文件。
+改动全局搜索弹窗、搜索索引、匹配打分、高亮渲染或 `/blog` 列表页搜索框时，检查本文件。
 
 本文件依据 `src/lib/search.ts`、`src/app/(site)/_components/blog/blog-search.tsx` 与 `post-card.tsx` 核对。
+
+## 全局搜索弹窗
+
+右上角按钮、`⌘K` / `Ctrl+K` 和 `open-command-search` 事件打开同一个搜索弹窗。它检索页头收到的文章元数据；下文的正文索引、评分与高亮用于 `/blog` 列表搜索，不用于全局弹窗。
+
+- 弹框从搜索按钮的实际位置展开，入场 420ms，退场 300ms；内容稍后显现，关闭时先淡出内容，再将轮廓收回按钮。
+- 关闭按钮、Escape 和遮罩均触发退场；动画结束后隐藏浮层、清空查询并解除背景滚动锁定。关闭过程中重新打开，从当前画面反向继续。
+- 按钮触发与快捷键共用按钮作为动画起点。页头因滚动隐藏时，打开搜索先恢复页头；普通关闭归还原焦点，结果跳转不抢回焦点。
+- 保留 Tab 焦点捕获、方向键选择与输入框 Enter 跳转；输入法组合期间不处理这些搜索快捷操作。关闭按钮和清空按钮支持键盘激活。
+- 减少动态效果时直接切换状态；动画期间窗口或可视视口尺寸变化、页面进入后台时结束当前过渡，避免残留变换。窄屏用 `dvh` 限制浮层高度，结果区可独立滚动。
+
+实现见 [搜索弹窗](../src/app/%28site%29/_components/site/command-search-modal.tsx)、[开合动效](../src/app/%28site%29/_components/site/use-search-motion.ts)和[页头入口](../src/app/%28site%29/_components/site/site-header.tsx)。来源：本次用户确认的搜索按钮展开与收回可视化。以上是实现说明，不替代浏览器验收。
 
 ## 数据流
 
