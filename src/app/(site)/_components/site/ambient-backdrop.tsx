@@ -1,23 +1,27 @@
 interface AmbientBackdropProps extends React.HTMLAttributes<HTMLDivElement> {
   /**
-   * 自定义高光色，默认为空时自动读取 CSS 变量 --page-highlight，或回退到 Catppuccin Lavender (#b4befe)。
-   * 支持 hex / rgb / hsl / 命名颜色。
+   * 自定义主高光色，默认读取 CSS 变量 --page-highlight（松烟浅青），支持文章页 heroColor 覆写。
    */
   color?: string
 }
 
 /**
- * 页面首屏顶光氛围渐变底座。
- * 贴合页面顶部（100vh），采用顶部居中椭圆径向漫散向底层暗色平滑衰减，提供柔和环境光氛围。
- * 设为 pointer-events-none 保证所有鼠标交互完全穿透。
+ * 页面首屏双椭圆氛围光底座。
+ * 采用错落双椭圆径向渐变向底色平滑衰减，营造静谧温润的空气感层次。
  */
 export function AmbientBackdrop({ color, className = '', ...props }: AmbientBackdropProps) {
+  const primaryGlow = color || 'var(--page-highlight, #6fa996)'
+  const secondaryGlow = 'var(--page-highlight-secondary, #b9ccc0)'
+
   return (
     <div
       aria-hidden="true"
-      className={`pointer-events-none absolute inset-x-0 top-0 z-0 h-screen overflow-hidden opacity-20 dark:opacity-25 ${className}`}
+      className={`pointer-events-none absolute inset-x-0 top-0 z-0 h-screen overflow-hidden opacity-24 transition-opacity duration-300 dark:opacity-22 ${className}`}
       style={{
-        backgroundImage: `radial-gradient(ellipse 80% 60% at 50% -20%, ${color || 'var(--page-highlight, #b4befe)'}, transparent)`,
+        backgroundImage: [
+          `radial-gradient(ellipse 68% 48% at 26% -12%, ${primaryGlow}, transparent 72%)`,
+          `radial-gradient(ellipse 58% 42% at 78% 6%, ${secondaryGlow}, transparent 74%)`,
+        ].join(', '),
       }}
       {...props}
     />

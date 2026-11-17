@@ -84,24 +84,24 @@ export function CommentSection({ slug }: CommentSectionProps) {
   const currentUserIsOwner = isOwner || Boolean(authConfig.isOwner)
 
   return (
-    <section aria-label="评论区" className="border-t border-border/60 pt-10">
+    <section aria-label="评论区" className="pt-6">
       {/* 标题栏与排序控件 */}
       <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-2">
-          <h2 className="font-serif text-2xl font-medium tracking-tight text-foreground sm:text-3xl">评论</h2>
-          <span className="font-mono text-xs text-muted-foreground">({totalCount})</span>
+          <h2 className="font-serif text-xl font-medium tracking-tight text-foreground sm:text-2xl">评论</h2>
+          <span className="font-mono text-xs tabular-nums text-muted-foreground">({totalCount})</span>
         </div>
 
         {/* 排序切换 */}
-        <div className="flex items-center rounded-md border border-border/60 bg-muted/20 p-0.5">
+        <div className="flex items-center gap-1 rounded-full border border-hair bg-card/85 p-1">
           {SORT_OPTIONS.map((opt) => (
             <button
               key={opt.key}
               type="button"
               onClick={() => setSort(opt.key)}
-              className={`rounded px-2.5 py-1 font-mono text-xs transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring focus-visible:ring-offset-1 focus-visible:ring-offset-background ${
+              className={`cursor-pointer rounded-full px-3 py-1 font-mono text-xs transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring ${
                 sort === opt.key
-                  ? 'bg-background font-medium text-foreground shadow-xs'
+                  ? 'bg-primary/14 font-medium text-primary'
                   : 'text-muted-foreground hover:text-foreground'
               }`}
             >

@@ -4,6 +4,7 @@ import { Settings } from 'lucide-react'
 import Link from 'next/link'
 import { useState } from 'react'
 import { signIn, signOut, useSession } from '@/lib/auth-client'
+import { PaperSurface } from '../site/paper-surface'
 import { GithubIcon, GoogleIcon } from './comment-icons'
 
 interface CommentAuthCardProps {
@@ -111,27 +112,24 @@ export function CommentAuthCard({ providers, isOwner }: CommentAuthCardProps) {
   const hasAnyProvider = providers.github || providers.google
 
   return (
-    <div className="flex flex-col gap-3 rounded-lg border border-border/60 bg-card/20 p-4 sm:p-5">
-      <div className="flex flex-wrap items-center justify-between gap-2">
-        <div className="flex items-center gap-2">
-          <span className="font-mono text-xs text-muted-foreground">// 参与讨论</span>
-          <span className="text-xs text-muted-foreground">免密码登录发表评论</span>
-        </div>
-      </div>
+    <div className="relative isolate flex flex-col items-center gap-3 rounded-lg px-4 py-6 text-center">
+      <PaperSurface className="bg-card/90" />
+      <span className="text-xs text-muted-foreground">使用社交账号登录参与讨论</span>
 
-      {errorMsg && <div className="rounded bg-red-500/10 p-2 text-xs text-red-600 dark:text-red-400">{errorMsg}</div>}
+      {errorMsg && <div className="rounded bg-destructive/10 p-2 text-xs text-destructive">{errorMsg}</div>}
 
       {hasAnyProvider ? (
-        <div className="flex flex-wrap gap-2.5 pt-1">
+        <div className="flex flex-wrap justify-center gap-3 pt-1">
           {providers.github && (
             <button
               type="button"
               onClick={() => handleSignIn('github')}
               disabled={Boolean(signingIn)}
-              className="inline-flex h-9 items-center gap-2 rounded-md border border-border bg-background/80 px-3.5 text-xs font-medium text-foreground shadow-xs transition-all hover:border-foreground/30 hover:bg-muted/40 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring focus-visible:ring-offset-1 focus-visible:ring-offset-background disabled:opacity-50"
+              aria-label="GitHub 登录"
+              title="GitHub 登录"
+              className="inline-flex size-10 cursor-pointer items-center justify-center rounded-full border border-hair bg-background/85 text-foreground shadow-2xs transition-all duration-200 hover:-translate-y-0.5 hover:border-primary/45 hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-50"
             >
-              <GithubIcon className="size-4" />
-              <span>{signingIn === 'github' ? '正在连接 GitHub...' : 'GitHub 登录'}</span>
+              <GithubIcon className="size-4.5" />
             </button>
           )}
 
@@ -140,10 +138,11 @@ export function CommentAuthCard({ providers, isOwner }: CommentAuthCardProps) {
               type="button"
               onClick={() => handleSignIn('google')}
               disabled={Boolean(signingIn)}
-              className="inline-flex h-9 items-center gap-2 rounded-md border border-border bg-background/80 px-3.5 text-xs font-medium text-foreground shadow-xs transition-all hover:border-foreground/30 hover:bg-muted/40 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring focus-visible:ring-offset-1 focus-visible:ring-offset-background disabled:opacity-50"
+              aria-label="Google 登录"
+              title="Google 登录"
+              className="inline-flex size-10 cursor-pointer items-center justify-center rounded-full border border-hair bg-background/85 text-foreground shadow-2xs transition-all duration-200 hover:-translate-y-0.5 hover:border-primary/45 hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-50"
             >
-              <GoogleIcon className="size-4" />
-              <span>{signingIn === 'google' ? '正在连接 Google...' : 'Google 登录'}</span>
+              <GoogleIcon className="size-4.5" />
             </button>
           )}
         </div>

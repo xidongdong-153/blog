@@ -1,6 +1,6 @@
 'use client'
 
-import { CircleHelp } from 'lucide-react'
+import { CircleHelp, Eye } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
 import { useVisitorPresence } from './visitor-presence-provider'
 
@@ -80,7 +80,7 @@ export function ArticleViewerCount({
           className={`inline-flex items-center gap-1.5 font-mono text-xs tracking-wider text-muted-foreground ${className}`}
           title="当前文章实时在线人数"
         >
-          <span className="size-1.5 rounded-full bg-emerald-500" aria-hidden="true" />
+          <Eye className="size-3 shrink-0 text-primary" aria-hidden="true" strokeWidth={1.8} />
           <span className="font-semibold tabular-nums text-foreground/90">{count}</span>
           <span>人正在阅读</span>
         </span>
@@ -96,9 +96,10 @@ export function ArticleViewerCount({
       <span className="inline-flex items-center gap-1.5">
         {isConnected ? (
           <>
-            <span
-              className={`size-1.5 rounded-full ${count > 0 ? 'bg-emerald-500' : 'bg-muted-foreground/40'}`}
+            <Eye
+              className={`size-3.5 shrink-0 ${count > 0 ? 'text-primary' : 'text-muted-foreground'}`}
               aria-hidden="true"
+              strokeWidth={1.75}
             />
             {count > 0 ? (
               <>
@@ -106,13 +107,13 @@ export function ArticleViewerCount({
                 <span>人正在阅读</span>
               </>
             ) : (
-              <span className="text-muted-foreground/80">当前无人阅读</span>
+              <span className="text-muted-foreground">当前无人阅读</span>
             )}
           </>
         ) : (
           <>
-            <span className="size-1.5 rounded-full bg-muted-foreground/40" aria-hidden="true" />
-            <span className="text-muted-foreground/70">
+            <Eye className="size-3.5 shrink-0 text-muted-foreground" aria-hidden="true" strokeWidth={1.75} />
+            <span className="text-muted-foreground">
               {connectionState === 'connecting' ? '实时状态同步中' : '实时状态暂不可用'}
             </span>
           </>

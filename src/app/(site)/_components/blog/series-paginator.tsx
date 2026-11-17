@@ -27,8 +27,8 @@ export function SeriesPaginator({ nav }: SeriesPaginatorProps) {
       className="flex flex-col gap-4 rounded-lg border border-border/60 bg-card/20 p-5"
     >
       <div className="flex flex-wrap items-center justify-between gap-2 border-b border-border/30 pb-3">
-        <div className="flex items-center gap-2 font-mono text-xs tracking-wider text-muted-foreground">
-          <span className="font-semibold text-foreground/80">// 专栏章节导轨</span>
+        <div className="flex items-center gap-2 font-mono text-[11px] tracking-[0.16em] text-muted-foreground uppercase">
+          <span className="font-semibold text-foreground/80">专栏章节导轨</span>
         </div>
 
         <Link

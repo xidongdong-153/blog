@@ -3,8 +3,11 @@
 import type { SeriesSidebarPost } from './series-chapter-sidebar'
 import type { Heading } from '@/lib/content'
 import type { SeriesDefinition } from '@/lib/series'
+import { BookOpen } from 'lucide-react'
 import Link from 'next/link'
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
+import { createPortal } from 'react-dom'
+import { useReaderFocus } from './article-reader-shell'
 import { TableOfContents } from './toc'
 
 interface FloatingActionGroupProps {
@@ -15,15 +18,30 @@ interface FloatingActionGroupProps {
 }
 
 /**
- * 页面右下角浮动操作组：
- * 1. 移动端/折叠态目录与专栏呼出按钮（点击滑出抽屉面板与遮罩）。
- * 2. 返回顶部按钮（实时计算全页阅读百分比）。
+ * 移动端 / 小屏右下角浮动目录与返回顶部操作组。
+ * 桌面端由文章右侧导轨承接进度与快速操作。
  */
 export function FloatingActionGroup({ headings, series, seriesPosts, currentSlug }: FloatingActionGroupProps) {
+  const [mounted, setMounted] = useState(false)
   const [showButton, setShowButton] = useState(false)
   const [scrollPercent, setScrollPercent] = useState(0)
   const [isDrawerOpen, setIsDrawerOpen] = useState(false)
   const [activeTab, setActiveTab] = useState<'series' | 'toc'>('series')
+  const { focusMode, toggleFocusMode } = useReaderFocus()
+  const drawerRef = useRef<HTMLElement>(null)
+  const closeButtonRef = useRef<HTMLButtonElement>(null)
+  const tocButtonRef = useRef<HTMLButtonElement>(null)
+  const restoreFocusOnCloseRef = useRef(false)
+  const wasDrawerOpenRef = useRef(false)
+
+  const closeDrawer = useCallback((restoreFocus: boolean) => {
+    restoreFocusOnCloseRef.current = restoreFocus
+    setIsDrawerOpen(false)
+  }, [])
+
+  useEffect(() => {
+    setMounted(true)
+  }, [])
 
   const hasSeries = Boolean(series && seriesPosts && seriesPosts.length > 0)
   const hasHeadings = headings.length > 0
@@ -45,47 +63,96 @@ export function FloatingActionGroup({ headings, series, seriesPosts, currentSlug
     return () => window.removeEventListener('scroll', handleScroll)
   }, [])
 
-  // 抽屉开启时锁定背景滚动，支持 ESC 键关闭
   useEffect(() => {
-    if (!isDrawerOpen) return
+    if (!isDrawerOpen) {
+      if (wasDrawerOpenRef.current && restoreFocusOnCloseRef.current) {
+        tocButtonRef.current?.focus()
+      }
+      wasDrawerOpenRef.current = false
+      restoreFocusOnCloseRef.current = false
+      return
+    }
 
+    wasDrawerOpenRef.current = true
     const originalOverflow = document.body.style.overflow
     document.body.style.overflow = 'hidden'
+    const frameId = window.requestAnimationFrame(() => {
+      closeButtonRef.current?.focus()
+    })
 
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
-        setIsDrawerOpen(false)
+        e.preventDefault()
+        closeDrawer(true)
+        return
+      }
+      if (e.key === 'Tab' && drawerRef.current) {
+        const focusables = Array.from(
+          drawerRef.current.querySelectorAll<HTMLElement>(
+            'a[href], button:not([disabled]), [tabindex]:not([tabindex="-1"])',
+          ),
+        ).filter((el) => el.offsetParent !== null)
+        if (focusables.length === 0) return
+        const first = focusables[0]
+        const last = focusables[focusables.length - 1]
+        const active = document.activeElement
+        if (!drawerRef.current.contains(active)) {
+          e.preventDefault()
+          first.focus()
+          return
+        }
+        if (e.shiftKey && active === first) {
+          e.preventDefault()
+          last.focus()
+        } else if (!e.shiftKey && active === last) {
+          e.preventDefault()
+          first.focus()
+        }
       }
     }
 
     window.addEventListener('keydown', handleKeyDown)
     return () => {
+      window.cancelAnimationFrame(frameId)
       document.body.style.overflow = originalOverflow
       window.removeEventListener('keydown', handleKeyDown)
     }
-  }, [isDrawerOpen])
+  }, [isDrawerOpen, closeDrawer])
 
   const scrollToTop = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' })
   }
 
-  return (
+  if (!mounted) return null
+
+  return createPortal(
     <>
-      {/* 右下角浮动操作按钮组 */}
       <div
+        inert={isDrawerOpen}
         className={`fixed bottom-6 end-4 z-40 flex flex-col items-center gap-2.5 transition-all duration-300 sm:bottom-8 sm:end-8 ${
-          showButton ? 'translate-y-0 opacity-100' : 'pointer-events-none translate-y-4 opacity-0'
-        }`}
+          hasSeries ? 'xl:hidden' : 'lg:hidden'
+        } ${showButton ? 'translate-y-0 opacity-100' : 'pointer-events-none translate-y-4 opacity-0'}`}
       >
-        {/* 目录/专栏抽屉呼出按钮（专栏文章在 xl 以下展示，常规文章在 lg 以下展示） */}
+        <button
+          type="button"
+          aria-label={focusMode ? '关闭专注阅读模式' : '开启专注阅读模式'}
+          aria-pressed={focusMode}
+          onClick={toggleFocusMode}
+          className={`flex size-10 items-center justify-center rounded-xl border border-hair bg-card/95 shadow-md backdrop-blur-md transition-colors hover:border-primary/45 hover:text-primary ${
+            focusMode ? 'border-primary/45 text-primary' : 'text-muted-foreground'
+          }`}
+        >
+          <BookOpen className="size-4" />
+        </button>
+
         {hasDrawerContent && (
           <button
+            ref={tocButtonRef}
             type="button"
             aria-label={hasSeries ? '打开专栏与目录' : '打开目录'}
+            aria-expanded={isDrawerOpen}
             onClick={() => setIsDrawerOpen(true)}
-            className={`flex size-10 items-center justify-center rounded-full border border-border bg-background/90 text-muted-foreground shadow-md backdrop-blur-md transition-colors hover:border-foreground/30 hover:text-foreground ${
-              hasSeries ? 'xl:hidden' : 'lg:hidden'
-            }`}
+            className="flex size-10 items-center justify-center rounded-xl border border-hair bg-card/95 text-muted-foreground shadow-md backdrop-blur-md transition-colors hover:border-primary/45 hover:text-primary"
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -104,18 +171,15 @@ export function FloatingActionGroup({ headings, series, seriesPosts, currentSlug
           </button>
         )}
 
-        {/* 返回顶部按钮：带阅读百分比 */}
         <button
           type="button"
           aria-label="返回顶部"
           onClick={scrollToTop}
-          className="group relative flex size-10 items-center justify-center rounded-full border border-border bg-background/90 text-muted-foreground shadow-md backdrop-blur-md transition-all hover:border-foreground/30 hover:text-foreground"
+          className="group relative flex size-10 items-center justify-center rounded-xl border border-hair bg-card/95 text-muted-foreground shadow-md backdrop-blur-md transition-all hover:border-primary/45 hover:text-primary"
         >
-          {/* 百分比数字 */}
           <span className="text-[0.6875rem] font-medium tabular-nums transition-opacity duration-150 group-hover:opacity-0">
             {scrollPercent}%
           </span>
-          {/* 悬停展示箭头 */}
           <svg
             xmlns="http://www.w3.org/2000/svg"
             viewBox="0 0 24 24"
@@ -131,25 +195,23 @@ export function FloatingActionGroup({ headings, series, seriesPosts, currentSlug
         </button>
       </div>
 
-      {/* 移动端/小屏目录与专栏抽屉与遮罩 */}
       {isDrawerOpen && hasDrawerContent && (
         <div className={`fixed inset-0 z-50 ${hasSeries ? 'xl:hidden' : 'lg:hidden'}`}>
-          {/* 背景遮罩 */}
           <div
-            className="fixed inset-0 bg-black/40 backdrop-blur-xs transition-opacity duration-300"
-            onClick={() => setIsDrawerOpen(false)}
+            className="fixed inset-0 bg-background/60 backdrop-blur-xs transition-opacity duration-300"
+            onClick={() => closeDrawer(true)}
             aria-hidden="true"
           />
 
-          {/* 抽屉侧栏 */}
           <aside
+            ref={drawerRef}
+            role="dialog"
+            aria-modal="true"
             aria-label={hasSeries ? '专栏与目录大纲' : '移动端目录'}
-            className="fixed bottom-0 end-0 top-0 flex w-[82vw] max-w-sm flex-col border-s border-border bg-background p-5 shadow-2xl transition-transform duration-300"
+            className="fixed bottom-0 end-0 top-0 flex w-[82vw] max-w-sm flex-col border-s border-hair bg-card p-5 shadow-2xl transition-transform duration-300"
           >
-            {/* 顶栏控制 */}
-            <div className="mb-3 flex items-center justify-between border-b border-border/40 pb-3">
+            <div className="mb-3 flex items-center justify-between border-b border-hair pb-3">
               {hasSeries && hasHeadings ? (
-                /* 双 Tab 切换 */
                 <div className="flex items-center gap-1 rounded-md bg-muted/40 p-0.5">
                   <button
                     type="button"
@@ -176,14 +238,15 @@ export function FloatingActionGroup({ headings, series, seriesPosts, currentSlug
                 </div>
               ) : (
                 <span className="font-mono text-xs uppercase tracking-wider text-muted-foreground">
-                  {hasSeries ? '// 专栏大纲' : '// 目录导航'}
+                  {hasSeries ? '专栏大纲' : '目录导航'}
                 </span>
               )}
 
               <button
+                ref={closeButtonRef}
                 type="button"
                 aria-label="关闭目录"
-                onClick={() => setIsDrawerOpen(false)}
+                onClick={() => closeDrawer(true)}
                 className="rounded-md p-1.5 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
               >
                 <svg
@@ -202,12 +265,9 @@ export function FloatingActionGroup({ headings, series, seriesPosts, currentSlug
               </button>
             </div>
 
-            {/* 内容区 */}
             <div className="flex-1 overflow-y-auto pe-1">
               {hasSeries && (!hasHeadings || activeTab === 'series') ? (
-                /* 专栏章节列表 */
                 <div className="flex flex-col gap-3">
-                  {/* 分组章节列表 */}
                   <div className="flex flex-col gap-4">
                     {(() => {
                       const groupMap = new Map<string, SeriesSidebarPost[]>()
@@ -247,9 +307,9 @@ export function FloatingActionGroup({ headings, series, seriesPosts, currentSlug
                                   <li key={post.slug}>
                                     <div
                                       aria-current="page"
-                                      className="flex items-start gap-2.5 rounded-md border border-border/80 bg-card/80 p-2 text-foreground shadow-2xs"
+                                      className="flex items-start gap-2.5 rounded-md border border-primary/35 bg-primary/8 p-2 text-foreground"
                                     >
-                                      <span className="font-mono text-xs font-semibold tabular-nums text-primary shrink-0 pt-0.5">
+                                      <span className="shrink-0 pt-0.5 font-mono text-xs font-semibold tabular-nums text-primary">
                                         {chapterOrder}
                                       </span>
                                       <span className="line-clamp-2 font-sans text-xs font-medium leading-snug">
@@ -264,10 +324,10 @@ export function FloatingActionGroup({ headings, series, seriesPosts, currentSlug
                                 <li key={post.slug}>
                                   <Link
                                     href={`/blog/${post.slug}`}
-                                    onClick={() => setIsDrawerOpen(false)}
-                                    className="group flex items-start gap-2.5 rounded-md border border-transparent p-2 text-muted-foreground transition-all hover:border-border/40 hover:bg-muted/30 hover:text-foreground"
+                                    onClick={() => closeDrawer(false)}
+                                    className="group flex items-start gap-2.5 rounded-md border border-transparent p-2 text-muted-foreground transition-all hover:border-hair hover:bg-muted/30 hover:text-foreground"
                                   >
-                                    <span className="font-mono text-xs tabular-nums text-muted-foreground/70 transition-colors group-hover:text-foreground shrink-0 pt-0.5">
+                                    <span className="shrink-0 pt-0.5 font-mono text-xs tabular-nums text-muted-foreground/70 transition-colors group-hover:text-foreground">
                                       {chapterOrder}
                                     </span>
                                     <span className="line-clamp-2 font-sans text-xs leading-snug transition-colors group-hover:text-foreground">
@@ -284,13 +344,13 @@ export function FloatingActionGroup({ headings, series, seriesPosts, currentSlug
                   </div>
                 </div>
               ) : (
-                /* 本篇目录 TOC */
-                <TableOfContents headings={headings} onItemClick={() => setIsDrawerOpen(false)} />
+                <TableOfContents headings={headings} onItemClick={() => closeDrawer(false)} />
               )}
             </div>
           </aside>
         </div>
       )}
-    </>
+    </>,
+    document.body,
   )
 }

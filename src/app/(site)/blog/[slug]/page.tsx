@@ -3,8 +3,8 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { computeArticleContentHash } from '@/lib/ai-summary'
+import { BLOG_CATEGORY_LABELS, buildBlogListUrl } from '@/lib/blog-meta'
 import {
-  BLOG_CATEGORY_LABELS,
   calculateReadingTime,
   extractHeadings,
   formatDate,
@@ -15,6 +15,7 @@ import {
 import { getArticleSummaryBySlug } from '@/server/modules/ai/summary.service'
 import { AiGeneratedLabel } from '../../_components/blog/ai-generated-label'
 import { AiSummary } from '../../_components/blog/ai-summary'
+import { ArticleReaderShell, ReaderFocusButton } from '../../_components/blog/article-reader-shell'
 import { CopyrightCard } from '../../_components/blog/copyright-card'
 import { FloatingActionGroup } from '../../_components/blog/floating-action-group'
 import { MdxContent } from '../../_components/blog/mdx-content'
@@ -51,6 +52,7 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
   const readingTime = calculateReadingTime(post.content)
   const seriesNav = await getSeriesNav(post)
   const seriesDetail = seriesNav ? await getSeriesDetail(seriesNav.series.id) : null
+  const categoryLabel = BLOG_CATEGORY_LABELS[post.category]
 
   let summary: string | null = null
   if (!post.disableAiSummary) {
@@ -68,35 +70,56 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
   return (
     <>
       {post.heroColor && <style>{`:root { --page-highlight: ${post.heroColor} }`}</style>}
-      <div
+
+      <ArticleReaderShell
         className={
           seriesDetail
-            ? 'mx-auto w-full max-w-7xl gap-x-6 xl:gap-x-8 lg:flex lg:items-start'
-            : 'mx-auto w-full max-w-5xl gap-x-10 lg:flex lg:items-start'
+            ? 'mx-auto w-full max-w-7xl gap-x-8 xl:gap-x-10 lg:flex lg:items-start'
+            : 'mx-auto w-full max-w-5xl gap-x-12 lg:flex lg:items-start'
         }
       >
-        {/* 专栏章节侧栏（仅专栏文章在桌面端左侧呈现） */}
+        {/* 专栏章节侧栏（在专注阅读态下渐隐） */}
         {seriesDetail && (
-          <SeriesChapterSidebar series={seriesDetail.series} posts={seriesDetail.posts} currentSlug={post.slug} />
+          <div className="transition-opacity duration-300 group-data-[reader-focus=true]/reader:opacity-25">
+            <SeriesChapterSidebar series={seriesDetail.series} posts={seriesDetail.posts} currentSlug={post.slug} />
+          </div>
         )}
 
         <article id="content" className="min-w-0 flex-1 break-words">
-          {/* Hero 区域 */}
-          <div className="flex flex-col gap-2">
-            {seriesNav && (
-              <div className="mb-1">
-                <Link
-                  href={`/blog/series/${seriesNav.series.id}`}
-                  className="inline-flex items-center gap-1.5 font-mono text-xs text-primary transition-colors hover:underline"
-                >
-                  <span>// 专栏：{seriesNav.series.title}</span>
-                  <span>→</span>
-                </Link>
-              </div>
-            )}
+          {/* 返回分类眉标与专注阅读开关 */}
+          <div className="mb-6 flex flex-wrap items-center justify-between gap-3 text-xs text-muted-foreground">
+            <div className="flex flex-wrap items-center gap-3">
+              <Link
+                href={buildBlogListUrl({ category: post.category })}
+                className="inline-flex items-center gap-1.5 font-mono transition-colors hover:text-primary"
+              >
+                <span>←</span>
+                <span>{categoryLabel}</span>
+              </Link>
 
+              {seriesNav && (
+                <>
+                  <span aria-hidden="true" className="text-muted-foreground/40">
+                    ·
+                  </span>
+                  <Link
+                    href={`/blog/series/${seriesNav.series.id}`}
+                    className="inline-flex items-center gap-1.5 font-mono text-xs text-primary transition-colors hover:underline"
+                  >
+                    <span>专栏：{seriesNav.series.title}</span>
+                    <span>→</span>
+                  </Link>
+                </>
+              )}
+            </div>
+
+            <ReaderFocusButton />
+          </div>
+
+          {/* 左对齐出版物文章题头 */}
+          <header className="flex flex-col items-start gap-3.5 border-b border-hair pb-7 text-left">
             {post.heroImage && (
-              <div className="relative mb-6 aspect-video overflow-hidden rounded-lg border border-border/60">
+              <div className="relative mb-3 aspect-video w-full overflow-hidden rounded-xl border border-hair">
                 <Image
                   src={post.heroImage}
                   alt={`${post.title} hero image`}
@@ -108,86 +131,93 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
               </div>
             )}
 
-            <div className="flex flex-wrap items-center gap-2 font-mono text-xs tracking-wider text-muted-foreground">
-              <span>// {BLOG_CATEGORY_LABELS[post.category]}</span>
-              <span>/</span>
+            <h1 className="max-w-3xl text-balance font-serif text-3xl font-medium leading-[1.24] tracking-tight text-foreground sm:text-4xl lg:text-[2.5rem]">
+              {post.title}
+            </h1>
+
+            <div className="flex flex-wrap items-center justify-start gap-x-2 gap-y-1 font-mono text-xs text-muted-foreground">
               <time dateTime={post.date}>{formatDate(post.date)}</time>
               {post.updatedDate && (
                 <>
-                  <span>/</span>
-                  <span>更新于 {formatDate(post.updatedDate)}</span>
+                  <span aria-hidden="true">·</span>
+                  <span>(已编辑 {formatDate(post.updatedDate)})</span>
                 </>
               )}
-              <span>/</span>
+              <span aria-hidden="true">·</span>
+              <span>{categoryLabel}</span>
+              {post.tags.length > 0 && (
+                <>
+                  <span aria-hidden="true">/</span>
+                  <span>{post.tags.slice(0, 4).join(', ')}</span>
+                </>
+              )}
+              <span aria-hidden="true">·</span>
               <span>{readingTime}</span>
               {post.aiGenerated && (
                 <>
-                  <span>/</span>
+                  <span aria-hidden="true">·</span>
                   <AiGeneratedLabel aiGenerated={post.aiGenerated} />
                 </>
               )}
-              <span>/</span>
+              <span aria-hidden="true">·</span>
               <ArticleViewerCount slug={post.slug} mode="detailed" />
             </div>
 
-            <h1 className="font-serif text-3xl font-medium tracking-tight text-foreground sm:text-4xl lg:text-[2.6rem] leading-[1.2]">
-              {post.title}
-            </h1>
-            {post.description && <p className="leading-relaxed text-muted-foreground">{post.description}</p>}
-          </div>
+            {post.description && (
+              <p className="max-w-2xl text-sm leading-relaxed text-muted-foreground">{post.description}</p>
+            )}
+          </header>
 
-          {/* AI 摘要 */}
+          {/* AI 关键洞察 */}
           {summary && (
-            <div className="mt-6">
+            <div className="mt-8">
               <AiSummary summary={summary} />
             </div>
           )}
 
           {/* 正文 */}
-          <div className="mt-8">
+          <div className="mt-10">
             <MdxContent source={post.content} />
           </div>
 
           {/* 专栏章节导轨 */}
           {seriesNav && (
-            <div className="mt-10">
+            <div className="mt-12">
               <SeriesPaginator nav={seriesNav} />
             </div>
           )}
 
-          {/* 版权 */}
-          <div className="mt-12">
+          {/* 版权落款与签名 */}
+          <div className="mt-14">
             <CopyrightCard post={post} />
           </div>
 
           {/* 评论 */}
-          <div className="mt-8">
+          <div id="comments" className="mt-10">
             <CommentSection slug={post.slug} />
           </div>
         </article>
 
-        {/* TOC 侧栏：桌面端右侧粘性定位（专栏在 xl 显示，常规在 lg 显示） */}
-        {headings.length > 0 && (
-          <aside
-            id="sidebar"
-            className={
-              seriesDetail
-                ? 'sticky top-20 hidden max-h-[calc(100vh-6rem)] w-56 xl:w-60 shrink-0 overflow-y-auto xl:block'
-                : 'sticky top-20 hidden max-h-[calc(100vh-6rem)] w-64 shrink-0 overflow-y-auto lg:block'
-            }
-          >
-            <TableOfContents headings={headings} />
-          </aside>
-        )}
+        {/* 右侧粘性导轨：目录 + 有机分隔线 + 环形阅读进度 + 悬浮图标栏 */}
+        <aside
+          id="sidebar"
+          className={
+            seriesDetail
+              ? 'sticky top-24 hidden max-h-[calc(100vh-7rem)] w-48 shrink-0 overflow-y-auto xl:block'
+              : 'sticky top-24 hidden max-h-[calc(100vh-7rem)] w-52 shrink-0 overflow-y-auto lg:block'
+          }
+        >
+          <TableOfContents headings={headings} showRailTools />
+        </aside>
 
-        {/* 浮动操作组（移动端抽屉与返回顶部） */}
+        {/* 移动端/小屏浮动目录抽屉与返回顶部 */}
         <FloatingActionGroup
           headings={headings}
           series={seriesDetail?.series}
           seriesPosts={seriesDetail?.posts}
           currentSlug={post.slug}
         />
-      </div>
+      </ArticleReaderShell>
     </>
   )
 }

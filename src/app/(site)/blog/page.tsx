@@ -72,7 +72,7 @@ export default async function BlogPage({ searchParams }: BlogPageProps) {
   return (
     <div data-page-entrance className="mx-auto flex w-full max-w-5xl flex-col gap-8 sm:gap-10">
       <div className="entrance">
-        <PageHeader eyebrow="写作与手记" title="文章" description="技术实践、折腾记录与日常思考。" />
+        <PageHeader eyebrow="Blog" title="文章" description="技术实践、折腾记录与日常思考。" />
       </div>
 
       {featuredSeries && (
@@ -80,6 +80,7 @@ export default async function BlogPage({ searchParams }: BlogPageProps) {
           <SeriesBanner series={featuredSeries} />
         </div>
       )}
+
       <BlogSearch
         posts={sourcePosts}
         currentSource={activeSource}
@@ -102,7 +103,6 @@ export default async function BlogPage({ searchParams }: BlogPageProps) {
           id="content"
           className="min-w-0"
         >
-          {/* 文章列表 */}
           {posts.length > 0 ? (
             <ul className="flex flex-col text-start">
               {posts.map((post, index) => (
@@ -119,8 +119,7 @@ export default async function BlogPage({ searchParams }: BlogPageProps) {
             <p className="entrance py-8 text-sm text-muted-foreground [--entrance-delay:180ms]">当前条件下暂无文章。</p>
           )}
 
-          {/* 分页器 */}
-          <div className="entrance [--entrance-delay:360ms]">
+          <div className="entrance [--entrance-delay:300ms]">
             <Paginator prevUrl={prevUrl} nextUrl={nextUrl} />
           </div>
         </section>

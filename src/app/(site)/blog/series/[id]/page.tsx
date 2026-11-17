@@ -51,11 +51,11 @@ export default async function SeriesDetailPage({ params }: SeriesPageProps) {
         {/* 面包屑与顶部眉标 */}
         <div className="flex flex-col gap-4 border-b border-border/40 pb-8">
           <div className="flex items-center gap-2 font-mono text-xs tracking-wider text-muted-foreground">
-            <Link href="/blog" className="transition-colors hover:text-foreground">
+            <Link href="/blog" className="transition-colors hover:text-primary">
               ← 全部文章
             </Link>
-            <span>/</span>
-            <span>// 系列专栏</span>
+            <span>·</span>
+            <span>系列专栏</span>
           </div>
 
           <div className="flex flex-wrap items-center gap-2.5">
@@ -113,7 +113,7 @@ export default async function SeriesDetailPage({ params }: SeriesPageProps) {
         {/* 章节大纲目录树 */}
         <section aria-label="专栏章节目录" className="flex flex-col gap-6">
           <div className="flex items-center justify-between">
-            <h2 className="font-mono text-xs uppercase tracking-wider text-muted-foreground">// 章节大纲</h2>
+            <h2 className="font-mono text-[11px] uppercase tracking-[0.2em] text-muted-foreground">章节大纲</h2>
             <span className="font-mono text-xs text-muted-foreground">共 {posts.length} 讲</span>
           </div>
 

@@ -1,12 +1,13 @@
 import { Sparkles } from 'lucide-react'
+import { PaperSurface } from '../site/paper-surface'
 
 interface AiSummaryProps {
   summary: string
 }
 
 /**
- * 文章 AI 摘要展示卡片（Server Component）。
- * 位于文章介绍与 MDX 正文之间，提供低对比、无多余嵌套的轻量阅读辅助。
+ * 文章关键洞察卡片。
+ * 位于标题与正文之间，展示文章核心提炼内容。
  */
 export function AiSummary({ summary }: AiSummaryProps) {
   if (!summary || !summary.trim()) {
@@ -14,12 +15,13 @@ export function AiSummary({ summary }: AiSummaryProps) {
   }
 
   return (
-    <section aria-label="AI 摘要" className="rounded-lg border border-border/60 bg-card/30 p-4 sm:p-5">
-      <div className="mb-2 flex items-center gap-1.5 font-mono text-xs text-muted-foreground">
-        <Sparkles className="h-3.5 w-3.5 text-muted-foreground" aria-hidden="true" />
-        <span>AI 摘要</span>
+    <section aria-label="关键洞察" className="relative isolate rounded-lg p-5 sm:px-6 sm:py-5">
+      <PaperSurface className="bg-card/90" />
+      <div className="mb-2.5 flex items-center gap-1.5 text-xs font-medium text-muted-foreground">
+        <Sparkles className="size-3.5 text-primary" aria-hidden="true" />
+        <span>关键洞察</span>
       </div>
-      <p className="text-sm leading-relaxed text-foreground/90 break-words font-sans">{summary.trim()}</p>
+      <p className="break-words font-sans text-sm leading-7 text-foreground/85">{summary.trim()}</p>
     </section>
   )
 }

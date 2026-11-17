@@ -1,82 +1,178 @@
 import Link from 'next/link'
 import { siteConfig } from '@/site.config'
 import { VisitorStats } from '../visitor/visitor-stats'
+import { FxToggle } from './fx-toggle'
+import { PaperSurface } from './paper-surface'
 import { ThemeToggle } from './theme-toggle'
 
+/**
+ * 站点页脚索引卡。
+ * 保留纸张表面质感，采用顶边微光强调线与四栏清晰导航结构，展示站点实时在线与版式控制。
+ */
 export function SiteFooter() {
   const year = new Date().getFullYear()
+  const hostLabel = siteConfig.url.replace(/^https?:\/\//, '').toUpperCase()
 
   return (
-    <footer className="mt-16 border-t border-border/40 px-6 pb-12 pt-12 text-xs text-muted-foreground sm:mt-20">
+    <footer id="site-footer" className="mt-20 px-6 pb-12 pt-8 text-xs text-muted-foreground sm:mt-24">
       <div className="mx-auto w-full max-w-5xl">
-        {/* 上层：品牌信息与关于导航 */}
-        <div className="flex flex-col justify-between gap-8 md:flex-row">
-          <div className="space-y-3">
-            <div className="space-y-2">
+        <div className="relative isolate overflow-hidden rounded-xl px-6 py-7 sm:px-9 sm:py-8">
+          <PaperSurface />
+          {/* 顶部微亮主题细线，替代印刷裁切角标 */}
+          <span
+            aria-hidden="true"
+            className="pointer-events-none absolute inset-x-0 top-0 h-[2px] bg-gradient-to-r from-primary/60 via-primary/20 to-transparent"
+          />
+
+          {/* 顶排：站点品牌 + 实时在线遥测 */}
+          <div className="flex flex-col justify-between gap-4 md:flex-row md:items-center">
+            <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
               <Link
                 href="/"
-                className="font-mono text-base font-semibold tracking-wide text-foreground transition-colors hover:text-primary"
+                className="font-serif text-xl font-medium tracking-wide text-foreground transition-colors hover:text-primary"
               >
                 {siteConfig.title}
               </Link>
-              <div className="text-xs text-muted-foreground">
-                © {year} {siteConfig.author}. 使用 Next.js 构建。
-              </div>
+              <span className="font-mono text-[11px] tracking-wider text-muted-foreground">
+                TypeScript · Full-stack · AI Agents
+              </span>
             </div>
 
-            <VisitorStats align="left" className="pt-0.5" />
+            <VisitorStats align="right" />
           </div>
 
-          <div>
-            <div className="mb-3 text-xs font-medium tracking-wider text-foreground">关于</div>
-            <ul className="space-y-2 text-xs">
-              <li>
-                <Link href="/about" className="transition-colors hover:text-foreground">
-                  关于我
-                </Link>
-              </li>
-              <li>
-                <Link href="/links" className="transition-colors hover:text-foreground">
-                  友链
-                </Link>
-              </li>
-              {siteConfig.social.map((item) => (
-                <li key={item.href}>
-                  <a
-                    href={item.href}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="transition-colors hover:text-foreground"
-                  >
-                    {item.name} ↗
+          <div className="my-6 border-t border-hair" />
+
+          {/* 四栏数字编目索引 */}
+          <div className="grid grid-cols-2 gap-x-6 gap-y-7 sm:grid-cols-4">
+            <div>
+              <div className="mb-3 flex items-center gap-1.5 font-mono text-[11px] tracking-wider text-muted-foreground">
+                <span className="tabular-nums text-primary">01</span>
+                <span>关于</span>
+              </div>
+              <ul className="space-y-2 text-[13px] text-foreground/85">
+                <li>
+                  <Link href="/about" className="transition-colors hover:text-primary">
+                    关于我
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/projects" className="transition-colors hover:text-primary">
+                    开源项目
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/links" className="transition-colors hover:text-primary">
+                    朋友们
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/status" className="transition-colors hover:text-primary">
+                    服务状态
+                  </Link>
+                </li>
+              </ul>
+            </div>
+
+            <div>
+              <div className="mb-3 flex items-center gap-1.5 font-mono text-[11px] tracking-wider text-muted-foreground">
+                <span className="tabular-nums text-primary">02</span>
+                <span>目录</span>
+              </div>
+              <ul className="space-y-2 text-[13px] text-foreground/85">
+                <li>
+                  <Link href="/blog" className="transition-colors hover:text-primary">
+                    全部文章
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/notes" className="transition-colors hover:text-primary">
+                    工程随记
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/blog/archives" className="transition-colors hover:text-primary">
+                    写作归档
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/blog/tags" className="transition-colors hover:text-primary">
+                    标签索引
+                  </Link>
+                </li>
+              </ul>
+            </div>
+
+            <div>
+              <div className="mb-3 flex items-center gap-1.5 font-mono text-[11px] tracking-wider text-muted-foreground">
+                <span className="tabular-nums text-primary">03</span>
+                <span>联系与订阅</span>
+              </div>
+              <ul className="space-y-2 text-[13px] text-foreground/85">
+                <li>
+                  <Link href="/contact" className="transition-colors hover:text-primary">
+                    联系通道
+                  </Link>
+                </li>
+                <li>
+                  <a href="/rss.xml" target="_blank" rel="noreferrer" className="transition-colors hover:text-primary">
+                    RSS 订阅
                   </a>
                 </li>
-              ))}
-            </ul>
+                <li>
+                  <a
+                    href="/sitemap.xml"
+                    target="_blank"
+                    rel="noreferrer"
+                    className="transition-colors hover:text-primary"
+                  >
+                    站点地图
+                  </a>
+                </li>
+                {siteConfig.social.map((item) => (
+                  <li key={item.href}>
+                    <a
+                      href={item.href}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="transition-colors hover:text-primary"
+                    >
+                      {item.name} ↗
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            <div>
+              <div className="mb-3 flex items-center gap-1.5 font-mono text-[11px] tracking-wider text-muted-foreground">
+                <span className="tabular-nums text-primary">04</span>
+                <span>偏好</span>
+              </div>
+              <div className="space-y-2.5 text-[13px]">
+                <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
+                  <span className="text-muted-foreground">主题</span>
+                  <ThemeToggle />
+                </div>
+                <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
+                  <span className="text-muted-foreground">背景</span>
+                  <FxToggle />
+                </div>
+              </div>
+            </div>
           </div>
         </div>
 
-        {/* 下层：工具条（RSS、站点地图、三态主题直选） */}
-        <div className="mt-10 flex flex-col items-center justify-between gap-4 border-t border-border/40 pt-6 sm:flex-row">
-          <div className="flex flex-wrap items-center gap-3 text-xs">
-            <a href="/rss.xml" target="_blank" rel="noreferrer" className="transition-colors hover:text-foreground">
-              RSS 订阅
-            </a>
-            <span aria-hidden="true" className="text-muted-foreground/30">
-              ·
+        {/* 底部版本铭牌 */}
+        <div className="mt-5 flex flex-wrap items-center justify-between gap-2 px-1 font-mono text-[11px] tracking-wider text-muted-foreground">
+          <div className="flex flex-wrap items-center gap-2">
+            <span>{hostLabel}</span>
+            <span>·</span>
+            <span>
+              © {year} {siteConfig.author}
             </span>
-            <a href="/sitemap.xml" target="_blank" rel="noreferrer" className="transition-colors hover:text-foreground">
-              站点地图
-            </a>
-            <span aria-hidden="true" className="mx-1 text-muted-foreground/30">
-              |
-            </span>
-            <ThemeToggle />
           </div>
-
-          <div className="text-xs text-muted-foreground" title="我们行常人不可行之事 —— 黑锋骑士团">
-            We do what the living cannot.
-          </div>
+          <span title="我们行常人不可行之事 —— 黑锋骑士团">We do what the living cannot.</span>
         </div>
       </div>
     </footer>

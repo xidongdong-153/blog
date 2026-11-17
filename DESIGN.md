@@ -2,19 +2,19 @@
 name: 喜东东小站
 description: 个人技术沉淀和成长记录
 colors:
-  background-light: 'hsl(40 20% 97.5%)'
-  foreground-light: 'hsl(30 8% 15%)'
-  primary-light: 'hsl(215 85% 45%)'
-  muted-light: 'hsl(40 14% 92%)'
-  muted-foreground-light: 'hsl(30 6% 42%)'
-  border-light: 'hsl(35 10% 86%)'
-  background-dark: 'hsl(30 6% 8%)'
-  foreground-dark: 'hsl(40 15% 90%)'
-  primary-dark: 'hsl(215 75% 72%)'
-  muted-dark: 'hsl(30 5% 15%)'
-  muted-foreground-dark: 'hsl(35 8% 65%)'
-  border-dark: 'hsl(30 5% 20%)'
-  page-highlight: '#b4befe'
+  background-light: 'hsl(48 33% 97.1%)'
+  foreground-light: 'hsl(140 5% 12%)'
+  primary-light: 'hsl(166 60% 26%)'
+  muted-light: 'hsl(51 19% 92.7%)'
+  muted-foreground-light: 'hsl(137 4% 33.9%)'
+  border-light: 'hsl(53 13% 86.5%)'
+  background-dark: 'hsl(160 7% 8.4%)'
+  foreground-dark: 'hsl(140 10% 93.9%)'
+  primary-dark: 'hsl(164 47% 56.5%)'
+  muted-dark: 'hsl(156 7% 13.9%)'
+  muted-foreground-dark: 'hsl(147 5.5% 67.6%)'
+  border-dark: 'hsl(150 6.4% 18.4%)'
+  page-highlight: '#6fa996'
 typography:
   display:
     fontFamily: 'Newsreader, Georgia, serif'
@@ -76,7 +76,7 @@ spacing:
 - 链接与选中状态使用 `primary`；容器使用 `border` 与 `card`，不增加大块强调色背景。
 - 项目、笔记与系列状态允许语义色，并始终显示状态文字：浅色的绿、琥珀使用 700 档，暗色使用 400 档；待补充状态沿用 rose 600/400。普通文字对比度至少 4.5:1，大字至少 3:1。
 - 重要操作和说明不叠加低透明度。浅色和暗色都需要核验，不能只看其中一种。
-- `AmbientBackdrop` 的淡紫顶光是既有背景例外，不用于文字强调；保留其低透明度与渐隐。
+- `AmbientBackdrop` 与微噪点纸面仅作低透明度空气感底座，不用于文字强调；可通过页脚背景开关同步关闭。
 
 ## 字体与层级
 

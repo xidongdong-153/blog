@@ -1,9 +1,12 @@
 'use client'
 
 import { X } from 'lucide-react'
+import Image from 'next/image'
 import { useEffect, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { signIn } from '@/lib/auth-client'
+import { profileConfig } from '@/profile.config'
+import { siteConfig } from '@/site.config'
 import { GithubIcon, GoogleIcon } from '../comment/comment-icons'
 
 interface AuthModalProps {
@@ -17,8 +20,8 @@ interface AuthProvidersState {
 }
 
 /**
- * 快捷登录弹窗。
- * 动态拉取已配置的 OAuth 提供商并触发社交登录。
+ * 快捷登录弹窗组件。
+ * 顶部叠放站点圆形/方圆头像，单排圆形社交登录按钮。
  */
 export function AuthModal({ isOpen, onClose }: AuthModalProps) {
   const [mounted, setMounted] = useState(false)
@@ -34,7 +37,6 @@ export function AuthModal({ isOpen, onClose }: AuthModalProps) {
     setMounted(true)
   }, [])
 
-  // 弹窗打开时拉取最新提供商状态
   useEffect(() => {
     if (!isOpen) {
       setErrorMsg(null)
@@ -64,7 +66,6 @@ export function AuthModal({ isOpen, onClose }: AuthModalProps) {
     }
   }, [isOpen])
 
-  // 监听 ESC 键关闭
   useEffect(() => {
     if (!isOpen) return
 
@@ -103,40 +104,51 @@ export function AuthModal({ isOpen, onClose }: AuthModalProps) {
       aria-labelledby="auth-modal-title"
       className="fixed inset-0 z-[100] flex items-center justify-center overflow-y-auto p-4"
     >
-      {/* 遮罩背景 */}
       <div
-        className="fixed inset-0 bg-background/80 backdrop-blur-sm animate-[modal-fade-in_180ms_cubic-bezier(0.16,1,0.3,1)_both] motion-reduce:animate-none"
+        className="fixed inset-0 bg-background/75 backdrop-blur-sm animate-[modal-fade-in_200ms_cubic-bezier(0.22,1,0.36,1)_both] motion-reduce:animate-none"
         onClick={onClose}
         aria-hidden="true"
       />
 
-      {/* 弹窗主体 */}
       <div
         onClick={(e) => e.stopPropagation()}
-        className="relative z-10 flex w-full max-w-[280px] flex-col overflow-hidden rounded-xl border border-border/80 bg-card p-4 shadow-2xl animate-[modal-scale-in_200ms_cubic-bezier(0.16,1,0.3,1)_both] motion-reduce:animate-none sm:p-5"
+        className="relative z-10 mt-6 flex w-full max-w-[300px] flex-col items-center rounded-xl border border-hair bg-card px-6 pb-6 pt-10 text-center shadow-[0_18px_48px_-12px_rgba(20,23,22,0.16)] animate-[modal-scale-in_260ms_var(--ease-spring)_both] motion-reduce:animate-none"
       >
-        {/* 头部标题与关闭按钮 */}
-        <div className="flex items-center justify-between gap-3">
-          <h2 id="auth-modal-title" className="truncate text-sm font-medium text-foreground">
-            登录到喜东东的小站
-          </h2>
-          <button
-            type="button"
-            onClick={onClose}
-            aria-label="关闭"
-            className="rounded-md p-1 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
-          >
-            <X className="size-4" />
-          </button>
+        {/* 压线叠放的站点头像 */}
+        <div className="absolute -top-6 left-1/2 -translate-x-1/2 overflow-hidden rounded-[14px] border-2 border-card bg-card shadow-sm ring-1 ring-border/60">
+          {profileConfig.avatar ? (
+            <Image
+              src={profileConfig.avatar}
+              alt={siteConfig.author}
+              width={48}
+              height={48}
+              className="size-12 object-cover"
+            />
+          ) : (
+            <div className="flex size-12 items-center justify-center bg-muted font-serif text-lg font-medium text-foreground">
+              {siteConfig.author.slice(0, 1)}
+            </div>
+          )}
         </div>
 
-        {/* 错误提示 */}
+        <button
+          type="button"
+          onClick={onClose}
+          aria-label="关闭"
+          className="absolute right-3 top-3 rounded-full p-1.5 text-muted-foreground transition-colors hover:bg-muted/70 hover:text-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+        >
+          <X className="size-3.5" />
+        </button>
+
+        <h2 id="auth-modal-title" className="font-serif text-base font-medium text-foreground">
+          登录到 {siteConfig.author}
+        </h2>
+
         {errorMsg && (
-          <div className="mt-3 rounded-md bg-red-500/10 p-2 text-xs text-red-600 dark:text-red-400">{errorMsg}</div>
+          <div className="mt-3 w-full rounded-md bg-destructive/10 p-2 text-xs text-destructive">{errorMsg}</div>
         )}
 
-        {/* 纯图标登录按钮列表，单行水平排列 */}
-        <div className="mt-4 flex items-center justify-center gap-3">
+        <div className="mt-5 flex items-center justify-center gap-3.5">
           {loadingConfig ? (
             <div className="flex h-10 items-center justify-center">
               <div className="size-4 animate-spin rounded-full border-2 border-primary border-t-transparent" />
@@ -150,12 +162,12 @@ export function AuthModal({ isOpen, onClose }: AuthModalProps) {
                   disabled={Boolean(signingIn)}
                   aria-label="GitHub 登录"
                   title="GitHub 登录"
-                  className="flex size-10 items-center justify-center rounded-lg border border-border bg-background shadow-xs transition-colors hover:border-foreground/40 hover:bg-muted/50 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:opacity-50"
+                  className="flex size-10 items-center justify-center rounded-full border border-border/70 bg-background/80 text-foreground transition-all duration-200 hover:-translate-y-0.5 hover:border-primary/50 hover:shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-50"
                 >
                   {signingIn === 'github' ? (
                     <div className="size-4 animate-spin rounded-full border-2 border-primary border-t-transparent" />
                   ) : (
-                    <GithubIcon className="size-5" />
+                    <GithubIcon className="size-4.5" />
                   )}
                 </button>
               )}
@@ -167,18 +179,18 @@ export function AuthModal({ isOpen, onClose }: AuthModalProps) {
                   disabled={Boolean(signingIn)}
                   aria-label="Google 登录"
                   title="Google 登录"
-                  className="flex size-10 items-center justify-center rounded-lg border border-border bg-background shadow-xs transition-colors hover:border-foreground/40 hover:bg-muted/50 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:opacity-50"
+                  className="flex size-10 items-center justify-center rounded-full border border-border/70 bg-background/80 text-foreground transition-all duration-200 hover:-translate-y-0.5 hover:border-primary/50 hover:shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-50"
                 >
                   {signingIn === 'google' ? (
                     <div className="size-4 animate-spin rounded-full border-2 border-primary border-t-transparent" />
                   ) : (
-                    <GoogleIcon className="size-5" />
+                    <GoogleIcon className="size-4.5" />
                   )}
                 </button>
               )}
             </>
           ) : (
-            <div className="py-2 text-center text-xs text-muted-foreground">未配置登录提供商</div>
+            <div className="py-1 text-xs text-muted-foreground">未配置登录提供商</div>
           )}
         </div>
       </div>

@@ -1,14 +1,30 @@
 'use client'
 
 import type { PublicActivityItem, PublicPresence } from '@/lib/presence'
+import { Terminal } from 'lucide-react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { useEffect, useRef, useState } from 'react'
 import { createOfflinePresence, parsePublicPresence } from '@/lib/presence'
 import { profileConfig } from '@/profile.config'
 import { siteConfig } from '@/site.config'
+import { PaperSurface } from '../site/paper-surface'
 
 const PRESENCE_REQUEST_TIMEOUT_MS = 6_000
+export const PRESENCE_UPDATE_EVENT = 'xdd-presence-update'
+
+let latestPresenceSnapshot: PublicPresence | null = null
+
+export function getLatestPresenceSnapshot(): PublicPresence | null {
+  return latestPresenceSnapshot
+}
+
+function publishPresenceSnapshot(next: PublicPresence) {
+  latestPresenceSnapshot = next
+  if (typeof window !== 'undefined') {
+    window.dispatchEvent(new CustomEvent<PublicPresence>(PRESENCE_UPDATE_EVENT, { detail: next }))
+  }
+}
 
 const IDLE_MESSAGES = [
   '不在工位，大概率正在摸鱼',
@@ -32,10 +48,6 @@ function getToolLabel(tool: PublicActivityItem): string {
   return tool.label
 }
 
-/**
- * 活动图标与终端标识组件。
- * 优先读取活动配置图标，回退至工具图标映射或等宽终端标识符。
- */
 function ActivityIcon({ activity, className }: { activity: PublicActivityItem; className?: string }) {
   const iconSrc = activity.icon ?? TOOL_ICON_MAP[activity.id]
 
@@ -61,10 +73,8 @@ function ActivityIcon({ activity, className }: { activity: PublicActivityItem; c
 }
 
 /**
- * 首页与全站实时工位遥测头像组件。
- * - 移除独立小绿点，由头像本身作为视觉与交互入口；
- * - 有活动时头像环绕微光晕（Ambient Glow）；
- * - 鼠标悬停在头像上展开极简工位 HUD，描述信息极致精炼。
+ * 顶栏实时工位遥测头像组件（Squircle 纸感底托）。
+ * 有活动时环绕柔和琥珀微光，悬停或聚焦展开极简工位面板。
  */
 export function PresenceStatus() {
   const [presence, setPresence] = useState<PublicPresence | null>(null)
@@ -101,9 +111,17 @@ export function PresenceStatus() {
         })
         if (!response.ok) throw new Error(`活动接口返回 HTTP ${response.status}`)
         const parsed = parsePublicPresence((await response.json()) as unknown)
-        if (!cancelled) setPresence(parsed ?? createOfflinePresence())
+        if (!cancelled) {
+          const next = parsed ?? createOfflinePresence()
+          setPresence(next)
+          publishPresenceSnapshot(next)
+        }
       } catch {
-        if (!cancelled && (!controller.signal.aborted || timedOut)) setPresence(createOfflinePresence())
+        if (!cancelled && (!controller.signal.aborted || timedOut)) {
+          const offline = createOfflinePresence()
+          setPresence(offline)
+          publishPresenceSnapshot(offline)
+        }
       } finally {
         window.clearTimeout(timeoutId)
         if (!cancelled) inFlightRef.current = false
@@ -150,7 +168,6 @@ export function PresenceStatus() {
   const foregroundTool = active ? presence.foregroundTool : null
   const backgroundTools = active ? presence.backgroundTools : []
 
-  // 无障碍摘要文本
   const summaryText = foregroundTool
     ? `前台终端 ${getToolLabel(foregroundTool)}`
     : desktopApp
@@ -176,85 +193,80 @@ export function PresenceStatus() {
       <Link
         href="/"
         aria-label={`${siteConfig.title}首页，实时工位：${summaryText}`}
-        className="group relative flex items-center transition-transform duration-200 active:scale-95"
+        className="group relative flex items-center gap-2.5 transition-transform duration-200 active:scale-95 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-ring rounded-lg"
       >
-        {/* 有活动时的环境微光晕 */}
-        {active && (
-          <span
-            aria-hidden="true"
-            className="pointer-events-none absolute -inset-1 rounded-xl bg-emerald-500/25 blur-sm transition-opacity duration-500 group-hover:bg-emerald-500/35"
-          />
-        )}
-
-        {/* 头像外层底托 */}
-        <div
-          className={`relative flex items-center justify-center rounded-xl border p-0.5 backdrop-blur-sm transition-all duration-500 group-hover:border-foreground/30 group-hover:shadow-xs ${
-            active
-              ? 'border-emerald-500/45 bg-gradient-to-b from-background/95 via-card/80 to-muted/50 shadow-[0_0_10px_rgba(16,185,129,0.2)]'
-              : 'border-border/80 bg-gradient-to-b from-background/95 via-card/80 to-muted/50 shadow-2xs'
-          }`}
-        >
-          {profileConfig.avatar ? (
-            <Image
-              src={profileConfig.avatar}
-              alt={siteConfig.author}
-              width={32}
-              height={32}
-              priority
-              className="size-8 rounded-[10px] object-cover transition-transform duration-300 group-hover:scale-105"
-            />
-          ) : (
-            <div className="flex size-8 select-none items-center justify-center rounded-[10px] bg-muted/60 font-serif text-sm font-bold text-foreground">
-              {siteConfig.author.trim().slice(0, 1)}
-            </div>
-          )}
-
-          {/* 细微内阴影与边缘刻线 */}
+        <div className="relative flex size-[30px] items-center justify-center">
           <div
-            aria-hidden="true"
-            className="pointer-events-none absolute inset-0.5 rounded-[10px] ring-1 ring-inset ring-black/5 dark:ring-white/10"
-          />
+            className={`relative flex size-[30px] items-center justify-center overflow-hidden rounded-[9px] ring-1 transition-all duration-300 ${
+              active ? 'ring-primary/70' : 'ring-border/80 group-hover:ring-primary/45'
+            }`}
+          >
+            {profileConfig.avatar ? (
+              <Image
+                src={profileConfig.avatar}
+                alt={siteConfig.author}
+                width={30}
+                height={30}
+                priority
+                className="size-full object-cover transition-transform duration-300 group-hover:scale-105"
+              />
+            ) : (
+              <div className="flex size-full select-none items-center justify-center bg-muted/60 font-serif text-sm font-semibold text-foreground">
+                {siteConfig.author.trim().slice(0, 1)}
+              </div>
+            )}
+          </div>
         </div>
+
+        <span className="font-serif text-[18px] font-medium tracking-[0.02em] text-foreground transition-colors group-hover:text-primary">
+          {siteConfig.author}
+        </span>
       </Link>
 
-      {/* 悬停展开的极简工位 HUD */}
+      {/* 悬停展开的纸片感工位 HUD */}
       {expanded && (
         <div
           role="dialog"
           aria-label="实时工位状态"
-          className="absolute left-0 top-[calc(100%+0.5rem)] z-30 w-64 overflow-hidden rounded-xl border border-border/80 bg-background/95 p-3 text-left shadow-lg ring-1 ring-inset ring-foreground/5 backdrop-blur-md before:absolute before:-top-2.5 before:inset-x-0 before:h-2.5 before:content-[''] sm:-left-2"
+          className="isolate absolute left-0 top-[calc(100%+0.65rem)] z-50 w-64 overflow-hidden rounded-lg p-3.5 text-left before:absolute before:-top-3 before:inset-x-0 before:h-3 before:content-[''] animate-[modal-scale-in_180ms_var(--ease-spring)_both] motion-reduce:animate-none"
         >
-          {/* 顶栏 */}
-          <div className="border-b border-border/50 pb-1.5">
-            <span className="font-mono text-xs uppercase tracking-wider text-muted-foreground">// WORKSTATION</span>
+          <PaperSurface className="bg-popover" />
+          <div className="flex items-center justify-between border-b border-hair pb-2">
+            <span className="font-mono text-[10px] tracking-[0.2em] text-muted-foreground uppercase">Workstation</span>
+            <span
+              className={`inline-flex items-center gap-1 font-mono text-[10px] font-medium ${
+                active ? 'text-primary' : 'text-muted-foreground'
+              }`}
+            >
+              <Terminal className="size-3" aria-hidden="true" strokeWidth={1.75} />
+              <span>{active ? '在线' : '待机'}</span>
+            </span>
           </div>
 
-          {/* 主体状态 */}
           <div className="pt-2.5">
             {active && foregroundTool ? (
-              <div className="flex items-center gap-2 rounded-lg border border-border/60 bg-muted/40 p-2">
+              <div className="flex items-center gap-2 rounded-md border border-hair bg-muted/35 p-2">
                 {desktopApp && <ActivityIcon activity={desktopApp} />}
                 <div className="min-w-0">
                   <p className="truncate font-mono text-xs font-semibold text-foreground">
                     &gt;_ {getToolLabel(foregroundTool)}
                   </p>
                   {desktopApp && (
-                    <p className="truncate font-mono text-xs text-muted-foreground">in {desktopApp.label}</p>
+                    <p className="truncate font-mono text-[11px] text-muted-foreground">in {desktopApp.label}</p>
                   )}
                 </div>
               </div>
             ) : active && desktopApp ? (
-              <div className="flex items-center gap-2 rounded-lg border border-border/60 bg-muted/40 p-2">
+              <div className="flex items-center gap-2 rounded-md border border-hair bg-muted/35 p-2">
                 <ActivityIcon activity={desktopApp} />
                 <p className="truncate font-mono text-xs font-medium text-foreground">{desktopApp.label}</p>
               </div>
             ) : (
-              <p className="py-1 font-mono text-xs text-muted-foreground">
+              <p className="py-1 text-xs leading-relaxed text-muted-foreground">
                 {active ? '在看别的内容，没在敲代码' : idleMessage}
               </p>
             )}
 
-            {/* 后台工具 */}
             {backgroundTools.length > 0 && (
               <div className="flex flex-wrap gap-1 pt-2">
                 {backgroundTools.map((activity) => {
@@ -262,7 +274,7 @@ export function PresenceStatus() {
                   return (
                     <span
                       key={activity.id}
-                      className="inline-flex items-center gap-1 rounded border border-border/60 bg-muted/30 px-1.5 py-0.5 font-mono text-xs text-muted-foreground"
+                      className="inline-flex items-center gap-1 rounded border border-hair bg-muted/25 px-1.5 py-0.5 font-mono text-[11px] text-muted-foreground"
                     >
                       {icon ? (
                         <Image src={icon} alt="" width={12} height={12} className="size-3 rounded-xs object-cover" />
@@ -276,9 +288,8 @@ export function PresenceStatus() {
               </div>
             )}
 
-            {/* 终端未探测提示 */}
             {active && presence?.terminalDetection === 'unknown' && (
-              <p className="pt-1.5 font-mono text-xs text-muted-foreground">// 终端焦点未探测</p>
+              <p className="pt-1.5 font-mono text-[11px] text-muted-foreground">终端焦点未探测</p>
             )}
           </div>
         </div>

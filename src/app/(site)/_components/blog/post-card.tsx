@@ -10,11 +10,8 @@ import { AiGeneratedLabel } from './ai-generated-label'
 
 /** 搜索命中信息：标题按区间高亮，snippet 替换摘要位 */
 export interface PostCardHit {
-  /** 标题命中区间，坐标相对 post.title */
   titleRanges: TextRange[]
-  /** 正文命中片段，标题已命中时为 null */
   snippet: string | null
-  /** 片段内的高亮区间 */
   snippetRanges: TextRange[]
 }
 
@@ -24,15 +21,11 @@ export interface PostCardProps {
   className?: string
   entranceIndex?: number
   as?: 'li' | 'article' | 'div'
-  /** 是否突出显示更新时间（如按最近更新排序时） */
   showUpdatedDate?: boolean
-  /** 分类链接保留当前主列表来源筛选。 */
   currentSource?: BlogSourceFilter
-  /** 站内搜索传入的命中信息；不传时渲染行为与列表完全一致 */
   hit?: PostCardHit
 }
 
-/** 按命中区间渲染文本，命中部分包一层 mark；没有区间时原样输出 */
 function HighlightedText({ text, ranges }: { text: string; ranges?: TextRange[] }) {
   if (!ranges || ranges.length === 0) return <>{text}</>
 
@@ -40,7 +33,7 @@ function HighlightedText({ text, ranges }: { text: string; ranges?: TextRange[] 
     <>
       {splitByRanges(text, ranges).map((part, index) =>
         part.hit ? (
-          <mark key={index} className="bg-primary/15 text-foreground">
+          <mark key={index} className="rounded-xs bg-primary/18 px-0.5 text-foreground">
             {part.text}
           </mark>
         ) : (
@@ -52,10 +45,8 @@ function HighlightedText({ text, ranges }: { text: string; ranges?: TextRange[] 
 }
 
 /**
- * 博客文章列表项组件（无卡片极简排版）。
- * 采用底部分割线、开阔留白与技术等宽眉标：
- * 展示分类/日期/阅读时间、大字号标题悬浮动效与精简摘要。
- * 站内搜索命中时传入 hit，标题关键词高亮，正文命中片段替换摘要位。
+ * 博客文章列表项组件（无框发丝线排版）。
+ * 以纤细发丝线分隔，紧凑单行元信息沉淀于摘要之下，标题悬停呈现主题茶金过渡与微位移箭标。
  */
 export function PostCard({
   post,
@@ -69,11 +60,10 @@ export function PostCard({
 }: PostCardProps) {
   const readingTime = calculateReadingTime(post.content)
   const categoryLabel = BLOG_CATEGORY_LABELS[post.category] ?? '文章'
-  // 正文命中时用片段替换摘要，标题命中或未搜索时仍显示原描述
   const summaryText = hit?.snippet ?? post.description
 
   const containerClasses = [
-    'post-item group/item relative flex flex-col border-b border-border/40 pb-7 pt-4 transition-colors',
+    'post-item group/item relative flex flex-col border-b border-hair py-5 transition-colors',
     entranceIndex !== undefined && 'entrance',
     className,
   ]
@@ -86,93 +76,88 @@ export function PostCard({
       style={
         entranceIndex === undefined
           ? undefined
-          : { animationDelay: `${180 + Math.min(Math.max(entranceIndex, 0), 3) * 60}ms` }
+          : { animationDelay: `${120 + Math.min(Math.max(entranceIndex, 0), 4) * 50}ms` }
       }
     >
-      {/* 顶部技术等宽眉标 (Mono Kicker) */}
-      <div className="mb-2 flex flex-wrap items-center gap-2 font-mono text-xs tracking-wider text-muted-foreground">
-        {post.draft ? (
-          <span className="font-semibold text-foreground/80">// 草稿</span>
-        ) : (
-          <Link
-            href={buildBlogListUrl({ source: currentSource, category: post.category })}
-            className="rounded-sm font-semibold text-foreground transition-colors hover:text-primary hover:underline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-ring"
-          >
-            // {categoryLabel}
-          </Link>
-        )}
-        <span className="text-border">/</span>
-        <time dateTime={post.date}>{formatDate(post.date)}</time>
-        {showUpdatedDate && post.updatedDate && (
-          <>
-            <span className="text-border">/</span>
-            <span className="text-primary/90">更新于 {formatDate(post.updatedDate)}</span>
-          </>
-        )}
-        {detailed && (
-          <>
-            <span className="text-border">/</span>
-            <span>{readingTime}</span>
-          </>
-        )}
-        {post.aiGenerated && (
-          <>
-            <span className="text-border">/</span>
-            <AiGeneratedLabel aiGenerated={post.aiGenerated} />
-          </>
-        )}
-        <ArticleViewerCount slug={post.slug} mode="compact" />
-      </div>
-
       <Link
         href={`/blog/${post.slug}`}
         className="group/link flex w-full flex-col rounded-sm focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-ring"
       >
-        {/* 标题与平滑展开箭头 */}
-        <div className="z-10 flex-grow">
-          <div className="flex items-center justify-between gap-3">
-            <h2 className="font-serif text-lg font-medium tracking-tight text-foreground transition-colors group-hover/link:text-primary sm:text-xl">
-              <HighlightedText text={post.title} ranges={hit?.titleRanges} />
-            </h2>
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              className="size-4 shrink-0 -translate-x-1 stroke-muted-foreground opacity-0 transition-all duration-200 group-hover/link:translate-x-0 group-hover/link:opacity-100 motion-reduce:transition-none"
-            >
-              <polyline points="9 18 15 12 9 6" />
-            </svg>
-          </div>
-
-          {detailed && summaryText && (
-            <p className="mt-2 line-clamp-2 text-sm leading-relaxed text-muted-foreground sm:line-clamp-3">
-              {hit?.snippet ? <HighlightedText text={hit.snippet} ranges={hit.snippetRanges} /> : post.description}
-            </p>
-          )}
+        <div className="flex items-start justify-between gap-3">
+          <h2 className="font-serif text-[1.15rem] font-medium leading-snug tracking-tight text-foreground transition-colors group-hover/link:text-primary sm:text-[1.25rem]">
+            <HighlightedText text={post.title} ranges={hit?.titleRanges} />
+          </h2>
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="1.8"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            className="mt-1 size-4 shrink-0 -translate-x-1 stroke-primary/80 opacity-0 transition-all duration-300 ease-[var(--ease-spring)] group-hover/link:translate-x-0 group-hover/link:opacity-100 motion-reduce:transition-none"
+          >
+            <polyline points="9 18 15 12 9 6" />
+          </svg>
         </div>
+
+        {detailed && summaryText && (
+          <p className="mt-1.5 line-clamp-2 text-[13.5px] leading-relaxed text-muted-foreground">
+            {hit?.snippet ? <HighlightedText text={hit.snippet} ranges={hit.snippetRanges} /> : post.description}
+          </p>
+        )}
       </Link>
 
-      {/* 底部元数据：标签 */}
-      {detailed && post.tags.length > 0 && (
-        <div className="mt-3.5 flex flex-wrap items-center gap-x-2 gap-y-1 font-mono text-xs text-muted-foreground">
-          <ul className="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1">
-            {post.tags.map((tag) => (
-              <li key={tag} className="min-w-0 max-w-full [overflow-wrap:anywhere]">
-                <Link
-                  href={`/blog/tags/${encodeURIComponent(tag)}`}
-                  className="rounded-sm text-muted-foreground underline decoration-border underline-offset-4 transition-colors hover:text-foreground focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-ring"
-                >
-                  #{tag}
-                </Link>
-              </li>
-            ))}
-          </ul>
+      {/* 底部元信息与标签独立链接 */}
+      <div className="mt-3 flex flex-wrap items-center justify-between gap-x-4 gap-y-1.5 font-mono text-xs text-muted-foreground">
+        <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+          <time dateTime={post.date} className="tabular-nums">
+            {formatDate(post.date)}
+          </time>
+          {showUpdatedDate && post.updatedDate && (
+            <>
+              <span aria-hidden="true">·</span>
+              <span className="text-primary/90">更新于 {formatDate(post.updatedDate)}</span>
+            </>
+          )}
+          <span aria-hidden="true">·</span>
+          {post.draft ? (
+            <span className="text-foreground/75">草稿</span>
+          ) : (
+            <Link
+              href={buildBlogListUrl({ source: currentSource, category: post.category })}
+              className="rounded-sm transition-colors hover:text-primary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
+            >
+              {categoryLabel}
+            </Link>
+          )}
+
+          {detailed && post.tags.length > 0 && (
+            <>
+              <span aria-hidden="true">/</span>
+              <ul className="inline-flex min-w-0 flex-wrap items-center gap-x-2 gap-y-0.5">
+                {post.tags.slice(0, 4).map((tag) => (
+                  <li key={tag} className="min-w-0 max-w-full [overflow-wrap:anywhere]">
+                    <Link
+                      href={`/blog/tags/${encodeURIComponent(tag)}`}
+                      className="rounded-sm underline decoration-border/70 underline-offset-4 transition-colors hover:text-primary hover:decoration-primary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
+                    >
+                      {tag}
+                    </Link>
+                  </li>
+                ))}
+                {post.tags.length > 4 && <li className="text-muted-foreground/60">+{post.tags.length - 4}</li>}
+              </ul>
+            </>
+          )}
         </div>
-      )}
+
+        <div className="flex items-center gap-2 text-[11px]">
+          {post.aiGenerated && <AiGeneratedLabel aiGenerated={post.aiGenerated} />}
+          {detailed && <span>{readingTime}</span>}
+          <ArticleViewerCount slug={post.slug} mode="compact" />
+        </div>
+      </div>
     </Component>
   )
 }

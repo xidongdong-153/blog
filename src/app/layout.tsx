@@ -38,7 +38,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <head>
         <script
           dangerouslySetInnerHTML={{
-            __html: `(function(){try{var t=localStorage.getItem('theme');var theme=t==='light'||t==='dark'?t:'system';document.documentElement.dataset.theme=theme;var isDark=theme==='dark'||(theme==='system'&&window.matchMedia('(prefers-color-scheme: dark)').matches);if(isDark){document.documentElement.classList.add('dark')}else{document.documentElement.classList.remove('dark')}}catch(e){}})()`,
+            __html: `(function(){try{var t=localStorage.getItem('theme');var theme=t==='light'||t==='dark'?t:'system';document.documentElement.dataset.theme=theme;var isDark=theme==='dark'||(theme==='system'&&window.matchMedia('(prefers-color-scheme: dark)').matches);if(isDark){document.documentElement.classList.add('dark')}else{document.documentElement.classList.remove('dark')}var fx=localStorage.getItem('site-backdrop-fx');document.documentElement.dataset.backdropFx=fx==='off'?'off':'on'}catch(e){}})()`,
           }}
         />
       </head>

@@ -1,25 +1,29 @@
 'use client'
 
+import type { CSSProperties } from 'react'
 import type { Heading } from '@/lib/content'
+import { ArrowUp, BookOpen, Check, Link2, MessageSquare } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
+import { useReaderFocus } from './article-reader-shell'
 
 interface TableOfContentsProps {
   headings: Heading[]
   onItemClick?: () => void
+  /** 是否在桌面侧栏底部附带环形阅读进度与悬浮快捷操作 */
+  showRailTools?: boolean
 }
 
 /**
- * 文章目录组件（轨道式参考导轨 Rail Wayfinding）。
- *
- * 核心特性与边界防护：
- * 1. 视口多章节同时感知高亮：视口内出现的所有章节对应目录项与刻度节点同时高亮，保留原有的全景感知逻辑。
- * 2. 采用 getBoundingClientRect 计算章节在视口内的实时投影，彻底解决 offsetTop/offsetParent 与图片延迟加载导致的失敏与时序竞态。
- * 3. 导轨内缩安全边距（ps-3 复合内边距），彻底杜绝侧边栏 overflow-y: auto 截断左侧刻度圆圈的问题。
- * 4. 保持点击平滑跳转互斥锁与用户手势主动打断。
+ * 文章目录与右侧阅读进度组件。
+ * 1. 支持多章节视口感知与专注模式级联淡隐 (--toc-ripple-delay)。
+ * 2. 桌面侧栏底部附带渐隐分隔线、SVG 环形阅读进度与轻量快捷操作栏。
  */
-export function TableOfContents({ headings, onItemClick }: TableOfContentsProps) {
-  const [isOpen, setIsOpen] = useState(true)
+export function TableOfContents({ headings, onItemClick, showRailTools = false }: TableOfContentsProps) {
   const [activeIds, setActiveIds] = useState<string[]>([])
+  const [scrollPercent, setScrollPercent] = useState(0)
+  const [copiedLink, setCopiedLink] = useState(false)
+  const { focusMode, toggleFocusMode } = useReaderFocus()
+
   const containerRef = useRef<HTMLDivElement>(null)
   const suppressFollowRef = useRef(false)
   const pendingClickSlugRef = useRef<string>('')
@@ -27,18 +31,15 @@ export function TableOfContents({ headings, onItemClick }: TableOfContentsProps)
   const rafIdRef = useRef<number>(0)
 
   useEffect(() => {
-    if (headings.length === 0) return
-
     const container = containerRef.current
-    if (!container) return
-
-    const scrollContainer = container.closest<HTMLElement>('#sidebar') ?? container
+    const scrollContainer = container?.closest<HTMLElement>('#sidebar') ?? container
 
     const releaseFollow = () => {
       suppressFollowRef.current = false
     }
 
     const ensureLinkVisible = (link: HTMLElement) => {
+      if (!scrollContainer) return
       const containerRect = scrollContainer.getBoundingClientRect()
       const linkRect = link.getBoundingClientRect()
       const edgePadding = 48
@@ -58,14 +59,18 @@ export function TableOfContents({ headings, onItemClick }: TableOfContentsProps)
     }
 
     const updatePositionAndStyle = () => {
-      // 动态查询所有真实有效标题元素
+      const docHeight = document.documentElement.scrollHeight - window.innerHeight
+      const nextPercent = docHeight > 0 ? Math.min(100, Math.max(0, Math.round((window.scrollY / docHeight) * 100))) : 0
+      setScrollPercent(nextPercent)
+
+      if (headings.length === 0) return
+
       const headingElements = headings
         .map((h) => ({ id: h.id, el: document.getElementById(h.id) }))
         .filter((item): item is { id: string; el: HTMLElement } => item.el !== null)
 
       if (headingElements.length === 0) return
 
-      // 到达判定与点击互斥锁释放
       if (suppressFollowRef.current) {
         const targetHeading = headingElements.find((h) => h.id === pendingClickSlugRef.current)
         const arrived = !targetHeading || Math.abs(targetHeading.el.getBoundingClientRect().top - 100) <= 80
@@ -84,7 +89,6 @@ export function TableOfContents({ headings, onItemClick }: TableOfContentsProps)
         const article = document.querySelector('article')
         const articleBottom = article ? article.getBoundingClientRect().bottom : windowHeight
 
-        // 视口内多标题高亮判定：章节从当前标题顶部至下一标题顶部（或文章底部）在视口内有投影
         currentActiveIds = headingElements
           .filter((item, index) => {
             const rangeTop = item.el.getBoundingClientRect().top
@@ -94,7 +98,6 @@ export function TableOfContents({ headings, onItemClick }: TableOfContentsProps)
           })
           .map((item) => item.id)
 
-        // 边界防护：刚进文章还未滑入第一个标题，且第一个标题已在视口下半部分
         if (currentActiveIds.length === 0 && headingElements.length > 0) {
           const firstTop = headingElements[0].el.getBoundingClientRect().top
           if (firstTop < windowHeight * 0.7 && firstTop > 0) {
@@ -103,7 +106,6 @@ export function TableOfContents({ headings, onItemClick }: TableOfContentsProps)
         }
       }
 
-      // 仅在激活项列表发生改变时才触发 React state 更新，滚动中无多余 re-render
       const isDifferent =
         currentActiveIds.length !== activeIdsRef.current.length ||
         currentActiveIds.some((id, i) => id !== activeIdsRef.current[i])
@@ -112,8 +114,7 @@ export function TableOfContents({ headings, onItemClick }: TableOfContentsProps)
         activeIdsRef.current = currentActiveIds
         setActiveIds(currentActiveIds)
 
-        // 将首个激活章节对齐在侧边栏可见区域
-        if (currentActiveIds.length > 0 && !suppressFollowRef.current) {
+        if (currentActiveIds.length > 0 && !suppressFollowRef.current && container) {
           const firstActiveLink = container.querySelector<HTMLAnchorElement>(`a[href="#${currentActiveIds[0]}"]`)
           if (firstActiveLink) {
             ensureLinkVisible(firstActiveLink)
@@ -130,7 +131,6 @@ export function TableOfContents({ headings, onItemClick }: TableOfContentsProps)
       })
     }
 
-    // 初始执行，并在 100ms / 300ms / 600ms 补发探测，防止动态 MDX 渲染导致初次查找落空
     updatePositionAndStyle()
     const timer1 = window.setTimeout(updatePositionAndStyle, 100)
     const timer2 = window.setTimeout(updatePositionAndStyle, 300)
@@ -167,10 +167,6 @@ export function TableOfContents({ headings, onItemClick }: TableOfContentsProps)
     }
   }, [headings])
 
-  if (headings.length === 0) {
-    return null
-  }
-
   const handleLinkClick = (e: React.MouseEvent<HTMLAnchorElement>, id: string) => {
     e.preventDefault()
     const target = document.getElementById(id)
@@ -188,66 +184,151 @@ export function TableOfContents({ headings, onItemClick }: TableOfContentsProps)
     }
   }
 
+  const handleCopyPermalink = async () => {
+    try {
+      await navigator.clipboard.writeText(window.location.href)
+      setCopiedLink(true)
+      window.setTimeout(setCopiedLink, 1800, false)
+    } catch {
+      // 忽略剪贴板权限错误
+    }
+  }
+
+  const scrollToComments = () => {
+    document.getElementById('comments')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+  }
+
+  const scrollToTop = () => {
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+  }
+
+  const ringRadius = 6.5
+  const ringCircumference = 2 * Math.PI * ringRadius
+  const strokeDashoffset = ringCircumference - (scrollPercent / 100) * ringCircumference
+
   return (
-    <nav ref={containerRef} aria-label="文章导轨目录" className="select-none ps-3 pe-2 text-xs leading-6">
-      <div className="mb-3 flex items-center justify-between border-b border-border/40 pb-2">
-        <button
-          type="button"
-          onClick={() => setIsOpen((prev) => !prev)}
-          className="flex items-center gap-2 font-mono text-[0.7rem] tracking-wider text-muted-foreground transition-colors hover:text-foreground"
-          aria-expanded={isOpen}
+    <nav ref={containerRef} aria-label="文章目录" className="select-none text-xs leading-relaxed">
+      {headings.length > 0 && (
+        <ul
+          inert={showRailTools && focusMode ? true : undefined}
+          aria-hidden={showRailTools && focusMode ? true : undefined}
+          className="flex max-h-[54vh] flex-col gap-1 overflow-y-auto pr-1"
         >
-          <span className="font-semibold">// 目录</span>
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            className={`size-3 transition-transform duration-200 ${isOpen ? 'rotate-0' : '-rotate-90'}`}
-          >
-            <polyline points="6 9 12 15 18 9" />
-          </svg>
-        </button>
-      </div>
-
-      {isOpen && (
-        <div className="relative ps-3">
-          {/* 贯穿式垂直参考导轨线：距当前相对容器左侧 3.5px */}
-          <div
-            aria-hidden="true"
-            className="pointer-events-none absolute bottom-2 start-[3.5px] top-2 w-px bg-border/60"
-          />
-
-          <ul className="flex flex-col gap-1 ps-4">
-            {headings.map((heading) => {
-              const isActive = activeIds.includes(heading.id)
-              return (
-                <li key={heading.id} className="relative flex items-center">
-                  {/* 导轨刻度锚点：居中对齐导轨线，四周留有充裕安全内边距，永不被侧边栏 overflow 裁切 */}
+          {headings.map((heading, index) => {
+            const isActive = activeIds.includes(heading.id)
+            return (
+              <li
+                key={heading.id}
+                style={{ '--toc-ripple-delay': `${Math.min(index, 14) * 40}ms` } as CSSProperties}
+                className="relative leading-none transition-[opacity,transform] duration-[350ms] ease-[cubic-bezier(0.4,0,0.2,1)] group-data-[reader-focus=true]/reader:pointer-events-none group-data-[reader-focus=true]/reader:-translate-x-2.5 group-data-[reader-focus=true]/reader:opacity-0 group-data-[reader-focus=true]/reader:[transition-delay:var(--toc-ripple-delay)]"
+              >
+                {/* 激活态垂直标尺线 */}
+                {isActive && (
                   <span
                     aria-hidden="true"
-                    className={`absolute -start-[16px] size-2 rounded-full border transition-all duration-150 ${
-                      isActive ? 'scale-125 border-primary bg-primary' : 'border-border bg-background'
-                    }`}
+                    className="absolute left-0 top-1.5 h-3.5 w-[2px] rounded-full bg-primary transition-all duration-200"
                   />
+                )}
+                <a
+                  href={`#${heading.id}`}
+                  onClick={(e) => handleLinkClick(e, heading.id)}
+                  title={heading.text}
+                  className={`block truncate py-1 text-left transition-colors duration-200 ${
+                    heading.depth === 3 ? 'pl-5 text-[11.5px]' : 'pl-3 text-[12.5px]'
+                  } ${isActive ? 'font-medium text-primary' : 'text-muted-foreground hover:text-foreground'}`}
+                >
+                  {heading.text}
+                </a>
+              </li>
+            )
+          })}
+        </ul>
+      )}
 
-                  {/* 章节链接 */}
-                  <a
-                    href={`#${heading.id}`}
-                    onClick={(e) => handleLinkClick(e, heading.id)}
-                    className={`line-clamp-2 block w-full py-1 pe-2 ps-1.5 transition-colors duration-150 ${
-                      isActive ? 'font-medium text-foreground' : 'text-muted-foreground hover:text-foreground'
-                    } ${heading.depth === 3 ? 'ms-2 text-[0.75rem]' : 'font-normal'}`}
-                  >
-                    {heading.text}
-                  </a>
-                </li>
-              )
-            })}
-          </ul>
+      {showRailTools && (
+        <div className="mt-4 flex flex-col gap-4 pl-2 transition-opacity duration-300 group-data-[reader-focus=true]/reader:opacity-45">
+          <div aria-hidden="true" className="h-px w-36 bg-gradient-to-r from-border via-border/45 to-transparent" />
+
+          {/* 环形阅读进度 + 回到顶部 */}
+          <div className="flex flex-col gap-1.5">
+            <div className="flex items-center gap-2 font-mono text-xs tabular-nums text-foreground/80">
+              <svg aria-hidden="true" viewBox="0 0 18 18" className="size-4 -rotate-90">
+                <circle
+                  cx="9"
+                  cy="9"
+                  r={ringRadius}
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="1.5"
+                  className="text-border/70"
+                />
+                <circle
+                  cx="9"
+                  cy="9"
+                  r={ringRadius}
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="1.8"
+                  strokeLinecap="round"
+                  strokeDasharray={ringCircumference}
+                  strokeDashoffset={strokeDashoffset}
+                  className="text-primary transition-[stroke-dashoffset] duration-150 ease-out"
+                />
+              </svg>
+              <span>{scrollPercent}%</span>
+            </div>
+
+            {scrollPercent > 4 && (
+              <button
+                type="button"
+                onClick={scrollToTop}
+                className="inline-flex w-fit cursor-pointer items-center gap-1.5 text-xs text-muted-foreground transition-colors hover:text-primary focus-visible:outline-2 focus-visible:outline-ring"
+              >
+                <ArrowUp className="size-3.5" />
+                <span>回到顶部</span>
+              </button>
+            )}
+          </div>
+
+          {/* 紧凑快捷工具栏 */}
+          <div className="flex items-center gap-1.5 pt-1 text-muted-foreground">
+            <button
+              type="button"
+              onClick={toggleFocusMode}
+              title={focusMode ? '退出专注阅读' : '开启专注阅读'}
+              aria-label={focusMode ? '退出专注阅读' : '开启专注阅读'}
+              aria-pressed={focusMode}
+              className={`flex size-7 cursor-pointer items-center justify-center rounded-md border border-transparent transition-colors hover:border-hair hover:bg-muted/60 hover:text-primary ${
+                focusMode ? 'border-primary/35 bg-primary/8 text-primary' : ''
+              }`}
+            >
+              <BookOpen className="size-3.5" strokeWidth={1.7} />
+            </button>
+
+            <button
+              type="button"
+              onClick={handleCopyPermalink}
+              title={copiedLink ? '链接已复制' : '复制文章链接'}
+              aria-label={copiedLink ? '链接已复制' : '复制文章链接'}
+              className="flex size-7 cursor-pointer items-center justify-center rounded-md border border-transparent transition-colors hover:border-hair hover:bg-muted/60 hover:text-primary"
+            >
+              {copiedLink ? (
+                <Check className="size-3.5 text-primary" strokeWidth={1.8} />
+              ) : (
+                <Link2 className="size-3.5" strokeWidth={1.7} />
+              )}
+            </button>
+
+            <button
+              type="button"
+              onClick={scrollToComments}
+              title="前往评论区"
+              aria-label="前往评论区"
+              className="flex size-7 cursor-pointer items-center justify-center rounded-md border border-transparent transition-colors hover:border-hair hover:bg-muted/60 hover:text-primary"
+            >
+              <MessageSquare className="size-3.5" strokeWidth={1.7} />
+            </button>
+          </div>
         </div>
       )}
     </nav>

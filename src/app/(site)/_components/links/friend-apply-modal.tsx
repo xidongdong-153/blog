@@ -178,9 +178,7 @@ export function FriendApplyModal({ isOpen, onClose }: FriendApplyModalProps) {
         {/* 顶部标题栏：高度紧凑 */}
         <div className="flex items-center justify-between border-b border-border/40 px-4 py-3 sm:px-5 sm:py-3.5">
           <div className="flex flex-col gap-0.5">
-            <span className="font-mono text-[10px] uppercase tracking-wider text-muted-foreground">
-              // 交换友链 / CONNECT
-            </span>
+            <span className="font-mono text-[10px] uppercase tracking-[0.2em] text-muted-foreground">Connect</span>
             <h2
               id="friend-modal-title"
               className="font-serif text-lg font-medium tracking-tight text-foreground sm:text-xl"
@@ -204,9 +202,7 @@ export function FriendApplyModal({ isOpen, onClose }: FriendApplyModalProps) {
         {/* 成功界面 */}
         {isSuccess ? (
           <div className="flex flex-col items-center justify-center gap-2.5 p-8 text-center sm:p-10">
-            <div className="font-mono text-[10px] uppercase tracking-wider text-muted-foreground">
-              // 投递成功 / DELIVERED
-            </div>
+            <div className="font-mono text-[10px] uppercase tracking-[0.2em] text-primary">Delivered</div>
             <h3 className="font-serif text-xl font-medium tracking-tight text-foreground">信息已发送</h3>
             <p className="max-w-xs text-xs leading-relaxed text-muted-foreground">
               你的申请已送达喜东东的邮箱，收到后我会尽快回信。

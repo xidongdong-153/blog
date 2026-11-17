@@ -1,0 +1,197 @@
+'use client'
+
+import { RefreshCw, Search } from 'lucide-react'
+import { useMemo, useState } from 'react'
+import { siteConfig } from '@/site.config'
+import { PaperSurface } from '../site/paper-surface'
+
+export interface ConstellationFriend {
+  name: string
+  url: string
+  description: string
+  avatarUrl?: string | null
+}
+
+const NODE_TINTS = [
+  'bg-amber-500/18 text-amber-800 dark:text-amber-200 border-amber-500/35',
+  'bg-rose-500/16 text-rose-800 dark:text-rose-200 border-rose-500/35',
+  'bg-emerald-500/16 text-emerald-800 dark:text-emerald-200 border-emerald-500/35',
+  'bg-sky-500/16 text-sky-800 dark:text-sky-200 border-sky-500/35',
+] as const
+
+function seededUnit(seed: number): number {
+  const x = Math.sin(seed * 12.9898 + 78.233) * 43758.5453
+  return x - Math.floor(x)
+}
+
+/**
+ * 交互式「友邻拓扑网络」组件。
+ * 以中心主站为锚点在正交网格底图上放射连接各友邻节点，悬停或聚焦时高亮对应连线并展示站点简介。
+ */
+export function FriendsConstellation({ friends }: { friends: ConstellationFriend[] }) {
+  const [seedOffset, setSeedOffset] = useState(1)
+  const [filter, setFilter] = useState('')
+  const [activeFriend, setActiveFriend] = useState<ConstellationFriend | null>(null)
+
+  const normalizedQuery = filter.trim().toLowerCase()
+
+  const positioned = useMemo(() => {
+    const goldenAngle = Math.PI * (3 - Math.sqrt(5))
+    return friends.map((friend, idx) => {
+      const r = 16 + Math.sqrt((idx + 0.9) / Math.max(friends.length, 1)) * 28
+      const angle = idx * goldenAngle + seedOffset * 1.15 + seededUnit(idx + seedOffset * 17) * 0.6
+      const x = Math.min(88, Math.max(12, 50 + Math.cos(angle) * r * 1.3))
+      const y = Math.min(84, Math.max(16, 50 + Math.sin(angle) * r * 0.85))
+      const matches =
+        !normalizedQuery ||
+        friend.name.toLowerCase().includes(normalizedQuery) ||
+        friend.description.toLowerCase().includes(normalizedQuery)
+      return { friend, x, y, matches, tint: NODE_TINTS[idx % NODE_TINTS.length]! }
+    })
+  }, [friends, seedOffset, normalizedQuery])
+
+  return (
+    <div className="relative isolate overflow-hidden rounded-xl">
+      <PaperSurface className="bg-card/85" />
+      {/* 正交制图网格 + 中心辐射连线 SVG */}
+      <svg
+        aria-hidden="true"
+        viewBox="0 0 800 380"
+        preserveAspectRatio="none"
+        className="pointer-events-none absolute inset-0 size-full"
+      >
+        <defs>
+          <pattern id="friends-grid-dots" width="24" height="24" patternUnits="userSpaceOnUse">
+            <circle cx="12" cy="12" r="0.85" className="fill-foreground/12" />
+          </pattern>
+        </defs>
+        <rect width="800" height="380" fill="url(#friends-grid-dots)" />
+
+        {/* 同心拓扑辅助圆 */}
+        <circle cx="400" cy="190" r="76" fill="none" className="stroke-foreground/[0.06]" strokeDasharray="3 4" />
+        <circle cx="400" cy="190" r="146" fill="none" className="stroke-foreground/[0.06]" strokeDasharray="3 4" />
+
+        {/* 中心节点到友邻连线 */}
+        {positioned.map(({ friend, x, y, matches }) => {
+          const isSelected = activeFriend?.url === friend.url
+          return (
+            <line
+              key={`edge-${friend.url}`}
+              x1="400"
+              y1="190"
+              x2={(x / 100) * 800}
+              y2={(y / 100) * 380}
+              stroke="currentColor"
+              strokeWidth={isSelected ? '1.6' : '0.9'}
+              className={
+                isSelected
+                  ? 'text-primary/70 transition-all duration-200'
+                  : matches
+                    ? 'text-foreground/10 transition-all duration-200'
+                    : 'text-foreground/[0.03]'
+              }
+            />
+          )
+        })}
+      </svg>
+
+      {/* 顶部栏：拓扑标题 + 节点检索 */}
+      <div className="relative z-10 flex flex-wrap items-center justify-between gap-3 px-5 pt-4">
+        <span className="font-mono text-[10px] tracking-[0.2em] text-muted-foreground uppercase">Friends Topology</span>
+
+        <div className="relative flex w-full items-center sm:w-56">
+          <Search aria-hidden="true" className="pointer-events-none absolute left-2.5 size-3.5 text-muted-foreground" />
+          <input
+            type="search"
+            value={filter}
+            onChange={(e) => setFilter(e.target.value)}
+            placeholder="过滤友邻节点..."
+            aria-label="在图谱中搜索友邻"
+            className="w-full rounded-md border border-hair bg-background/80 py-1.5 pl-8 pr-3 text-xs text-foreground placeholder:text-muted-foreground focus-visible:border-primary/45 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/15 [&::-webkit-search-cancel-button]:appearance-none"
+          />
+        </div>
+      </div>
+
+      {/* 拓扑舞台 */}
+      <div className="relative z-10 h-[280px] w-full sm:h-[320px]">
+        {/* 中心主站锚点 */}
+        {friends.length > 0 && (
+          <div
+            aria-hidden="true"
+            className="pointer-events-none absolute left-1/2 top-1/2 z-10 -translate-x-1/2 -translate-y-1/2 rounded-md border border-primary/40 bg-card/95 px-2.5 py-1 font-mono text-[10px] font-medium text-primary shadow-xs"
+          >
+            {siteConfig.author}
+          </div>
+        )}
+
+        {friends.length === 0 ? (
+          <div className="flex h-full items-center justify-center px-6 text-center font-serif text-sm text-muted-foreground">
+            图谱尚未收录友邻节点。
+          </div>
+        ) : (
+          positioned.map(({ friend, x, y, matches, tint }) => {
+            const isSelected = activeFriend?.url === friend.url
+            const initial = friend.name.trim().slice(0, 1).toUpperCase()
+            return (
+              <a
+                key={friend.url}
+                href={friend.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                onMouseEnter={() => setActiveFriend(friend)}
+                onFocus={() => setActiveFriend(friend)}
+                aria-label={`${friend.name}：${friend.description}`}
+                style={{ left: `${x}%`, top: `${y}%` }}
+                className={`group absolute -translate-x-1/2 -translate-y-1/2 rounded-xl transition-all duration-500 ease-[var(--ease-spring)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${
+                  matches ? 'opacity-100 scale-100' : 'opacity-20 scale-90 pointer-events-none'
+                } ${isSelected ? 'z-20 scale-125' : 'z-10 hover:z-20 hover:scale-115'}`}
+              >
+                <div
+                  className={`flex size-9 items-center justify-center overflow-hidden rounded-xl border shadow-xs backdrop-blur-xs transition-shadow ${tint} ${
+                    isSelected ? 'ring-2 ring-primary/45 shadow-md' : 'group-hover:ring-2 group-hover:ring-primary/35'
+                  }`}
+                >
+                  {friend.avatarUrl ? (
+                    // eslint-disable-next-line next/no-img-element
+                    <img src={friend.avatarUrl} alt={friend.name} className="size-full object-cover" />
+                  ) : (
+                    <span className="font-serif text-xs font-medium">{initial}</span>
+                  )}
+                </div>
+              </a>
+            )
+          })
+        )}
+
+        {/* 悬停节点详情浮卡 */}
+        {activeFriend && (
+          <div className="pointer-events-none absolute bottom-3 left-1/2 z-30 w-[min(90%,340px)] -translate-x-1/2 rounded-lg border border-hair bg-popover/95 px-3.5 py-2.5 text-center shadow-md backdrop-blur-sm animate-[modal-scale-in_160ms_var(--ease-spring)_both]">
+            <div className="flex items-center justify-center gap-1.5 text-xs font-medium text-foreground">
+              <span>{activeFriend.name}</span>
+              <span className="text-primary">↗</span>
+            </div>
+            <p className="mt-0.5 line-clamp-2 text-[11px] leading-relaxed text-muted-foreground">
+              {activeFriend.description}
+            </p>
+          </div>
+        )}
+      </div>
+
+      {/* 底部提示与重排按钮 */}
+      <div className="relative z-10 flex items-center justify-between border-t border-hair px-5 py-3 font-mono text-[11px] text-muted-foreground">
+        <span>悬停或聚焦节点查看简介</span>
+        <button
+          type="button"
+          onClick={() => {
+            setSeedOffset((prev) => prev + 1)
+            setActiveFriend(null)
+          }}
+          className="inline-flex cursor-pointer items-center gap-1.5 rounded px-2 py-1 transition-colors hover:text-primary focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+        >
+          <span>重排节点</span>
+          <RefreshCw className="size-3" />
+        </button>
+      </div>
+    </div>
+  )
+}

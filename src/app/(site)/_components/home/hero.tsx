@@ -1,150 +1,217 @@
 import type { Profile } from '@/profile.config'
+import { Activity, Archive, ArrowRight, Compass, Mail, Rss } from 'lucide-react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { siteConfig } from '@/site.config'
-import { SpatialField } from './spatial-field'
+import { GithubIcon } from '../comment/comment-icons'
+import { PaperSurface } from '../site/paper-surface'
+import { HeroLiveBadge, HeroSearchChip } from './hero-live-badge'
 
 interface HeroProps {
   profile: Profile
+  stats?: {
+    postsCount: number
+    notesCount: number
+    tagsCount: number
+  }
 }
 
 /**
- * 首页 Hero 组件。
- *
- * 居中卷首布局：
- * - Background: 动态 SpatialField 全幅延展，径向 mask 边缘柔和羽化
- * - Content: 英文署名、头像、衬线主标题、开发方向、CTA 与滚动提示
+ * 首页 Hero 组件（非对称双栏造物室排版）。
+ * 左侧呈现真实工位状态、主标题与快捷动作；右侧以和纸索引卡收敛头像与内容体量，
+ * 首屏克制高度使下方「最近更新」自然露出。
  */
-export function Hero({ profile }: HeroProps) {
+export function Hero({ profile, stats }: HeroProps) {
   const githubItem = siteConfig.social.find(
     (item) => item.name.toLowerCase() === 'github' || item.href.includes('github.com'),
   )
 
   return (
-    <section lang="en" className="relative flex min-h-[85vh] flex-col items-center justify-center py-12 text-center">
-      {/* 动态空间场背景：全宽无界延展，通过大椭圆径向 mask 边缘柔和羽化至纯透明，融入全站氛围顶光 */}
-      <div
-        aria-hidden="true"
-        className="pointer-events-none absolute inset-y-0 left-1/2 w-screen -translate-x-1/2 overflow-hidden [mask-image:radial-gradient(ellipse_65%_55%_at_50%_50%,black_15%,transparent_85%)] [-webkit-mask-image:radial-gradient(ellipse_65%_55%_at_50%_50%,black_15%,transparent_85%)]"
-      >
-        <SpatialField className="absolute inset-0" />
-      </div>
+    <section className="relative py-4 sm:py-8 lg:py-12">
+      <div className="grid grid-cols-1 items-center gap-8 lg:grid-cols-[minmax(0,1fr)_272px] lg:gap-12">
+        {/* 左栏：真实状态 + 工程宣言 + 主动作流 */}
+        <div className="flex min-w-0 flex-col items-start gap-5 text-left">
+          <div className="entrance">
+            <HeroLiveBadge location={profile.location} />
+          </div>
 
-      <div className="relative z-10 flex flex-col items-center gap-6">
-        {/* 署名式元数据：无状态点、底色与胶囊轮廓 */}
-        <div className="entrance flex w-full max-w-md items-center justify-center gap-3 font-mono text-xs tracking-wider text-muted-foreground sm:gap-4">
-          <span aria-hidden="true" className="h-px w-6 shrink-0 bg-border/70 sm:w-10" />
-          <div className="flex items-center justify-center whitespace-nowrap">
-            {profile.location && (
-              <>
-                <span>{profile.location}</span>
-                <span aria-hidden="true" className="mx-2 text-border sm:mx-3">
-                  /
-                </span>
-              </>
-            )}
-            <span>喜东东</span>
-            <span aria-hidden="true" className="mx-2 text-border sm:mx-3">
-              /
-            </span>
-            <Link
-              href="/contact"
-              className="text-foreground/75 underline decoration-border underline-offset-4 transition-colors hover:text-foreground hover:decoration-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+          <div className="flex flex-col gap-3">
+            <h1 className="entrance text-balance font-serif text-3xl font-medium leading-[1.18] tracking-tight text-foreground [--entrance-delay:60ms] sm:text-5xl lg:text-[3.15rem]">
+              写代码，也造一起干活的{' '}
+              <span className="italic text-primary underline decoration-primary/30 decoration-1 underline-offset-8">
+                AI Agents.
+              </span>
+            </h1>
+
+            <p className="entrance max-w-xl text-base leading-relaxed text-foreground/85 [--entrance-delay:110ms] sm:text-[17px]">
+              {siteConfig.description}
+            </p>
+
+            <p
+              lang="en"
+              className="entrance font-mono text-xs tracking-wide text-muted-foreground [--entrance-delay:140ms]"
             >
-              Contact <span aria-hidden="true">↗</span>
+              {profile.tagline}
+            </p>
+          </div>
+
+          {/* 操作行：实色书签主按钮 + 下划线文本链 + 搜索触发 + 图标列 */}
+          <div className="entrance flex flex-wrap items-center gap-3 pt-1 [--entrance-delay:180ms]">
+            <Link
+              href="/blog"
+              className="inline-flex h-9 items-center gap-1.5 rounded-md bg-primary px-4 text-xs font-medium text-primary-foreground shadow-2xs transition-colors duration-200 hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+            >
+              <span>阅读文章</span>
+              <ArrowRight className="size-3.5" aria-hidden="true" />
+            </Link>
+
+            <Link
+              href="/about"
+              className="inline-flex h-9 items-center px-1.5 text-xs font-medium text-foreground/90 underline decoration-border underline-offset-8 transition-colors hover:text-primary hover:decoration-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            >
+              关于我
+            </Link>
+
+            <HeroSearchChip />
+
+            <span aria-hidden="true" className="hidden h-4 w-px bg-hair sm:inline-block" />
+
+            <div className="flex flex-wrap items-center gap-1">
+              {githubItem && (
+                <a
+                  href={githubItem.href}
+                  target="_blank"
+                  rel="noreferrer"
+                  aria-label="GitHub"
+                  title="GitHub"
+                  className="flex size-8 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-muted/60 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                >
+                  <GithubIcon className="size-4" />
+                </a>
+              )}
+
+              <a
+                href="/rss.xml"
+                target="_blank"
+                rel="noreferrer"
+                aria-label="RSS 订阅"
+                title="RSS 订阅"
+                className="flex size-8 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-muted/60 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              >
+                <Rss className="size-4" strokeWidth={1.75} />
+              </a>
+
+              <Link
+                href="/contact"
+                aria-label="联系"
+                title="联系"
+                className="flex size-8 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-muted/60 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              >
+                <Mail className="size-4" strokeWidth={1.75} />
+              </Link>
+
+              <Link
+                href="/blog/archives"
+                aria-label="归档"
+                title="归档"
+                className="flex size-8 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-muted/60 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              >
+                <Archive className="size-4" strokeWidth={1.75} />
+              </Link>
+
+              <Link
+                href="/links"
+                aria-label="友链"
+                title="友链"
+                className="flex size-8 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-muted/60 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              >
+                <Compass className="size-4" strokeWidth={1.75} />
+              </Link>
+
+              <Link
+                href="/status"
+                aria-label="服务状态"
+                title="服务状态"
+                className="flex size-8 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-muted/60 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              >
+                <Activity className="size-4" strokeWidth={1.75} />
+              </Link>
+            </div>
+          </div>
+        </div>
+
+        {/* 右栏：作者与站点内容索引卡 */}
+        <aside aria-label="站点索引卡" className="entrance relative isolate rounded-xl p-5 [--entrance-delay:140ms]">
+          <PaperSurface className="bg-card/90" />
+
+          <div className="flex items-center gap-3.5">
+            <div className="size-13 shrink-0 overflow-hidden rounded-[14px] bg-card ring-1 ring-border/75">
+              {profile.avatar ? (
+                <Image
+                  src={profile.avatar}
+                  alt={siteConfig.author}
+                  width={52}
+                  height={52}
+                  priority
+                  className="size-full object-cover"
+                />
+              ) : (
+                <div className="flex size-full select-none items-center justify-center bg-muted/60 font-serif text-xl font-medium text-foreground">
+                  {siteConfig.author.trim().slice(0, 1)}
+                </div>
+              )}
+            </div>
+
+            <div className="min-w-0 flex-1">
+              <div className="font-serif text-lg font-medium text-foreground">{siteConfig.author}</div>
+              <div className="truncate font-mono text-[11px] text-muted-foreground">
+                {siteConfig.url.replace(/^https?:\/\//, '')}
+                {profile.location ? ` · ${profile.location}` : ''}
+              </div>
+            </div>
+          </div>
+
+          {stats && (
+            <div className="mt-4 grid grid-cols-3 divide-x divide-hair border-y border-hair py-3 text-center">
+              <Link
+                href="/blog"
+                className="group flex flex-col gap-0.5 px-1 transition-colors hover:text-primary focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+              >
+                <span className="font-serif text-xl font-medium tabular-nums text-foreground transition-colors group-hover:text-primary">
+                  {stats.postsCount}
+                </span>
+                <span className="font-mono text-[11px] text-muted-foreground">文章</span>
+              </Link>
+
+              <Link
+                href="/notes"
+                className="group flex flex-col gap-0.5 px-1 transition-colors hover:text-primary focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+              >
+                <span className="font-serif text-xl font-medium tabular-nums text-foreground transition-colors group-hover:text-primary">
+                  {stats.notesCount}
+                </span>
+                <span className="font-mono text-[11px] text-muted-foreground">笔记</span>
+              </Link>
+
+              <Link
+                href="/blog/tags"
+                className="group flex flex-col gap-0.5 px-1 transition-colors hover:text-primary focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+              >
+                <span className="font-serif text-xl font-medium tabular-nums text-foreground transition-colors group-hover:text-primary">
+                  {stats.tagsCount}
+                </span>
+                <span className="font-mono text-[11px] text-muted-foreground">标签</span>
+              </Link>
+            </div>
+          )}
+
+          <div className="mt-3.5 flex items-center justify-between font-mono text-[11px] text-muted-foreground">
+            <span>TypeScript · Next.js · Pi</span>
+            <Link href="/projects" className="text-primary transition-colors hover:underline underline-offset-4">
+              项目 →
             </Link>
           </div>
-          <span aria-hidden="true" className="h-px w-6 shrink-0 bg-border/70 sm:w-10" />
-        </div>
-
-        {/* 圆形头像：居中卷首的视觉锚点 */}
-        {profile.avatar ? (
-          <Image
-            src={profile.avatar}
-            alt={siteConfig.author}
-            width={80}
-            height={80}
-            priority
-            className="entrance size-16 rounded-full object-cover ring-1 ring-border/60 [--entrance-delay:60ms] sm:size-20"
-          />
-        ) : (
-          <div className="entrance flex size-16 select-none items-center justify-center rounded-full bg-muted/60 font-serif text-xl font-bold text-foreground ring-1 ring-border/60 [--entrance-delay:60ms] sm:size-20">
-            {siteConfig.author.trim().slice(0, 1)}
-          </div>
-        )}
-
-        {/* 英文主标题与开发方向 */}
-        <div className="flex flex-col items-center gap-4">
-          <h1 className="entrance text-balance font-serif text-4xl font-normal leading-[1.08] tracking-normal text-foreground [--entrance-delay:120ms] sm:text-6xl lg:text-7xl">
-            <span className="block">Building software</span>{' '}
-            <span className="block">
-              and <span className="italic text-primary">AI agents.</span>
-            </span>
-          </h1>
-          <p className="entrance text-balance font-serif text-base text-muted-foreground [--entrance-delay:180ms] sm:text-lg">
-            {profile.tagline}
-          </p>
-        </div>
-
-        {/* CTA 排：黑胶囊 + 描边胶囊 + GitHub 图标 */}
-        <div className="entrance flex flex-wrap items-center justify-center gap-3 pt-2 [--entrance-delay:240ms]">
-          <Link
-            href="/blog"
-            className="inline-flex items-center justify-center rounded-full bg-foreground px-6 py-2.5 text-xs font-medium text-background transition-opacity hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background sm:text-sm"
-          >
-            Writing
-          </Link>
-
-          <Link
-            href="/about"
-            className="inline-flex items-center justify-center rounded-full border border-border px-6 py-2.5 text-xs font-medium text-foreground transition-colors hover:border-foreground/30 hover:bg-muted/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background sm:text-sm"
-          >
-            About
-          </Link>
-
-          {githubItem && (
-            <a
-              href={githubItem.href}
-              target="_blank"
-              rel="noreferrer"
-              aria-label="GitHub"
-              className="inline-flex items-center justify-center rounded-full p-2.5 text-muted-foreground transition-colors hover:bg-muted/60 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
-            >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                className="size-4"
-              >
-                <path d="M15 22v-4a4.8 4.8 0 0 0-1-3.5c3 0 6-2 6-5.5.08-1.25-.27-2.48-1-3.5.28-1.15.28-2.35 0-3.5 0 0-1 0-3 1.5-2.64-.5-5.36-.5-8 0C6 2 5 2 5 2c-.3 1.15-.3 2.35 0 3.5A5.403 5.403 0 0 0 4 9c0 3.5 3 5.5 6 5.5-.39.49-.68 1.05-.85 1.65-.17.6-.22 1.23-.15 1.85v4" />
-                <path d="M9 18c-4.51 2-5-2-7-2" />
-              </svg>
-            </a>
-          )}
-        </div>
-      </div>
-
-      {/* 向下滚动提示：细竖线 + 下方指示符 + 呼吸动效 */}
-      <div aria-hidden="true" className="absolute bottom-6 left-1/2 -translate-x-1/2">
-        <div className="flex flex-col items-center animate-pulse motion-reduce:animate-none">
-          <div className="h-8 w-px bg-border" />
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            className="size-3 stroke-border"
-          >
-            <path d="m6 9 6 6 6-6" />
-          </svg>
-        </div>
+        </aside>
       </div>
     </section>
   )

@@ -1,37 +1,42 @@
 import type { ReactNode } from 'react'
 
 interface SectionProps {
-  /** 两位模块序号，如 01 */
-  index: string
-  /** 模块标题，如 最近写的、关于我 */
+  /** 英文眉标，如 RECENT */
+  eyebrow?: string
+  /** 两位序号（用于交错入场延时计算） */
+  index?: string
+  /** 模块标题 */
   title: string
-  /** 对齐方向，默认 left */
   align?: 'left' | 'right'
+  /** 可选右侧动作槽（如“全部 →”） */
+  action?: ReactNode
   children: ReactNode
 }
 
 /**
- * 首页纵向 Section 容器。
- * 序号与标题组成上方 Label，支持左/右交错排版。
+ * 首页内容区块容器。
+ * 保持克制的眉标 + 衬线标题层级，支持可选右侧操作槽。
  */
-export function Section({ index, title, align = 'left', children }: SectionProps) {
+export function Section({ eyebrow, index, title, align = 'left', action, children }: SectionProps) {
   const isRight = align === 'right'
+  const delay = Math.min(Math.max(Number(index) || 0, 0) * 60 + 180, 360)
 
   return (
-    <section
-      className="entrance flex flex-col gap-y-6"
-      style={{ animationDelay: `${Math.min(Math.max(Number(index) || 0, 0) * 60 + 240, 360)}ms` }}
-    >
-      <h2 className="flex items-center gap-3 font-mono text-xs font-medium tracking-wider text-muted-foreground">
-        {isRight && <span aria-hidden="true" className="h-px flex-1 bg-border/60" />}
-        <span className="text-primary">{index}</span>
-        <span aria-hidden="true" className="text-border">
-          /
-        </span>
-        <span>{title}</span>
-        {!isRight && <span aria-hidden="true" className="h-px flex-1 bg-border/60" />}
-      </h2>
-      <div className="flex flex-col gap-y-4">{children}</div>
+    <section className="entrance flex flex-col gap-y-4" style={{ animationDelay: `${delay}ms` }}>
+      <header
+        className={`flex flex-wrap items-end justify-between gap-2 border-b border-hair pb-3 ${
+          isRight ? 'sm:flex-row-reverse sm:text-right' : ''
+        }`}
+      >
+        <div className="flex flex-col gap-0.5">
+          {eyebrow && (
+            <span className="font-mono text-[10px] tracking-[0.2em] text-muted-foreground uppercase">{eyebrow}</span>
+          )}
+          <h2 className="font-serif text-xl font-medium tracking-tight text-foreground sm:text-2xl">{title}</h2>
+        </div>
+        {action && <div className="shrink-0">{action}</div>}
+      </header>
+      <div className="flex flex-col gap-y-3">{children}</div>
     </section>
   )
 }

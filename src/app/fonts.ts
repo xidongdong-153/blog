@@ -12,5 +12,5 @@ export const newsreader = Newsreader({
   subsets: ['latin'],
   style: ['normal', 'italic'],
   display: 'swap',
-  variable: '--font-serif',
+  variable: '--font-newsreader',
 })

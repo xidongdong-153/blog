@@ -3,7 +3,6 @@ import { CopyButton } from './copy-button'
 
 /**
  * MDX 代码块外层容器组件（RSC）。
- * 针对 rehype-pretty-code 生成的 figure 进行样式包装，并在右上角集成常驻复制按钮。
  */
 export function CodeFigure({ children, className = '', ...props }: ComponentProps<'figure'>) {
   const isCodeFigure = 'data-rehype-pretty-code-figure' in props
@@ -18,11 +17,11 @@ export function CodeFigure({ children, className = '', ...props }: ComponentProp
 
   return (
     <figure
-      className={`relative my-7 overflow-hidden rounded-lg border border-border/60 bg-code-bg text-code-fg ${className}`}
+      className={`relative my-7 overflow-hidden rounded-xl border border-hair bg-code-bg/95 text-code-fg ${className}`}
       {...props}
     >
       {children}
-      <CopyButton className="absolute right-2 top-2" />
+      <CopyButton className="absolute right-2.5 top-2" />
     </figure>
   )
 }
@@ -43,12 +42,10 @@ export function CodeTitle({ children, className = '', ...props }: ComponentProps
 
   return (
     <figcaption
-      className={`flex min-h-10 min-w-0 items-center border-b border-border/50 px-4 pr-12 font-mono text-xs leading-none text-muted-foreground ${className}`}
+      className={`flex min-h-10 min-w-0 items-center border-b border-hair px-4 pr-12 font-mono text-xs leading-none text-muted-foreground ${className}`}
       {...props}
     >
-      <span aria-hidden="true" className="mr-2 text-muted-foreground/50">
-        //
-      </span>
+      <span aria-hidden="true" className="mr-2 size-1.5 rounded-full bg-primary/55" />
       <span className="truncate">{children}</span>
     </figcaption>
   )

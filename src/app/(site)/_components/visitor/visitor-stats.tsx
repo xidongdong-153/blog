@@ -1,18 +1,19 @@
 'use client'
 
-import { CircleHelp } from 'lucide-react'
+import { CircleHelp, Radio } from 'lucide-react'
 import { usePathname } from 'next/navigation'
 import { useEffect, useRef, useState } from 'react'
+import { PaperSurface } from '../site/paper-surface'
 import { useVisitorPresence } from './visitor-presence-provider'
 
 interface VisitorStatsProps {
   className?: string
-  align?: 'left' | 'center'
+  align?: 'left' | 'right' | 'center'
 }
 
 /**
- * 站点统计动态区域组件。
- * 展示累计匿名访客数与当前全站在线人数，集成可访问的说明气泡，无侵入融入出版物排版。
+ * 站点实时在线与访客统计组件。
+ * 展示 Live 脉冲指示、实时在线访客数与匿名去重累计计数。
  */
 export function VisitorStats(props: VisitorStatsProps) {
   const pathname = usePathname()
@@ -20,7 +21,7 @@ export function VisitorStats(props: VisitorStatsProps) {
   return <PublicVisitorStats {...props} />
 }
 
-function PublicVisitorStats({ className = '', align = 'center' }: VisitorStatsProps) {
+function PublicVisitorStats({ className = '', align = 'left' }: VisitorStatsProps) {
   const { connectionState, uniqueVisitorCount, onlineVisitorCount } = useVisitorPresence()
   const [isHelpOpen, setIsHelpOpen] = useState(false)
   const helpContainerRef = useRef<HTMLSpanElement>(null)
@@ -74,72 +75,72 @@ function PublicVisitorStats({ className = '', align = 'center' }: VisitorStatsPr
       ? '...'
       : '暂不可用'
 
-  const justifyClass = align === 'left' ? 'justify-start' : 'justify-center'
+  const alignClass =
+    align === 'right' ? 'justify-start md:justify-end' : align === 'center' ? 'justify-center' : 'justify-start'
 
   return (
     <div
-      className={`flex flex-wrap items-center ${justifyClass} gap-x-2.5 gap-y-1 font-mono text-xs tracking-wider text-muted-foreground ${className}`}
+      className={`flex flex-col gap-1 text-xs text-muted-foreground ${align === 'right' ? 'md:items-end' : ''} ${className}`}
     >
-      {/* 累计访客统计 */}
-      <span className="inline-flex items-center gap-1.5">
-        <span>累计访客</span>
-        <span className="font-semibold tabular-nums text-foreground/90">{visitorCountText}</span>
-      </span>
-
-      <span className="text-border">·</span>
-
-      {/* 实时在线状态与指示点 */}
-      <span className="inline-flex items-center gap-1.5">
-        <span
-          className={`size-1.5 rounded-full transition-colors duration-300 ${
-            isConnected ? 'bg-emerald-500' : 'bg-muted-foreground/40'
-          }`}
+      {/* 第一行：实时连接状态 */}
+      <div className={`flex items-center gap-1.5 ${alignClass}`}>
+        <Radio
           aria-hidden="true"
+          strokeWidth={1.75}
+          className={`size-3.5 shrink-0 ${isConnected ? 'text-primary' : 'text-muted-foreground'}`}
         />
+
         {isConnected ? (
-          <>
-            <span>当前</span>
-            <span className="font-semibold tabular-nums text-foreground/90">{onlineVisitorCount}</span>
+          <span className="inline-flex items-center gap-1.5 font-mono text-xs text-foreground/90">
+            <span className="text-[10px] tracking-wider text-primary uppercase">Live</span>
+            <span aria-hidden="true" className="text-muted-foreground">
+              ·
+            </span>
+            <span className="tabular-nums">{onlineVisitorCount}</span>
             <span>人在线</span>
-          </>
+          </span>
         ) : (
-          <span className="text-muted-foreground/80">
-            {connectionState === 'connecting' ? '实时在线同步中' : '实时在线暂不可用'}
+          <span className="font-mono text-xs text-muted-foreground">
+            {connectionState === 'connecting' ? '正在连接现场...' : '现场在线暂不可用'}
           </span>
         )}
-      </span>
+      </div>
 
-      {/* 帮助与隐私说明弹层 */}
-      <span ref={helpContainerRef} className="relative inline-flex items-center">
-        <button
-          type="button"
-          onClick={() => setIsHelpOpen(!isHelpOpen)}
-          className="rounded p-0.5 text-muted-foreground/60 transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary"
-          aria-label="查看访客统计与在线状态说明"
-          aria-expanded={isHelpOpen}
-          title="统计说明"
-        >
-          <CircleHelp className="size-3.5" />
-        </button>
+      {/* 第二行：累计访客 + 说明弹窗 */}
+      <div className={`flex items-center gap-1.5 font-mono text-[11px] text-muted-foreground ${alignClass}`}>
+        <span>累计访客</span>
+        <span className="tabular-nums text-foreground/90">{visitorCountText}</span>
 
-        {isHelpOpen && (
-          <div
-            role="dialog"
-            aria-label="实时统计说明"
-            className={`absolute bottom-full z-50 mb-2 w-64 max-w-[calc(100vw-2rem)] rounded-lg border border-border/70 bg-popover p-3 text-left font-sans text-xs leading-relaxed text-popover-foreground shadow-lg backdrop-blur-sm sm:w-72 ${
-              align === 'left' ? 'left-0 sm:left-1/2 sm:-translate-x-1/2' : 'left-1/2 -translate-x-1/2'
-            }`}
+        <span ref={helpContainerRef} className="relative inline-flex items-center">
+          <button
+            type="button"
+            onClick={() => setIsHelpOpen(!isHelpOpen)}
+            className="rounded p-0.5 text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary"
+            aria-label="查看访客统计与在线状态说明"
+            aria-expanded={isHelpOpen}
+            title="统计说明"
           >
-            <div className="font-medium text-foreground">关于访客与在线统计</div>
-            <p className="mt-1.5 text-muted-foreground">
-              本站使用匿名浏览器标识长期去重，同一浏览器只计 1 位访客，不记录 IP 地址与浏览历史。
-            </p>
-            <p className="mt-1.5 text-muted-foreground">
-              实时在线人数基于 WebSocket 会话计算；页面关闭或隐藏后将在约定租约内自动移除。
-            </p>
-          </div>
-        )}
-      </span>
+            <CircleHelp className="size-3" />
+          </button>
+
+          {isHelpOpen && (
+            <div
+              role="dialog"
+              aria-label="实时统计说明"
+              className="isolate absolute bottom-full right-0 z-50 mb-2 w-64 max-w-[calc(100vw-2rem)] rounded-lg p-3 text-left font-sans text-xs leading-relaxed text-popover-foreground sm:w-72"
+            >
+              <PaperSurface className="bg-popover" />
+              <div className="font-medium text-foreground">关于访客与在线统计</div>
+              <p className="mt-1.5 text-muted-foreground">
+                本站使用匿名浏览器标识长期去重，同一浏览器只计 1 位访客，不记录 IP 地址与浏览历史。
+              </p>
+              <p className="mt-1.5 text-muted-foreground">
+                实时在线人数基于 WebSocket 会话计算；页面关闭或隐藏后将在约定租约内自动移除。
+              </p>
+            </div>
+          )}
+        </span>
+      </div>
     </div>
   )
 }

@@ -1,54 +1,84 @@
+import type { BlogCategory } from '@/lib/blog-meta'
+import { ArrowUpRight } from 'lucide-react'
 import Link from 'next/link'
-import { formatTimelineDate } from '@/lib/content'
-import { AiGeneratedLabel } from '../blog/ai-generated-label'
+import { BLOG_CATEGORY_LABELS } from '@/lib/blog-meta'
+import { formatRelativeTime } from '@/lib/date'
 
-/** 最近写作时间线条目，kind 决定链接路由与类型徽章文案。 */
+/** 最近更新条目，kind 决定路由与分类显示。 */
 export interface WritingEntry {
   kind: 'article' | 'note'
   slug: string
   title: string
   /** ISO 日期字符串 */
   date: string
-  /** 文章的 AI 来源；笔记不填写。 */
+  category?: BlogCategory
   aiGenerated?: boolean
 }
 
 /**
- * 首页最近写作时间线组件。
- * 极简手记目录排版：左侧等宽日期，中间标题，仅笔记标注类型，
- * 悬停时整体浮现轻柔底色与微动效，去除非必要线框与徽章噪点。
+ * 首页「最近更新」紧凑条目列表。
+ * 采用横向台账式排版：左侧等宽序号，中间标题与类型标签，右侧相对时间与悬停箭头。
  */
 export function WritingTimeline({ entries }: { entries: WritingEntry[] }) {
   return (
-    <div className="flex flex-col gap-y-1">
-      {entries.map((entry) => (
-        <Link
-          key={`${entry.kind}-${entry.slug}`}
-          href={entry.kind === 'article' ? `/blog/${entry.slug}` : `/notes/${entry.slug}`}
-          className="group/link -mx-2.5 flex items-center gap-3 rounded-lg px-2.5 py-2 text-muted-foreground transition-colors hover:bg-muted/40 hover:text-foreground"
-        >
-          <time dateTime={entry.date} className="w-14 shrink-0 font-mono text-xs tabular-nums text-muted-foreground/75">
-            {formatTimelineDate(entry.date)}
-          </time>
-          <span className="flex-1 truncate text-sm font-medium text-foreground transition-colors group-hover/link:text-primary">
-            {entry.title}
-          </span>
-          <AiGeneratedLabel aiGenerated={entry.kind === 'article' && entry.aiGenerated === true} />
-          {entry.kind === 'note' && <span className="shrink-0 font-mono text-xs text-muted-foreground/60">#笔记</span>}
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            className="size-3.5 shrink-0 opacity-0 transition-all duration-200 group-hover/link:translate-x-0.5 group-hover/link:opacity-100 motion-reduce:transition-none"
-          >
-            <polyline points="9 18 15 12 9 6" />
-          </svg>
-        </Link>
-      ))}
-    </div>
+    <ul className="flex flex-col divide-y divide-hair">
+      {entries.map((entry, index) => {
+        const order = String(index + 1).padStart(2, '0')
+        const isFirst = index === 0
+        const href = entry.kind === 'article' ? `/blog/${entry.slug}` : `/notes/${entry.slug}`
+        const kindLabel =
+          entry.kind === 'note' ? '笔记' : entry.category ? BLOG_CATEGORY_LABELS[entry.category] : '文章'
+        const dateLabel = formatRelativeTime(entry.date)
+
+        return (
+          <li key={`${entry.kind}-${entry.slug}`}>
+            <Link
+              href={href}
+              className={`group/item flex items-baseline justify-between gap-4 rounded-md px-2 transition-colors duration-200 hover:bg-muted/35 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring ${
+                isFirst ? 'py-4' : 'py-3.5'
+              }`}
+            >
+              <div className="flex min-w-0 items-baseline gap-3.5">
+                <span
+                  className={`w-5 shrink-0 font-mono text-xs tabular-nums transition-colors ${
+                    isFirst ? 'font-semibold text-primary' : 'text-muted-foreground group-hover/item:text-primary'
+                  }`}
+                >
+                  {order}
+                </span>
+
+                <div className="min-w-0 flex-1">
+                  <h3
+                    className={`font-serif leading-snug text-foreground transition-colors group-hover/item:text-primary ${
+                      isFirst ? 'text-lg font-medium sm:text-[1.2rem]' : 'text-[15.5px] font-normal sm:text-base'
+                    }`}
+                  >
+                    {entry.title}
+                  </h3>
+
+                  <div className="mt-1 flex flex-wrap items-center gap-2 font-mono text-[11px] text-muted-foreground">
+                    <span>{kindLabel}</span>
+                    {entry.aiGenerated && (
+                      <>
+                        <span aria-hidden="true">·</span>
+                        <span>AI 协同</span>
+                      </>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex shrink-0 items-center gap-1.5 font-mono text-xs tabular-nums text-muted-foreground">
+                <time dateTime={entry.date}>{dateLabel}</time>
+                <ArrowUpRight
+                  aria-hidden="true"
+                  className="size-3.5 -translate-x-0.5 text-primary opacity-0 transition-all duration-200 ease-[var(--ease-spring)] group-hover/item:translate-x-0 group-hover/item:opacity-100"
+                />
+              </div>
+            </Link>
+          </li>
+        )
+      })}
+    </ul>
   )
 }

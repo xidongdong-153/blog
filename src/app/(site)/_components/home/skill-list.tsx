@@ -5,20 +5,18 @@ interface SkillListProps {
 }
 
 /**
- * 首页技能栈展示组件。
- * 分组展示技术标签，按序号交错淡入，悬停时带有微放大与位移动效。
+ * 首页与关于页技能栈展示组件。
+ * 去边框轻纸片标签，按序号交错入场，悬停时温和提亮文字与底色。
  */
 export function SkillList({ skills }: SkillListProps) {
   let globalIndex = 0
 
   return (
-    <div className="flex flex-col gap-y-4">
+    <div className="flex flex-col gap-y-3.5">
       {skills.map((group) => (
-        <div key={group.title} className="flex flex-col gap-y-2 md:flex-row md:gap-x-6 md:gap-y-0">
-          <h3 className="w-full font-mono text-xs tracking-wider text-muted-foreground/75 md:w-28 md:shrink-0 md:pt-1">
-            {group.title}
-          </h3>
-          <div className="flex flex-1 flex-wrap gap-x-2 gap-y-2">
+        <div key={group.title} className="flex flex-col gap-y-1.5">
+          <h3 className="font-mono text-[11px] tracking-wider text-muted-foreground/80">{group.title}</h3>
+          <div className="flex flex-wrap gap-1.5">
             {group.items.map((skill) => {
               const currentIndex = globalIndex++
               const name = typeof skill === 'string' ? skill : skill.name
@@ -27,7 +25,7 @@ export function SkillList({ skills }: SkillListProps) {
               return (
                 <div
                   key={name}
-                  style={{ animationDelay: `${currentIndex * 28 + 60}ms` }}
+                  style={{ animationDelay: `${currentIndex * 24 + 40}ms` }}
                   className="animate-skill-fade-in motion-reduce:animate-none"
                 >
                   {href ? (
@@ -35,18 +33,15 @@ export function SkillList({ skills }: SkillListProps) {
                       href={href}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="group/item inline-flex select-none items-center rounded-md bg-muted/40 px-2.5 py-1 font-mono text-xs text-muted-foreground transition-colors hover:bg-muted/80 hover:text-foreground"
+                      className="group/item inline-flex select-none items-center rounded-md border border-hair bg-card/70 px-2.5 py-1 font-mono text-[11px] text-muted-foreground transition-colors hover:border-primary/40 hover:text-primary"
                     >
                       <span>{name}</span>
-                      <span
-                        aria-hidden="true"
-                        className="ml-0.5 text-xs text-muted-foreground/60 transition-colors group-hover/item:text-foreground"
-                      >
+                      <span aria-hidden="true" className="ml-0.5 text-[10px] opacity-60 group-hover/item:opacity-100">
                         ↗
                       </span>
                     </a>
                   ) : (
-                    <span className="inline-flex select-none items-center rounded-md bg-muted/40 px-2.5 py-1 font-mono text-xs text-muted-foreground transition-colors hover:bg-muted/80 hover:text-foreground">
+                    <span className="inline-flex select-none items-center rounded-md border border-hair bg-card/60 px-2.5 py-1 font-mono text-[11px] text-muted-foreground">
                       {name}
                     </span>
                   )}

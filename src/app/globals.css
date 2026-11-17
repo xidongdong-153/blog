@@ -31,9 +31,14 @@
   --color-code-bg: hsl(var(--code-bg));
   --color-code-inline-bg: hsl(var(--code-inline-bg));
   --color-code-fg: hsl(var(--code-fg));
+  --color-hair: var(--surface-hairline);
   --radius: var(--radius);
-  --font-serif: var(--font-serif), Georgia, Cambria, 'Times New Roman', Times, serif;
-  --animate-skill-fade-in: skill-fade-in 320ms ease both;
+  --font-sans:
+    var(--font-satoshi), 'PingFang SC', 'Hiragino Sans GB', 'Noto Sans SC', 'Microsoft YaHei', system-ui, sans-serif;
+  --font-serif:
+    var(--font-newsreader), 'Noto Serif SC', 'Source Han Serif SC', 'Songti SC', 'STSong', 'SimSun', Georgia, Cambria,
+    'Times New Roman', Times, serif;
+  --animate-skill-fade-in: skill-fade-in 320ms var(--ease-spring) both;
   --animate-ui-expand: ui-expand var(--ui-duration) var(--ui-ease);
   --animate-ui-collapse: ui-collapse var(--ui-duration) var(--ui-ease);
   --animate-rb-shiny: rb-shiny 2.8s linear infinite;
@@ -101,14 +106,23 @@
   }
 }
 
-@utility entrance {
-  @media screen and (prefers-reduced-motion: no-preference) {
-    animation: content-enter 480ms cubic-bezier(0.22, 1, 0.36, 1) var(--entrance-delay, 0ms) backwards;
+@keyframes modal-fade-in {
+  from {
+    opacity: 0;
   }
+  to {
+    opacity: 1;
+  }
+}
 
-  &:focus-within {
-    opacity: 1 !important;
-    transform: none !important;
+@keyframes modal-scale-in {
+  from {
+    opacity: 0;
+    transform: scale(0.96) translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
   }
 }
 
@@ -123,92 +137,133 @@
   }
 }
 
-@keyframes modal-fade-in {
-  from {
-    opacity: 0;
+@utility entrance {
+  @media screen and (prefers-reduced-motion: no-preference) {
+    animation: content-enter 520ms var(--ease-spring) var(--entrance-delay, 0ms) backwards;
   }
-  to {
-    opacity: 1;
-  }
-}
 
-@keyframes modal-scale-in {
-  from {
-    opacity: 0;
-    transform: scale(0.96) translateY(4px);
-  }
-  to {
-    opacity: 1;
-    transform: scale(1) translateY(0);
+  &:focus-within {
+    opacity: 1 !important;
+    transform: none !important;
   }
 }
 
 :root {
-  --ui-duration: 160ms;
+  --ui-duration: 180ms;
   --ui-ease: cubic-bezier(0.16, 1, 0.3, 1);
-  --background: 40 20% 97.5%;
-  --foreground: 30 8% 15%;
-  --card: 40 25% 98.5%;
-  --card-foreground: 30 8% 15%;
-  --popover: 40 25% 98.5%;
-  --popover-foreground: 30 8% 15%;
-  --primary: 215 85% 45%;
-  --primary-foreground: 40 20% 98%;
-  --secondary: 40 12% 93%;
-  --secondary-foreground: 30 8% 15%;
-  --muted: 40 14% 92%;
-  --muted-foreground: 30 6% 42%;
-  --accent: 40 14% 92%;
-  --accent-foreground: 30 8% 15%;
-  --destructive: 0 72.22% 50.59%;
+  --ease-spring: linear(
+    0,
+    0.009 2.2%,
+    0.035 4.5%,
+    0.141 9.4%,
+    0.447 18.5%,
+    0.718 27.4%,
+    0.843 32%,
+    0.929 36.8%,
+    0.978 41.8%,
+    1.003 47.3%,
+    1.014 52.8%,
+    1.016 58.6%,
+    1.013 64.4%,
+    1.007 70.5%,
+    1.003 76.7%,
+    1.001 83.1%,
+    1
+  );
+
+  /* 松烟墨青 × 暖宣石 浅色主题 */
+  --background: 48 33% 97.1%;
+  --foreground: 140 5% 12%;
+  --card: 60 33% 98.8%;
+  --card-foreground: 140 5% 12%;
+  --popover: 60 33% 98.8%;
+  --popover-foreground: 140 5% 12%;
+  --primary: 166 60% 26%;
+  --primary-foreground: 48 33% 97.1%;
+  --secondary: 50 18% 93%;
+  --secondary-foreground: 140 6% 16%;
+  --muted: 51 19% 92.7%;
+  --muted-foreground: 137 4% 33.9%;
+  --accent: 162 24% 91%;
+  --accent-foreground: 140 5% 12%;
+  --destructive: 355 58% 46%;
   --destructive-foreground: 0 0% 98%;
-  --border: 35 10% 86%;
-  --input: 35 10% 86%;
-  --ring: 215 85% 45%;
+  --border: 53 13% 86.5%;
+  --input: 53 13% 86.5%;
+  --ring: 166 60% 28%;
   --radius: 0.5rem;
-  --code-bg: 40 15% 91%;
-  --code-inline-bg: 40 12% 88%;
-  --code-fg: 30 8% 15%;
+  --code-bg: 50 18% 93.5%;
+  --code-inline-bg: 50 18% 90.5%;
+  --code-fg: 140 6% 14%;
+
+  --surface-hairline: rgba(29, 32, 30, 0.09);
+  --note-ink: #242926;
+  --page-highlight: #6fa996;
+  --page-highlight-secondary: #b9ccc0;
+  --surface-shadow: 0 8px 24px -6px rgba(24, 28, 25, 0.06), 0 1px 3px rgba(24, 28, 25, 0.04);
+  --field-gradient: linear-gradient(
+    180deg,
+    color-mix(in oklch, hsl(var(--primary)) 6%, transparent) 0%,
+    transparent 28%
+  );
 }
 
 .dark {
-  --background: 30 6% 8%;
-  --foreground: 40 15% 90%;
-  --card: 30 6% 11%;
-  --card-foreground: 40 15% 90%;
-  --popover: 30 6% 11%;
-  --popover-foreground: 40 15% 90%;
-  --primary: 215 75% 72%;
-  --primary-foreground: 30 6% 8%;
-  --secondary: 30 5% 16%;
-  --secondary-foreground: 40 15% 90%;
-  --muted: 30 5% 15%;
-  --muted-foreground: 35 8% 65%;
-  --accent: 30 5% 16%;
-  --accent-foreground: 40 15% 90%;
-  --destructive: 0 62.8% 30.6%;
+  /* 松烟墨青 × 青玄炭 暗色主题 */
+  --background: 160 7% 8.4%;
+  --foreground: 140 10% 93.9%;
+  --card: 150 7% 11.4%;
+  --card-foreground: 140 10% 93.9%;
+  --popover: 150 7% 11.4%;
+  --popover-foreground: 140 10% 93.9%;
+  --primary: 164 47% 56.5%;
+  --primary-foreground: 160 7% 8.4%;
+  --secondary: 156 7% 15.5%;
+  --secondary-foreground: 140 10% 92%;
+  --muted: 156 7% 13.9%;
+  --muted-foreground: 147 5.5% 67.6%;
+  --accent: 164 22% 17%;
+  --accent-foreground: 140 10% 93.9%;
+  --destructive: 354 52% 58%;
   --destructive-foreground: 0 0% 98%;
-  --border: 30 5% 20%;
-  --input: 30 5% 20%;
-  --ring: 215 75% 72%;
-  --code-bg: 30 6% 12%;
-  --code-inline-bg: 30 6% 18%;
-  --code-fg: 40 15% 90%;
+  --border: 150 6.4% 18.4%;
+  --input: 150 6.4% 18.4%;
+  --ring: 164 47% 56.5%;
+  --code-bg: 156 7% 10.5%;
+  --code-inline-bg: 154 7% 17.5%;
+  --code-fg: 140 10% 92%;
+
+  --surface-hairline: rgba(238, 241, 239, 0.1);
+  --note-ink: #dce2de;
+  --page-highlight: #3a8570;
+  --page-highlight-secondary: #2c4a46;
+  --surface-shadow: 0 12px 28px -8px rgba(0, 0, 0, 0.42), 0 1px 3px rgba(0, 0, 0, 0.24);
+  --field-gradient: linear-gradient(
+    180deg,
+    color-mix(in oklch, hsl(var(--primary)) 9%, transparent) 0%,
+    transparent 28%
+  );
+}
+
+html[data-backdrop-fx='off'] #global-ambient-backdrop,
+html[data-backdrop-fx='off'] #site-film-backdrop {
+  opacity: 0 !important;
 }
 
 body {
   background-color: hsl(var(--background));
   color: hsl(var(--foreground));
+  font-family: var(--font-sans);
 }
 
 html {
-  font-family: var(--font-satoshi), sans-serif;
+  font-family: var(--font-sans);
   scroll-behavior: smooth;
 }
 
-/* Typography prose 适配系统语义 token，彻底解决暗色模式下标题、行内代码、引用等看不清的问题 */
+/* Typography prose 适配系统语义 token */
 .prose {
-  --tw-prose-body: hsl(var(--foreground));
+  --tw-prose-body: hsl(var(--foreground) / 0.88);
   --tw-prose-headings: hsl(var(--foreground));
   --tw-prose-lead: hsl(var(--muted-foreground));
   --tw-prose-links: hsl(var(--primary));
@@ -217,7 +272,7 @@ html {
   --tw-prose-bullets: hsl(var(--muted-foreground));
   --tw-prose-hr: hsl(var(--border));
   --tw-prose-quotes: hsl(var(--foreground));
-  --tw-prose-quote-borders: hsl(var(--border));
+  --tw-prose-quote-borders: color-mix(in oklch, hsl(var(--primary)) 45%, transparent);
   --tw-prose-captions: hsl(var(--muted-foreground));
   --tw-prose-code: hsl(var(--code-fg));
   --tw-prose-pre-code: hsl(var(--code-fg));
@@ -227,6 +282,7 @@ html {
 }
 
 .prose :where(h1, h2, h3, h4, h5, h6) {
+  font-family: var(--font-serif);
   font-weight: 500;
   color: hsl(var(--foreground));
 }
@@ -255,7 +311,7 @@ html {
 .prose :where(code):not(:where(pre *)) {
   background-color: hsl(var(--code-inline-bg));
   color: hsl(var(--code-fg));
-  padding: 0.15rem 0.375rem;
+  padding: 0.15rem 0.4rem;
   border-radius: 0.25rem;
   font-weight: 400;
   font-size: 0.875em;
@@ -278,6 +334,80 @@ html {
   height: auto;
 }
 
+/* 笔记正文排版 (.field-note-prose) */
+.field-note-prose {
+  font-family: var(--font-serif);
+  font-size: 1rem;
+  line-height: 1.85;
+  color: var(--note-ink);
+}
+
+.field-note-prose :where(h2, h3) {
+  font-family: var(--font-serif);
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  color: hsl(var(--foreground));
+}
+
+.field-note-prose :where(h2, h3)::after {
+  content: '';
+  display: block;
+  width: 24px;
+  height: 2px;
+  border-radius: 9999px;
+  margin-top: 6px;
+  background: color-mix(in oklch, hsl(var(--primary)) 55%, transparent);
+}
+
+.field-note-prose blockquote {
+  margin-block: 1.5rem;
+  border-left: 2px solid color-mix(in oklch, hsl(var(--primary)) 45%, transparent);
+  padding-inline: 1.125rem;
+  padding-block: 0.25rem;
+  font-style: normal;
+  color: color-mix(in oklch, var(--note-ink), transparent 18%);
+}
+
+.field-note-prose hr {
+  width: 48px;
+  height: 1px;
+  margin: 2rem auto;
+  border: 0;
+  background: var(--surface-hairline);
+}
+
+.field-note-prose a {
+  color: hsl(var(--foreground));
+  text-decoration: none;
+  background-image: linear-gradient(
+    to right,
+    color-mix(in oklch, hsl(var(--primary)) 45%, transparent),
+    color-mix(in oklch, hsl(var(--primary)) 45%, transparent)
+  );
+  background-position: 0 100%;
+  background-repeat: no-repeat;
+  background-size: 100% 1px;
+  transition: background-size 0.16s ease;
+}
+
+.field-note-prose a:hover {
+  color: hsl(var(--primary));
+  background-image: repeating-linear-gradient(
+    to right,
+    hsl(var(--primary)) 0,
+    hsl(var(--primary)) 2px,
+    transparent 2px,
+    transparent 4px
+  );
+  background-size: 100% 1px;
+}
+
+.field-note-prose pre {
+  outline: 1px dashed color-mix(in oklch, var(--note-ink), transparent 72%);
+  outline-offset: 4px;
+}
+
+/* 滚动条 */
 @media (forced-colors: none) {
   ::-webkit-scrollbar {
     width: 8px;
@@ -333,7 +463,6 @@ html[data-theme='dark'] [data-rehype-pretty-code-figure] code[data-theme*=' '] s
   color: var(--shiki-dark);
 }
 
-/* 清除 typography 对 code figure 内部 pre 的默认外边距与边框 */
 .prose :where([data-rehype-pretty-code-figure] pre) {
   margin: 0;
   border: none;
@@ -341,7 +470,6 @@ html[data-theme='dark'] [data-rehype-pretty-code-figure] code[data-theme*=' '] s
   border-radius: 0;
 }
 
-/* 代码块语言提示（右下角微标） */
 [data-rehype-pretty-code-figure] pre[data-language]::after {
   content: attr(data-language);
   position: absolute;
@@ -357,7 +485,6 @@ html[data-theme='dark'] [data-rehype-pretty-code-figure] code[data-theme*=' '] s
   user-select: none;
 }
 
-/* 代码行高亮与 Diff 样式 */
 [data-rehype-pretty-code-figure] [data-highlighted-line] {
   background-color: hsl(var(--primary) / 0.1);
   border-left: 2px solid hsl(var(--primary));
@@ -376,7 +503,7 @@ html[data-theme='dark'] [data-rehype-pretty-code-figure] code[data-theme*=' '] s
 
 .prose :where(blockquote) {
   color: hsl(var(--foreground));
-  border-inline-start-color: hsl(var(--border));
+  border-inline-start-color: color-mix(in oklch, hsl(var(--primary)) 45%, transparent);
 }
 
 .prose :where(strong) {
@@ -387,36 +514,67 @@ html[data-theme='dark'] [data-rehype-pretty-code-figure] code[data-theme*=' '] s
 .prose :where(a) {
   font-weight: 500;
   color: hsl(var(--foreground));
-  text-decoration-color: hsl(var(--muted-foreground) / 0.4);
-  transition: color 0.15s ease;
+  text-decoration-color: color-mix(in oklch, hsl(var(--primary)) 45%, transparent);
+  text-underline-offset: 4px;
+  transition:
+    color 0.15s ease,
+    text-decoration-color 0.15s ease;
 }
 
 .prose :where(a):hover {
   color: hsl(var(--primary));
+  text-decoration-color: hsl(var(--primary));
 }
 
-/* 页面路由切换动效 (方案 3: Pure Cross-Dissolve 纯交叉溶解) */
+/* 页面路由切换与视图过渡 (View Transitions) */
 :root {
-  --vt-duration-exit: 120ms;
-  --vt-duration-enter: 160ms;
-  --vt-ease-out: cubic-bezier(0.16, 1, 0.3, 1);
-  --vt-ease-in: cubic-bezier(0.7, 0, 0.84, 0);
+  --vt-duration-exit: 180ms;
+  --vt-duration-enter: 340ms;
+  --vt-ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --vt-ease-in: cubic-bezier(0.4, 0, 1, 1);
+}
+
+::view-transition,
+::view-transition-group(*),
+::view-transition-image-pair(*),
+::view-transition-old(*),
+::view-transition-new(*) {
+  pointer-events: none;
 }
 
 ::view-transition-old(root) {
-  animation: var(--vt-duration-exit) var(--vt-ease-in) both page-exit;
+  animation: var(--vt-duration-exit) var(--vt-ease-in) both paper-sheet-out;
 }
 
 ::view-transition-new(root) {
-  animation: var(--vt-duration-enter) var(--vt-ease-out) both page-enter;
+  animation: var(--vt-duration-enter) var(--vt-ease-out) both paper-sheet-in;
 }
 
-@keyframes page-exit {
+html[data-theme-transition='true']::view-transition-old(root),
+html[data-theme-transition='true']::view-transition-new(root) {
+  animation: none;
+  mix-blend-mode: normal;
+}
+
+@keyframes paper-sheet-out {
   from {
     opacity: 1;
+    transform: translateY(0);
   }
   to {
     opacity: 0;
+    transform: translateY(-6px);
+  }
+}
+
+@keyframes paper-sheet-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
   }
 }
 
@@ -429,24 +587,36 @@ html[data-theme='dark'] [data-rehype-pretty-code-figure] code[data-theme*=' '] s
   }
 }
 
-/* 路由模板重新挂载驱动的入场动效 */
+/* 路由模板重新挂载驱动的入场动效（仅过渡 opacity，避免 transform/will-change 劫持后代 fixed 定位） */
 .page-transition-enter:not(:has([data-page-entrance])) {
-  animation: page-enter var(--vt-duration-enter) var(--vt-ease-out) both;
+  animation: page-enter 240ms cubic-bezier(0.22, 1, 0.36, 1) both;
   will-change: opacity;
 }
 
-/* 常驻组件隔离：页头、页脚与背景光在切换时保持静止 */
-header,
-footer,
-#global-ambient-backdrop {
-  view-transition-name: persistent-site-chrome;
+/* 常驻组件隔离：仅在路由切换时让页头、页脚、背景层与顶光各自独立静止（避免主题径向切换时遮挡过渡） */
+html:not([data-theme-transition='true']) #site-header {
+  view-transition-name: site-header;
 }
 
-::view-transition-group(persistent-site-chrome) {
+html:not([data-theme-transition='true']) #site-footer {
+  view-transition-name: site-footer;
+}
+
+html:not([data-theme-transition='true']) #global-ambient-backdrop {
+  view-transition-name: site-ambient-backdrop;
+}
+
+html:not([data-theme-transition='true']) #site-film-backdrop {
+  view-transition-name: site-film-backdrop;
+}
+
+::view-transition-group(site-header),
+::view-transition-group(site-footer),
+::view-transition-group(site-ambient-backdrop),
+::view-transition-group(site-film-backdrop) {
   animation: none;
 }
 
-/* 减弱动态效果偏好适配 */
 @media (prefers-reduced-motion: reduce) {
   .page-transition-enter {
     animation: none !important;

@@ -15,11 +15,10 @@ const SORT_OPTIONS: BlogSortOrder[] = ['newest', 'oldest', 'updated']
 
 /**
  * 博客分类筛选与排序工具栏组件。
- * 提供具体分类切换（不设“全部”选项，点击已选项反选还原全部）与多维时间排序。
  */
 export function BlogToolbar({ currentCategory, currentSort, currentSource, categoryCounts }: BlogToolbarProps) {
   return (
-    <div className="flex flex-col gap-2 border-b border-border/40 pb-3 lg:flex-row lg:items-center lg:justify-between">
+    <div className="flex flex-col gap-2 border-b border-hair pb-3 lg:flex-row lg:items-center lg:justify-between">
       {/* 分类切换组 */}
       <nav aria-label="文章分类筛选" className="flex flex-wrap items-center gap-x-6 gap-y-1">
         {BLOG_CATEGORIES.map((category) => {
@@ -36,19 +35,21 @@ export function BlogToolbar({ currentCategory, currentSort, currentSource, categ
               scroll={false}
               aria-current={isActive ? 'true' : undefined}
               className={[
-                'group/filter inline-flex min-h-11 items-center gap-1.5 rounded-sm py-1 font-mono text-xs transition-[color,transform] duration-150 ease-out active:translate-y-px motion-reduce:transform-none motion-reduce:transition-none focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-ring',
+                'group/filter inline-flex min-h-10 items-center gap-1.5 rounded-sm py-1 text-[13px] transition-[color,transform] duration-150 ease-out active:translate-y-px motion-reduce:transform-none motion-reduce:transition-none focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-ring',
                 isActive ? 'font-medium text-foreground' : 'text-muted-foreground hover:text-foreground',
               ].join(' ')}
             >
               <FilterLabel active={isActive}>{label}</FilterLabel>
-              {count !== undefined && <span className="tabular-nums text-muted-foreground">({count})</span>}
+              {count !== undefined && (
+                <span className="font-mono text-xs tabular-nums text-muted-foreground/75">({count})</span>
+              )}
             </Link>
           )
         })}
       </nav>
 
       {/* 排序模式与时间线入口 */}
-      <div className="flex flex-wrap items-center gap-x-3 font-mono text-xs lg:justify-end">
+      <div className="flex flex-wrap items-center gap-x-3 text-xs lg:justify-end">
         <div className="flex items-center gap-2">
           <span className="sr-only">排序</span>
           <div className="flex items-center gap-1">
@@ -59,13 +60,13 @@ export function BlogToolbar({ currentCategory, currentSort, currentSource, categ
 
               return (
                 <span key={sortKey} className="flex items-center gap-1">
-                  {index > 0 && <span className="text-border/80">·</span>}
+                  {index > 0 && <span className="text-muted-foreground/40">·</span>}
                   <Link
                     href={href}
                     scroll={false}
                     aria-current={isActive ? 'true' : undefined}
                     className={[
-                      'group/filter inline-flex min-h-11 items-center rounded-sm px-1 py-0.5 transition-[color,transform] duration-150 ease-out active:translate-y-px motion-reduce:transform-none motion-reduce:transition-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring',
+                      'group/filter inline-flex min-h-10 items-center rounded-sm px-1.5 py-0.5 transition-[color,transform] duration-150 ease-out active:translate-y-px motion-reduce:transform-none motion-reduce:transition-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring',
                       isActive ? 'font-medium text-foreground' : 'text-muted-foreground hover:text-foreground',
                     ].join(' ')}
                   >
@@ -77,12 +78,12 @@ export function BlogToolbar({ currentCategory, currentSort, currentSource, categ
           </div>
         </div>
 
-        <span className="hidden text-border/80 sm:inline">/</span>
+        <span className="hidden text-border sm:inline">/</span>
 
         <Link
           href="/blog/archives"
           aria-label="按时间线查看全部文章"
-          className="inline-flex min-h-11 items-center gap-1 rounded-md px-2 py-0.5 text-muted-foreground transition-colors hover:bg-muted/50 hover:text-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
+          className="inline-flex min-h-10 items-center gap-1 rounded-md px-2 py-0.5 text-muted-foreground transition-colors hover:text-primary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
         >
           <span>时间线</span>
           <span className="text-xs">↗</span>
