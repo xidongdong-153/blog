@@ -31,7 +31,7 @@ export function BlogSourceSwitch({
             href={buildBlogListUrl({ source: value, category: currentCategory, sort: currentSort })}
             scroll={false}
             aria-current={currentSource === value ? 'page' : undefined}
-            className={`group/filter inline-flex min-h-10 items-center rounded-sm py-1 transition-[color,transform] duration-150 ease-out active:translate-y-px motion-reduce:transform-none motion-reduce:transition-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring ${currentSource === value ? 'font-medium text-foreground' : 'text-muted-foreground hover:text-foreground'}`}
+            className={`group/filter ink-glide inline-flex min-h-10 items-center rounded-sm py-1 active:translate-y-px focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring ${currentSource === value ? 'font-medium text-foreground' : 'text-muted-foreground hover:text-foreground'}`}
           >
             <FilterLabel active={currentSource === value}>{label}</FilterLabel>
           </Link>

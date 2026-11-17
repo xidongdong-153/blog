@@ -91,7 +91,7 @@ export function CommentComposer({
         </div>
       )}
 
-      <div className="relative rounded-lg border border-border/60 bg-background/50 focus-within:border-foreground/30">
+      <div className="relative border-b border-hair transition-colors focus-within:border-primary/60">
         <textarea
           ref={textareaRef}
           value={content}
@@ -99,21 +99,21 @@ export function CommentComposer({
           placeholder={placeholder || (replyToAuthorName ? `回复 @${replyToAuthorName}...` : '写下你的想法...')}
           rows={3}
           maxLength={1000}
-          className="w-full resize-y bg-transparent p-3 text-sm leading-relaxed text-foreground placeholder:text-muted-foreground/60 focus:outline-none"
+          className="w-full resize-y bg-transparent py-2 text-sm leading-relaxed text-foreground placeholder:text-muted-foreground/60 focus:outline-none"
         />
 
-        <div className="flex items-center justify-between border-t border-border/40 px-3 py-2">
-          <span className={`font-mono text-xs ${isOverLimit ? 'text-red-500 font-medium' : 'text-muted-foreground'}`}>
+        <div className="flex items-center justify-between py-2">
+          <span className={`font-mono text-xs ${isOverLimit ? 'font-medium text-red-500' : 'text-muted-foreground'}`}>
             {charCount} / 1000
           </span>
 
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-4">
             {onCancel && (
               <button
                 type="button"
                 onClick={onCancel}
                 disabled={submitting}
-                className="rounded-md px-2.5 py-1 font-mono text-xs text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                className="ink-link cursor-pointer py-0.5 font-mono text-xs text-muted-foreground hover:text-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
               >
                 取消
               </button>
@@ -122,9 +122,17 @@ export function CommentComposer({
             <button
               type="submit"
               disabled={!canSubmit}
-              className="inline-flex items-center justify-center rounded-md bg-foreground px-3.5 py-1 font-mono text-xs font-medium text-background transition-opacity hover:opacity-90 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring focus-visible:ring-offset-1 focus-visible:ring-offset-background disabled:cursor-not-allowed disabled:opacity-40"
+              className="group/ink inline-flex cursor-pointer items-center gap-1 py-0.5 font-mono text-xs font-medium text-primary transition-opacity focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring disabled:cursor-not-allowed disabled:opacity-40"
             >
-              {submitting ? '发送中...' : '发送 ↗'}
+              <span className="ink-line">{submitting ? '发送中...' : '发送'}</span>
+              {!submitting && (
+                <span
+                  aria-hidden="true"
+                  className="ink-glide group-hover/ink:translate-x-0.5 group-hover/ink:-translate-y-0.5"
+                >
+                  ↗
+                </span>
+              )}
             </button>
           </div>
         </div>

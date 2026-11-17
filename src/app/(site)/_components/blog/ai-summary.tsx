@@ -1,13 +1,11 @@
 import { Sparkles } from 'lucide-react'
-import { PaperSurface } from '../site/paper-surface'
 
 interface AiSummaryProps {
   summary: string
 }
 
 /**
- * 文章关键洞察卡片。
- * 位于标题与正文之间，展示文章核心提炼内容。
+ * 文章关键洞察提要（无卡片外壳，采用上下发丝线刊头提要样式）。
  */
 export function AiSummary({ summary }: AiSummaryProps) {
   if (!summary || !summary.trim()) {
@@ -15,9 +13,8 @@ export function AiSummary({ summary }: AiSummaryProps) {
   }
 
   return (
-    <section aria-label="关键洞察" className="relative isolate rounded-lg p-5 sm:px-6 sm:py-5">
-      <PaperSurface className="bg-card/90" />
-      <div className="mb-2.5 flex items-center gap-1.5 text-xs font-medium text-muted-foreground">
+    <section aria-label="关键洞察" className="border-y border-hair py-5">
+      <div className="mb-2 flex items-center gap-1.5 font-mono text-xs text-muted-foreground">
         <Sparkles className="size-3.5 text-primary" aria-hidden="true" />
         <span>关键洞察</span>
       </div>

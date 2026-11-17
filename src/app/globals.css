@@ -160,6 +160,149 @@
   }
 }
 
+/* 宣纸墨迹生长下划线（支持单行与多行换行连续生长） */
+@utility ink-link {
+  padding-bottom: 2px;
+  background-image: linear-gradient(hsl(var(--primary)), hsl(var(--primary)));
+  background-position: 0 100%;
+  background-repeat: no-repeat;
+  background-size: 0% 1.5px;
+  transition:
+    color 200ms ease,
+    opacity 200ms ease,
+    background-size 280ms var(--ease-spring);
+
+  &:hover,
+  &:focus-visible,
+  &[data-active='true'] {
+    color: hsl(var(--primary));
+    background-size: 100% 1.5px;
+  }
+
+  &:active {
+    opacity: 0.85;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    transition: color 120ms ease;
+  }
+}
+
+/* 配合 group/ink 使用的内联文本墨线（自带底部内边距，不被裁切） */
+@utility ink-line {
+  position: relative;
+  display: inline-block;
+  padding-bottom: 3px;
+
+  &::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 1.5px;
+    border-radius: 9999px;
+    background-color: hsl(var(--primary));
+    transform: scaleX(0);
+    transform-origin: left center;
+    opacity: 0;
+    pointer-events: none;
+    transition:
+      transform 280ms var(--ease-spring),
+      opacity 180ms ease;
+  }
+
+  .group\/ink:hover &::after,
+  .group\/ink:focus-visible &::after,
+  .group\/ink[data-active='true'] &::after {
+    transform: scaleX(1);
+    opacity: 1;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    &::after {
+      transition: opacity 120ms ease;
+    }
+  }
+}
+
+/* 统一弹性位移动效工具类（覆盖 Tailwind v4 独立 translate/scale/rotate 与减弱动效） */
+@utility ink-glide {
+  transition-property: color, opacity, transform, translate, scale, rotate;
+  transition-duration: 260ms;
+  transition-timing-function: var(--ease-spring);
+
+  @media (prefers-reduced-motion: reduce) {
+    transition-property: color, opacity !important;
+    transition-duration: 120ms !important;
+    --tw-translate-x: 0 !important;
+    --tw-translate-y: 0 !important;
+    --tw-scale-x: 1 !important;
+    --tw-scale-y: 1 !important;
+    transform: none !important;
+  }
+}
+
+/* 将独立 transform 属性拆分规则，避免 LightningCSS 将四者合并折叠而丢失 translate/scale/rotate */
+@media (prefers-reduced-motion: reduce) {
+  .ink-glide {
+    translate: none !important;
+  }
+  .ink-glide:is(*) {
+    scale: none !important;
+  }
+  .ink-glide:where(*) {
+    rotate: none !important;
+  }
+}
+
+/* 透明触控热区扩展（不撑开排印行距，保障移动端 >= 44px 点击面积） */
+@utility hit-expand {
+  position: relative;
+
+  &::before {
+    content: '';
+    position: absolute;
+    inset: -0.5rem -0.375rem;
+  }
+}
+
+/* 无框列表行悬停左侧墨迹竖线 */
+@utility ink-row {
+  position: relative;
+  transition: color 200ms ease;
+
+  &::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0.35rem;
+    bottom: 0.35rem;
+    width: 2px;
+    border-radius: 9999px;
+    background-color: hsl(var(--primary));
+    transform: scaleY(0);
+    transform-origin: center;
+    opacity: 0;
+    pointer-events: none;
+    transition:
+      transform 280ms var(--ease-spring),
+      opacity 180ms ease;
+  }
+
+  &:hover::before,
+  &:focus-within::before {
+    transform: scaleY(1);
+    opacity: 1;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    &::before {
+      transition: opacity 120ms ease;
+    }
+  }
+}
+
 :root {
   --ui-duration: 180ms;
   --ui-ease: cubic-bezier(0.16, 1, 0.3, 1);
@@ -289,6 +432,16 @@ body {
 html {
   font-family: var(--font-sans);
   scroll-behavior: smooth;
+}
+
+::selection {
+  background-color: color-mix(in oklch, hsl(var(--primary)) 18%, transparent);
+  color: hsl(var(--foreground));
+}
+
+input,
+textarea {
+  caret-color: hsl(var(--primary));
 }
 
 /* Typography prose 适配系统语义 token */

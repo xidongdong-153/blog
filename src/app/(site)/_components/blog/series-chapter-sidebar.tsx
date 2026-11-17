@@ -139,7 +139,7 @@ export function SeriesChapterSidebar({ series, posts, currentSlug }: SeriesChapt
           onClick={toggleCollapsed}
           aria-label="展开专栏大纲"
           title={`展开专栏目录（${series.title}）`}
-          className="group flex size-9 items-center justify-center rounded-md border border-border/60 bg-card/40 text-muted-foreground backdrop-blur-md transition-all hover:border-foreground/30 hover:bg-muted/40 hover:text-foreground shadow-xs"
+          className="hit-expand group flex size-8 cursor-pointer items-center justify-center text-muted-foreground transition-colors hover:text-primary focus-visible:outline-2 focus-visible:outline-ring"
         >
           <svg
             xmlns="http://www.w3.org/2000/svg"
@@ -149,7 +149,7 @@ export function SeriesChapterSidebar({ series, posts, currentSlug }: SeriesChapt
             strokeWidth="2"
             strokeLinecap="round"
             strokeLinejoin="round"
-            className="size-3.5 text-primary transition-transform group-hover:scale-110"
+            className="ink-glide size-4 text-primary group-hover:scale-110"
           >
             <rect width="18" height="18" x="3" y="3" rx="2" />
             <path d="M9 3v18" />
@@ -161,16 +161,15 @@ export function SeriesChapterSidebar({ series, posts, currentSlug }: SeriesChapt
   }
 
   // ----------------------------------------------------
-  // 2. 展开状态：完整层级侧栏
+  // 2. 展开状态：无框发丝线侧栏
   // ----------------------------------------------------
   return (
     <aside
       aria-label="专栏章节目录"
-      className="sticky top-20 hidden max-h-[calc(100vh-6rem)] w-64 xl:w-72 shrink-0 flex-col rounded-lg border border-border/60 bg-card/20 lg:flex select-none transition-all duration-200 overflow-hidden"
+      className="sticky top-20 hidden max-h-[calc(100vh-6rem)] w-60 xl:w-68 shrink-0 flex-col border-r border-hair pl-1.5 pr-4 pt-2 lg:flex select-none"
     >
-      {/* 头部：搜索框与折叠开关同一行 */}
-      <div className="flex items-center gap-2 border-b border-border/40 p-3">
-        {/* 章节即时搜索过滤 */}
+      {/* 头部：下划线搜索框与无框折叠开关 */}
+      <div className="flex items-center gap-3.5 border-b border-hair pb-2.5">
         {posts.length > 2 && (
           <div className="relative min-w-0 flex-1">
             <input
@@ -179,7 +178,7 @@ export function SeriesChapterSidebar({ series, posts, currentSlug }: SeriesChapt
               onChange={(e) => setFilterQuery(e.target.value)}
               placeholder="搜索专栏章节..."
               aria-label="搜索专栏章节"
-              className="w-full rounded-md border border-border/50 bg-background/60 py-1 ps-6 pe-6 font-sans text-xs text-foreground placeholder:text-muted-foreground/60 focus:border-primary/50 focus:outline-none"
+              className="w-full border-0 border-b border-transparent bg-transparent py-1.5 ps-5 pe-8 font-sans text-xs text-foreground placeholder:text-muted-foreground/60 transition-colors focus-visible:border-primary focus-visible:outline-none"
             />
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -189,7 +188,7 @@ export function SeriesChapterSidebar({ series, posts, currentSlug }: SeriesChapt
               strokeWidth="2"
               strokeLinecap="round"
               strokeLinejoin="round"
-              className="pointer-events-none absolute start-1.5 top-1.5 size-3 text-muted-foreground/60"
+              className="pointer-events-none absolute start-0 top-1/2 size-3 -translate-y-1/2 text-muted-foreground/60"
             >
               <circle cx="11" cy="11" r="8" />
               <path d="m21 21-4.3-4.3" />
@@ -199,7 +198,7 @@ export function SeriesChapterSidebar({ series, posts, currentSlug }: SeriesChapt
                 type="button"
                 onClick={() => setFilterQuery('')}
                 aria-label="清空搜索"
-                className="absolute end-1.5 top-1 flex size-4 items-center justify-center rounded text-muted-foreground hover:text-foreground"
+                className="hit-expand absolute end-0 top-1/2 flex size-8 -translate-y-1/2 cursor-pointer items-center justify-center text-muted-foreground hover:text-foreground focus-visible:text-primary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
               >
                 ×
               </button>
@@ -212,7 +211,7 @@ export function SeriesChapterSidebar({ series, posts, currentSlug }: SeriesChapt
           onClick={toggleCollapsed}
           aria-label="收起专栏目录"
           title="收起专栏目录"
-          className="ms-auto flex size-6 shrink-0 items-center justify-center rounded-md border border-border/40 text-muted-foreground transition-colors hover:border-foreground/30 hover:bg-muted/50 hover:text-foreground"
+          className="hit-expand ms-auto flex size-8 shrink-0 cursor-pointer items-center justify-center text-muted-foreground transition-colors hover:text-primary focus-visible:text-primary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
         >
           <svg
             xmlns="http://www.w3.org/2000/svg"
@@ -232,11 +231,11 @@ export function SeriesChapterSidebar({ series, posts, currentSlug }: SeriesChapt
       </div>
 
       {/* 章节手风琴列表区 */}
-      <div className="flex-1 overflow-y-auto p-2">
+      <div className="flex-1 overflow-y-auto px-1.5 pt-3">
         {filteredGroups.length === 0 ? (
           <p className="py-6 text-center font-mono text-xs text-muted-foreground">未找到匹配章节</p>
         ) : (
-          <div className="flex flex-col gap-2">
+          <div className="flex flex-col gap-3">
             {filteredGroups.map((group) => {
               const isSearching = Boolean(filterQuery.trim())
               // 搜索时不折叠，或者若未手动折叠且为当前章节所属大章则默认展开
@@ -248,7 +247,7 @@ export function SeriesChapterSidebar({ series, posts, currentSlug }: SeriesChapt
                   <button
                     type="button"
                     onClick={() => toggleGroup(group.name)}
-                    className="flex items-center justify-between rounded px-2 py-1 text-start transition-colors hover:bg-muted/40"
+                    className="flex cursor-pointer items-center justify-between py-1 text-start transition-colors hover:text-primary focus-visible:text-primary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
                     aria-expanded={!isGroupCollapsed}
                   >
                     <div className="flex items-center gap-1.5 min-w-0">
@@ -260,7 +259,7 @@ export function SeriesChapterSidebar({ series, posts, currentSlug }: SeriesChapt
                         strokeWidth="2"
                         strokeLinecap="round"
                         strokeLinejoin="round"
-                        className={`size-3 text-muted-foreground/70 transition-transform duration-150 ${
+                        className={`size-3 text-muted-foreground/70 transition-[rotate] duration-150 motion-reduce:transition-none ${
                           isGroupCollapsed ? '-rotate-90' : 'rotate-0'
                         }`}
                       >
@@ -276,7 +275,7 @@ export function SeriesChapterSidebar({ series, posts, currentSlug }: SeriesChapt
 
                   {/* 属于该大章节的小章节列表 */}
                   {!isGroupCollapsed && (
-                    <ol className="mt-1 flex flex-col gap-1 ps-3">
+                    <ol className="mt-1 flex flex-col gap-0.5 ps-3">
                       {group.posts.map((post, index) => {
                         const chapterOrder = post.series?.order ?? index + 1
                         const isActive = post.slug === currentSlug
@@ -286,9 +285,13 @@ export function SeriesChapterSidebar({ series, posts, currentSlug }: SeriesChapt
                             <li ref={activeItemRef} key={post.slug}>
                               <div
                                 aria-current="page"
-                                className="flex items-start gap-2 rounded-md border border-border/80 bg-card/80 p-2 text-foreground shadow-2xs"
+                                className="relative flex items-start gap-2 py-1.5 pl-2.5 text-primary"
                               >
-                                <span className="font-mono text-xs font-semibold tabular-nums text-primary shrink-0 pt-0.5">
+                                <span
+                                  aria-hidden="true"
+                                  className="absolute left-0 top-2 bottom-2 w-[2px] rounded-full bg-primary"
+                                />
+                                <span className="shrink-0 pt-0.5 font-mono text-xs font-semibold tabular-nums">
                                   {chapterOrder}
                                 </span>
                                 <span className="line-clamp-2 font-sans text-xs font-medium leading-snug">
@@ -303,9 +306,9 @@ export function SeriesChapterSidebar({ series, posts, currentSlug }: SeriesChapt
                           <li key={post.slug}>
                             <Link
                               href={`/blog/${post.slug}`}
-                              className="group flex items-start gap-2 rounded-md border border-transparent p-2 text-muted-foreground transition-all hover:border-border/40 hover:bg-muted/30 hover:text-foreground"
+                              className="ink-glide group flex items-start gap-2 py-1.5 pl-2.5 text-muted-foreground hover:translate-x-1 hover:text-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
                             >
-                              <span className="font-mono text-xs tabular-nums text-muted-foreground/70 transition-colors group-hover:text-foreground shrink-0 pt-0.5">
+                              <span className="font-mono text-xs tabular-nums text-muted-foreground/70 transition-colors group-hover:text-primary shrink-0 pt-0.5">
                                 {chapterOrder}
                               </span>
                               <span className="line-clamp-2 font-sans text-xs leading-snug transition-colors group-hover:text-foreground">

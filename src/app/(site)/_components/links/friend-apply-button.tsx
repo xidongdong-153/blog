@@ -9,17 +9,9 @@ interface FriendApplyButtonProps {
 }
 
 /**
- * 唤起友链申请弹窗的交互按钮
+ * 唤起友链申请弹窗的无框排版触发器。
  */
-export function FriendApplyButton({
-  className,
-  children = (
-    <>
-      申请友链
-      <span aria-hidden="true">↗</span>
-    </>
-  ),
-}: FriendApplyButtonProps) {
+export function FriendApplyButton({ className, children }: FriendApplyButtonProps) {
   const [isOpen, setIsOpen] = useState(false)
 
   return (
@@ -29,10 +21,20 @@ export function FriendApplyButton({
         onClick={() => setIsOpen(true)}
         className={
           className ||
-          'inline-flex w-fit items-center gap-1.5 rounded-md border border-border/60 bg-muted/30 px-3 py-2 font-mono text-xs text-foreground motion-safe:transition-colors hover:border-foreground/30 hover:bg-muted/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background'
+          'group/ink inline-flex w-fit cursor-pointer items-center gap-1.5 py-1 font-mono text-xs text-primary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring'
         }
       >
-        {children}
+        {children ?? (
+          <>
+            <span className="ink-line">申请友链</span>
+            <span
+              aria-hidden="true"
+              className="ink-glide group-hover/ink:translate-x-0.5 group-hover/ink:-translate-y-0.5"
+            >
+              ↗
+            </span>
+          </>
+        )}
       </button>
 
       <FriendApplyModal isOpen={isOpen} onClose={() => setIsOpen(false)} />

@@ -53,14 +53,17 @@ export function FxToggle() {
         type="button"
         role="radio"
         aria-checked={!enabled}
+        data-active={!enabled ? 'true' : undefined}
         onClick={() => updateFx(false)}
-        className={`cursor-pointer transition-colors duration-200 hover:text-foreground ${
-          !enabled
-            ? 'font-semibold text-foreground underline decoration-primary/75 underline-offset-4'
-            : 'text-muted-foreground'
-        }`}
+        className="group/ink hit-expand inline-flex min-h-7 min-w-8 cursor-pointer items-center justify-center whitespace-nowrap transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
       >
-        关
+        <span
+          className={`ink-line ${
+            !enabled ? 'font-semibold text-foreground' : 'text-muted-foreground group-hover/ink:text-foreground'
+          }`}
+        >
+          关
+        </span>
       </button>
       <span aria-hidden="true" className="mx-1.5 text-muted-foreground/30">
         ·
@@ -69,14 +72,17 @@ export function FxToggle() {
         type="button"
         role="radio"
         aria-checked={enabled}
+        data-active={enabled ? 'true' : undefined}
         onClick={() => updateFx(true)}
-        className={`cursor-pointer transition-colors duration-200 hover:text-foreground ${
-          enabled
-            ? 'font-semibold text-foreground underline decoration-primary/75 underline-offset-4'
-            : 'text-muted-foreground'
-        }`}
+        className="group/ink hit-expand inline-flex min-h-7 min-w-8 cursor-pointer items-center justify-center whitespace-nowrap transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
       >
-        开
+        <span
+          className={`ink-line ${
+            enabled ? 'font-semibold text-foreground' : 'text-muted-foreground group-hover/ink:text-foreground'
+          }`}
+        >
+          开
+        </span>
       </button>
     </div>
   )

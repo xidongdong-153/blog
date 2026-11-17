@@ -4,7 +4,6 @@ import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { formatDate, getAllNotes, getNote, NOTE_STATUS_LABELS } from '@/lib/content'
 import { MdxContent } from '../../_components/blog/mdx-content'
-import { PaperSurface } from '../../_components/site/paper-surface'
 
 interface NotePageProps {
   params: Promise<{ slug: string }>
@@ -42,43 +41,42 @@ export default async function NotePage({ params }: NotePageProps) {
 
   return (
     <div className="mx-auto w-full max-w-3xl">
-      <div className="mb-5 text-xs text-muted-foreground">
-        <Link href="/notes" className="inline-flex items-center gap-1.5 font-mono transition-colors hover:text-primary">
-          <span>←</span>
-          <span>全部笔记</span>
+      <div className="mb-6 text-xs text-muted-foreground">
+        <Link
+          href="/notes"
+          className="group/ink inline-flex items-center gap-1.5 font-mono transition-colors hover:text-primary"
+        >
+          <span aria-hidden="true" className="ink-glide group-hover/ink:-translate-x-1">
+            ←
+          </span>
+          <span className="ink-line">全部笔记</span>
         </Link>
       </div>
 
-      {/* 笔记单张纸面 */}
-      <article className="relative isolate rounded-xl">
-        <PaperSurface />
-        <div className="overflow-hidden rounded-xl">
-          <header className="border-b border-hair px-6 pb-6 pt-8 sm:px-10 sm:pt-10">
-            <div className="mb-3 flex flex-wrap items-center gap-x-2.5 gap-y-1 font-mono text-xs text-muted-foreground">
-              <span className="text-primary">FIELD NOTE</span>
-              <span aria-hidden="true">·</span>
-              <time dateTime={note.date}>{formatDate(note.date)}</time>
-              <span aria-hidden="true">·</span>
-              <span className={STATUS_TEXT_COLORS[note.status]}>{NOTE_STATUS_LABELS[note.status]}</span>
-              {note.tags.length > 0 && (
-                <>
-                  <span aria-hidden="true">·</span>
-                  <span>{note.tags.join(' / ')}</span>
-                </>
-              )}
-            </div>
-
-            <h1 className="font-serif text-3xl font-medium tracking-tight text-foreground sm:text-4xl">{note.title}</h1>
-
-            {note.description && (
-              <p className="mt-4 text-sm leading-relaxed text-muted-foreground">{note.description}</p>
+      {/* 笔记正文直接在宣纸画布排版，不加额外卡片边界 */}
+      <article>
+        <header className="border-b border-hair pb-7">
+          <div className="mb-3 flex flex-wrap items-center gap-x-2.5 gap-y-1 font-mono text-xs text-muted-foreground">
+            <time dateTime={note.date}>{formatDate(note.date)}</time>
+            <span aria-hidden="true">·</span>
+            <span className={STATUS_TEXT_COLORS[note.status]}>{NOTE_STATUS_LABELS[note.status]}</span>
+            {note.tags.length > 0 && (
+              <>
+                <span aria-hidden="true">·</span>
+                <span className="[overflow-wrap:anywhere]">{note.tags.map((t) => `#${t}`).join(' ')}</span>
+              </>
             )}
-          </header>
-
-          {/* 笔记正文 */}
-          <div className="field-note-prose px-6 pb-12 pt-7 sm:px-10">
-            <MdxContent source={note.content} />
           </div>
+
+          <h1 className="font-serif text-3xl font-medium tracking-tight text-foreground [overflow-wrap:anywhere] sm:text-4xl">
+            {note.title}
+          </h1>
+
+          {note.description && <p className="mt-4 text-sm leading-relaxed text-muted-foreground">{note.description}</p>}
+        </header>
+
+        <div className="field-note-prose pb-12 pt-8">
+          <MdxContent source={note.content} />
         </div>
       </article>
     </div>

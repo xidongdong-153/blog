@@ -4,6 +4,7 @@ import type { BlogCategory } from '@/lib/blog-meta'
 import Link from 'next/link'
 import { useEffect, useMemo, useState } from 'react'
 import { BLOG_CATEGORY_LABELS } from '@/lib/blog-meta'
+import { FilterLabel } from './filter-label'
 
 export interface TimelineArchiveEntry {
   kind: 'article' | 'note'
@@ -47,7 +48,7 @@ function computeTimeMetrics(now: Date) {
 
 /**
  * 写作归档时间线视图组件。
- * 展示文章/笔记总览、年度与当日时间遥测、标准/紧凑密度切换以及按年月分组的时间列表。
+ * 无框文字密度切换（标准 · 紧凑），列表行采用左侧墨线与轻右移悬停交互。
  */
 export function ArchivesView({ entries }: { entries: TimelineArchiveEntry[] }) {
   const [density, setDensity] = useState<'relaxed' | 'compact'>('relaxed')
@@ -91,45 +92,37 @@ export function ArchivesView({ entries }: { entries: TimelineArchiveEntry[] }) {
     <div className="mx-auto flex w-full max-w-4xl flex-col gap-12">
       {/* 头部时间与产量遥测区 */}
       <header className="flex flex-col gap-6 border-b border-hair pb-8">
-        <div className="flex flex-wrap items-center justify-between gap-4">
-          <div className="flex flex-col gap-1">
-            <span className="font-mono text-[11px] tracking-[0.2em] text-muted-foreground uppercase">Archives</span>
-            <h1 className="font-serif text-3xl font-medium tracking-tight text-foreground sm:text-4xl">写作归档</h1>
-          </div>
+        <div className="flex flex-wrap items-baseline justify-between gap-4">
+          <h1 className="font-serif text-3xl font-medium tracking-tight text-foreground sm:text-4xl">写作归档</h1>
 
-          <div
-            role="group"
-            aria-label="视图密度"
-            className="inline-flex items-center gap-1 rounded-lg border border-hair bg-card/75 p-1 font-mono text-xs"
-          >
+          <div role="group" aria-label="视图密度" className="inline-flex items-center gap-2 font-mono text-xs">
             <button
               type="button"
               onClick={() => setDensity('relaxed')}
               aria-pressed={density === 'relaxed'}
-              className={`cursor-pointer rounded-md px-2.5 py-1 transition-colors ${
-                density === 'relaxed'
-                  ? 'bg-primary/20 font-medium text-primary ring-1 ring-primary/40 shadow-2xs'
-                  : 'text-muted-foreground hover:text-foreground'
+              className={`group/filter inline-flex min-h-9 cursor-pointer items-center py-1 transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring ${
+                density === 'relaxed' ? 'font-medium text-foreground' : 'text-muted-foreground hover:text-foreground'
               }`}
             >
-              标准
+              <FilterLabel active={density === 'relaxed'}>标准</FilterLabel>
             </button>
+            <span aria-hidden="true" className="text-muted-foreground/40">
+              ·
+            </span>
             <button
               type="button"
               onClick={() => setDensity('compact')}
               aria-pressed={density === 'compact'}
-              className={`cursor-pointer rounded-md px-2.5 py-1 transition-colors ${
-                density === 'compact'
-                  ? 'bg-primary/20 font-medium text-primary ring-1 ring-primary/40 shadow-2xs'
-                  : 'text-muted-foreground hover:text-foreground'
+              className={`group/filter inline-flex min-h-9 cursor-pointer items-center py-1 transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring ${
+                density === 'compact' ? 'font-medium text-foreground' : 'text-muted-foreground hover:text-foreground'
               }`}
             >
-              紧凑
+              <FilterLabel active={density === 'compact'}>紧凑</FilterLabel>
             </button>
           </div>
         </div>
 
-        {/* 遥测指标卡 */}
+        {/* 遥测指标行 */}
         <div className="grid grid-cols-2 gap-6 sm:grid-cols-4">
           <div className="flex flex-col gap-0.5">
             <div className="font-serif text-3xl font-medium tabular-nums text-foreground">{entries.length}</div>
@@ -163,7 +156,7 @@ export function ArchivesView({ entries }: { entries: TimelineArchiveEntry[] }) {
         </div>
 
         {/* 细年度进度轨 */}
-        <div aria-hidden="true" className="h-[3px] w-full overflow-hidden rounded-full bg-muted">
+        <div aria-hidden="true" className="h-[2px] w-full overflow-hidden rounded-full bg-hair">
           <div
             className="h-full rounded-full bg-primary/75 transition-[width] duration-500 ease-[var(--ease-spring)]"
             style={{ width: `${metrics ? metrics.yearPercentExact : 0}%` }}
@@ -209,21 +202,23 @@ export function ArchivesView({ entries }: { entries: TimelineArchiveEntry[] }) {
                               <li key={`${entry.kind}-${entry.slug}`}>
                                 <Link
                                   href={href}
-                                  className={`group flex items-baseline justify-between gap-4 rounded-md px-2 transition-colors hover:bg-muted/35 ${
+                                  className={`ink-row group/item block rounded-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring ${
                                     density === 'relaxed' ? 'py-2.5' : 'py-1.5'
                                   }`}
                                 >
-                                  <div className="flex min-w-0 items-baseline gap-3.5">
-                                    <span className="w-5 shrink-0 font-mono text-xs tabular-nums text-muted-foreground group-hover:text-primary">
-                                      {day}
-                                    </span>
-                                    <span className="truncate font-serif text-[15px] text-foreground transition-colors group-hover:text-primary">
-                                      {entry.title}
+                                  <div className="ink-glide flex items-baseline justify-between gap-4 group-hover/item:translate-x-2 group-focus-visible/item:translate-x-2">
+                                    <div className="flex min-w-0 items-baseline gap-3.5">
+                                      <span className="w-5 shrink-0 font-mono text-xs tabular-nums text-muted-foreground transition-colors group-hover/item:text-primary">
+                                        {day}
+                                      </span>
+                                      <span className="truncate font-serif text-[15px] text-foreground transition-colors group-hover/item:text-primary">
+                                        {entry.title}
+                                      </span>
+                                    </div>
+                                    <span className="shrink-0 font-mono text-[11px] text-muted-foreground">
+                                      {metaText}
                                     </span>
                                   </div>
-                                  <span className="shrink-0 font-mono text-[11px] text-muted-foreground">
-                                    {metaText}
-                                  </span>
                                 </Link>
                               </li>
                             )

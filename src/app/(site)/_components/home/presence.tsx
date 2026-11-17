@@ -193,7 +193,7 @@ export function PresenceStatus() {
       <Link
         href="/"
         aria-label={`${siteConfig.title}首页，实时工位：${summaryText}`}
-        className="group relative flex items-center gap-2.5 transition-transform duration-200 active:scale-95 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-ring rounded-lg"
+        className="ink-glide group relative flex items-center gap-2.5 rounded-lg active:scale-95 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-ring"
       >
         <div className="relative flex size-[30px] items-center justify-center">
           <div
@@ -208,7 +208,7 @@ export function PresenceStatus() {
                 width={30}
                 height={30}
                 priority
-                className="size-full object-cover transition-transform duration-300 group-hover:scale-105"
+                className="ink-glide size-full object-cover group-hover:scale-105"
               />
             ) : (
               <div className="flex size-full select-none items-center justify-center bg-muted/60 font-serif text-sm font-semibold text-foreground">
@@ -245,7 +245,7 @@ export function PresenceStatus() {
 
           <div className="pt-2.5">
             {active && foregroundTool ? (
-              <div className="flex items-center gap-2 rounded-md border border-hair bg-muted/35 p-2">
+              <div className="flex items-center gap-2.5 py-0.5">
                 {desktopApp && <ActivityIcon activity={desktopApp} />}
                 <div className="min-w-0">
                   <p className="truncate font-mono text-xs font-semibold text-foreground">
@@ -257,7 +257,7 @@ export function PresenceStatus() {
                 </div>
               </div>
             ) : active && desktopApp ? (
-              <div className="flex items-center gap-2 rounded-md border border-hair bg-muted/35 p-2">
+              <div className="flex items-center gap-2.5 py-0.5">
                 <ActivityIcon activity={desktopApp} />
                 <p className="truncate font-mono text-xs font-medium text-foreground">{desktopApp.label}</p>
               </div>
@@ -268,13 +268,13 @@ export function PresenceStatus() {
             )}
 
             {backgroundTools.length > 0 && (
-              <div className="flex flex-wrap gap-1 pt-2">
+              <div className="mt-2 flex flex-wrap items-center gap-x-2.5 gap-y-1 border-t border-hair pt-2">
                 {backgroundTools.map((activity) => {
                   const icon = activity.icon ?? TOOL_ICON_MAP[activity.id]
                   return (
                     <span
                       key={activity.id}
-                      className="inline-flex items-center gap-1 rounded border border-hair bg-muted/25 px-1.5 py-0.5 font-mono text-[11px] text-muted-foreground"
+                      className="inline-flex items-center gap-1 font-mono text-[11px] text-muted-foreground"
                     >
                       {icon ? (
                         <Image src={icon} alt="" width={12} height={12} className="size-3 rounded-xs object-cover" />

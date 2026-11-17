@@ -1,7 +1,6 @@
 import type { SeriesDefinition } from '@/lib/series'
 import Link from 'next/link'
 import { SERIES_STATUS_LABELS } from '@/lib/series'
-import { PaperSurface } from '../site/paper-surface'
 
 export interface SeriesBannerProps {
   series: SeriesDefinition & {
@@ -11,12 +10,12 @@ export interface SeriesBannerProps {
 }
 
 /**
- * 博客列表页顶部精选专栏纸卡。
+ * 博客列表页顶部精选专栏导览（无卡片外壳）。
+ * 以发丝线分隔出专栏标题、连载状态与大纲入口。
  */
 export function SeriesBanner({ series }: SeriesBannerProps) {
   return (
-    <div className="relative isolate flex flex-col gap-2.5 rounded-lg p-5 transition-colors hover:[&>span]:border-primary/35">
-      <PaperSurface className="bg-card/90" />
+    <div className="flex flex-col gap-2.5 border-y border-hair py-5">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <div className="flex items-center gap-2 font-mono text-xs text-primary">
           <span>精选专栏</span>
@@ -36,27 +35,29 @@ export function SeriesBanner({ series }: SeriesBannerProps) {
       <h2 className="font-serif text-xl font-medium tracking-tight text-foreground">
         <Link
           href={`/blog/series/${series.id}`}
-          className="rounded-sm transition-colors hover:text-primary focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-ring"
+          className="ink-link inline-block rounded-sm focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-ring"
         >
           {series.title}
         </Link>
       </h2>
 
-      <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2 pt-1">
-        <div className="flex flex-wrap gap-2 font-mono text-xs text-muted-foreground/80">
+      <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2 pt-0.5">
+        <div className="flex flex-wrap gap-x-3 gap-y-1 font-mono text-xs text-muted-foreground/80">
           {series.tags.map((tag) => (
             <span key={tag} className="select-none">
-              {tag}
+              #{tag}
             </span>
           ))}
         </div>
 
         <Link
           href={`/blog/series/${series.id}`}
-          className="inline-flex min-h-9 items-center gap-1 rounded-sm font-serif text-xs italic text-primary hover:underline underline-offset-4 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
+          className="group/ink inline-flex items-center gap-1 rounded-sm font-serif text-xs italic text-primary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
         >
-          <span>浏览专栏大纲</span>
-          <span aria-hidden="true">→</span>
+          <span className="ink-line">浏览专栏大纲</span>
+          <span aria-hidden="true" className="ink-glide group-hover/ink:translate-x-1">
+            →
+          </span>
         </Link>
       </div>
     </div>

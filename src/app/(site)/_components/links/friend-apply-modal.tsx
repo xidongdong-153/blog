@@ -176,22 +176,19 @@ export function FriendApplyModal({ isOpen, onClose }: FriendApplyModalProps) {
         className="relative z-10 flex max-h-[92vh] w-full max-w-[480px] flex-col overflow-hidden rounded-lg border border-border/60 bg-card shadow-2xl animate-[modal-scale-in_200ms_cubic-bezier(0.16,1,0.3,1)_both] motion-reduce:animate-none"
       >
         {/* 顶部标题栏：高度紧凑 */}
-        <div className="flex items-center justify-between border-b border-border/40 px-4 py-3 sm:px-5 sm:py-3.5">
-          <div className="flex flex-col gap-0.5">
-            <span className="font-mono text-[10px] uppercase tracking-[0.2em] text-muted-foreground">Connect</span>
-            <h2
-              id="friend-modal-title"
-              className="font-serif text-lg font-medium tracking-tight text-foreground sm:text-xl"
-            >
-              来交换友链吧
-            </h2>
-          </div>
+        <div className="flex items-center justify-between border-b border-hair px-4 py-3 sm:px-5 sm:py-3.5">
+          <h2
+            id="friend-modal-title"
+            className="font-serif text-lg font-medium tracking-tight text-foreground sm:text-xl"
+          >
+            来交换友链吧
+          </h2>
 
           <button
             type="button"
             onClick={onClose}
             aria-label="关闭弹窗"
-            className="flex h-7 w-7 items-center justify-center rounded-md border border-border/40 text-muted-foreground transition-all hover:border-foreground/30 hover:text-foreground active:scale-95 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+            className="ink-glide hit-expand flex size-8 cursor-pointer items-center justify-center text-muted-foreground hover:text-primary active:scale-95 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
           >
             <span className="font-mono text-xs leading-none" aria-hidden="true">
               ✕
@@ -202,7 +199,7 @@ export function FriendApplyModal({ isOpen, onClose }: FriendApplyModalProps) {
         {/* 成功界面 */}
         {isSuccess ? (
           <div className="flex flex-col items-center justify-center gap-2.5 p-8 text-center sm:p-10">
-            <div className="font-mono text-[10px] uppercase tracking-[0.2em] text-primary">Delivered</div>
+            <div className="font-mono text-xs text-primary">投递成功</div>
             <h3 className="font-serif text-xl font-medium tracking-tight text-foreground">信息已发送</h3>
             <p className="max-w-xs text-xs leading-relaxed text-muted-foreground">
               你的申请已送达喜东东的邮箱，收到后我会尽快回信。
@@ -215,16 +212,16 @@ export function FriendApplyModal({ isOpen, onClose }: FriendApplyModalProps) {
           >
             <div className="flex flex-col gap-3">
               {/* 本站信息极简单行条带 */}
-              <div className="flex items-center justify-between rounded border border-border/40 bg-muted/20 px-2.5 py-1.5 font-mono text-[11px] text-muted-foreground">
+              <div className="flex items-center justify-between border-b border-hair pb-2 font-mono text-[11px] text-muted-foreground">
                 <div className="truncate pr-2">
-                  <span className="text-foreground/90 font-medium">本站：</span>
+                  <span className="font-medium text-foreground/90">本站：</span>
                   {siteConfig.title}
-                  <span className="opacity-60 text-[10px] ml-1">({siteConfig.url.replace(/^https?:\/\//, '')})</span>
+                  <span className="ml-1 text-[10px] opacity-60">({siteConfig.url.replace(/^https?:\/\//, '')})</span>
                 </div>
                 <button
                   type="button"
                   onClick={handleCopySiteInfo}
-                  className="shrink-0 rounded border border-border/60 bg-card px-2 py-0.5 text-[10px] text-foreground transition-all hover:bg-muted active:scale-95 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                  className="ink-link shrink-0 cursor-pointer text-[11px] text-primary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
                 >
                   {copied ? '已复制' : '复制配置'}
                 </button>
@@ -238,7 +235,7 @@ export function FriendApplyModal({ isOpen, onClose }: FriendApplyModalProps) {
               )}
 
               {/* 表单字段栅格 */}
-              <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-2">
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                 {/* 你的称呼 */}
                 <div className="flex flex-col gap-1">
                   <label htmlFor="friend-nickname" className="font-mono text-[11px] text-muted-foreground">
@@ -253,7 +250,7 @@ export function FriendApplyModal({ isOpen, onClose }: FriendApplyModalProps) {
                     value={nickname}
                     onChange={(e) => setNickname(e.target.value)}
                     placeholder="怎么称呼你"
-                    className="rounded-md border border-border/60 bg-muted/20 px-2.5 py-1.5 text-base sm:text-xs text-foreground placeholder:text-muted-foreground/50 transition-colors focus-visible:border-foreground/40 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                    className="border-0 border-b border-hair bg-transparent px-0 py-1.5 text-base text-foreground placeholder:text-muted-foreground/50 transition-colors focus-visible:border-primary focus-visible:outline-none sm:text-xs"
                   />
                 </div>
 
@@ -270,7 +267,7 @@ export function FriendApplyModal({ isOpen, onClose }: FriendApplyModalProps) {
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     placeholder="用于接收回信"
-                    className="rounded-md border border-border/60 bg-muted/20 px-2.5 py-1.5 text-base sm:text-xs text-foreground placeholder:text-muted-foreground/50 transition-colors focus-visible:border-foreground/40 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                    className="border-0 border-b border-hair bg-transparent px-0 py-1.5 text-base text-foreground placeholder:text-muted-foreground/50 transition-colors focus-visible:border-primary focus-visible:outline-none sm:text-xs"
                   />
                 </div>
 
@@ -287,7 +284,7 @@ export function FriendApplyModal({ isOpen, onClose }: FriendApplyModalProps) {
                     value={siteName}
                     onChange={(e) => setSiteName(e.target.value)}
                     placeholder="给小站起的名字"
-                    className="rounded-md border border-border/60 bg-muted/20 px-2.5 py-1.5 text-base sm:text-xs text-foreground placeholder:text-muted-foreground/50 transition-colors focus-visible:border-foreground/40 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                    className="border-0 border-b border-hair bg-transparent px-0 py-1.5 text-base text-foreground placeholder:text-muted-foreground/50 transition-colors focus-visible:border-primary focus-visible:outline-none sm:text-xs"
                   />
                 </div>
 
@@ -304,7 +301,7 @@ export function FriendApplyModal({ isOpen, onClose }: FriendApplyModalProps) {
                     value={siteUrl}
                     onChange={(e) => setSiteUrl(e.target.value)}
                     placeholder="https://"
-                    className="rounded-md border border-border/60 bg-muted/20 px-2.5 py-1.5 text-base sm:text-xs text-foreground placeholder:text-muted-foreground/50 transition-colors focus-visible:border-foreground/40 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                    className="border-0 border-b border-hair bg-transparent px-0 py-1.5 text-base text-foreground placeholder:text-muted-foreground/50 transition-colors focus-visible:border-primary focus-visible:outline-none sm:text-xs"
                   />
                 </div>
 
@@ -320,7 +317,7 @@ export function FriendApplyModal({ isOpen, onClose }: FriendApplyModalProps) {
                     value={avatarUrl}
                     onChange={(e) => setAvatarUrl(e.target.value)}
                     placeholder="https://...（图片直链）"
-                    className="rounded-md border border-border/60 bg-muted/20 px-2.5 py-1.5 text-base sm:text-xs text-foreground placeholder:text-muted-foreground/50 transition-colors focus-visible:border-foreground/40 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                    className="border-0 border-b border-hair bg-transparent px-0 py-1.5 text-base text-foreground placeholder:text-muted-foreground/50 transition-colors focus-visible:border-primary focus-visible:outline-none sm:text-xs"
                   />
                 </div>
 
@@ -340,7 +337,7 @@ export function FriendApplyModal({ isOpen, onClose }: FriendApplyModalProps) {
                     value={description}
                     onChange={(e) => setDescription(e.target.value)}
                     placeholder="聊聊你的小站、平常写点什么..."
-                    className="resize-none rounded-md border border-border/60 bg-muted/20 px-2.5 py-1.5 text-base sm:text-xs text-foreground placeholder:text-muted-foreground/50 transition-colors focus-visible:border-foreground/40 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                    className="resize-none border-0 border-b border-hair bg-transparent px-0 py-1.5 text-base text-foreground placeholder:text-muted-foreground/50 transition-colors focus-visible:border-primary focus-visible:outline-none sm:text-xs"
                   />
                 </div>
 
@@ -351,7 +348,7 @@ export function FriendApplyModal({ isOpen, onClose }: FriendApplyModalProps) {
                       type="checkbox"
                       checked={hasAddedUs}
                       onChange={(e) => setHasAddedUs(e.target.checked)}
-                      className="h-3.5 w-3.5 rounded border-border/60 text-primary accent-foreground"
+                      className="h-3.5 w-3.5 rounded border-border/60 text-primary accent-primary"
                     />
                     <span className="font-mono text-[11px] leading-none text-muted-foreground">
                       我已在自己站点加上了「{siteConfig.title}」
@@ -361,13 +358,13 @@ export function FriendApplyModal({ isOpen, onClose }: FriendApplyModalProps) {
               </div>
             </div>
 
-            {/* 底部操作栏：紧凑高度 */}
-            <div className="mt-4 flex items-center justify-end gap-2.5 border-t border-border/40 pt-3">
+            {/* 底部操作栏：紧凑无框 */}
+            <div className="mt-4 flex items-center justify-end gap-5 border-t border-hair pt-3">
               <button
                 type="button"
                 onClick={onClose}
                 disabled={isSubmitting}
-                className="rounded-md border border-border/40 px-3 py-1.5 font-mono text-xs text-muted-foreground transition-all hover:border-foreground/30 hover:text-foreground active:scale-95 disabled:opacity-50"
+                className="ink-link cursor-pointer py-1 font-mono text-xs text-muted-foreground hover:text-foreground disabled:opacity-50"
               >
                 取消
               </button>
@@ -375,7 +372,7 @@ export function FriendApplyModal({ isOpen, onClose }: FriendApplyModalProps) {
               <button
                 type="submit"
                 disabled={isSubmitting}
-                className="inline-flex items-center gap-1.5 rounded-md border border-border/60 bg-foreground px-3.5 py-1.5 font-mono text-xs font-medium text-background transition-all hover:opacity-90 active:scale-[0.98] disabled:pointer-events-none disabled:opacity-50"
+                className="group/ink inline-flex cursor-pointer items-center gap-1.5 py-1 font-mono text-xs font-medium text-primary transition-opacity disabled:pointer-events-none disabled:opacity-50"
               >
                 {isSubmitting ? (
                   <>
@@ -391,7 +388,15 @@ export function FriendApplyModal({ isOpen, onClose }: FriendApplyModalProps) {
                     <span>发送中...</span>
                   </>
                 ) : (
-                  <span>发送 ↗</span>
+                  <>
+                    <span className="ink-line">发送</span>
+                    <span
+                      aria-hidden="true"
+                      className="ink-glide group-hover/ink:translate-x-0.5 group-hover/ink:-translate-y-0.5"
+                    >
+                      ↗
+                    </span>
+                  </>
                 )}
               </button>
             </div>

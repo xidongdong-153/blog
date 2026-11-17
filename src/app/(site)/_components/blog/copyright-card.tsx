@@ -7,17 +7,14 @@ import { useState } from 'react'
 import { BLOG_CATEGORY_LABELS, buildBlogListUrl } from '@/lib/blog-meta'
 import { formatDate } from '@/lib/date'
 import { siteConfig } from '@/site.config'
-import { PaperSurface } from '../site/paper-surface'
 
 /**
- * 文章结尾版权与分类导览块。
- * 采用轻量纸卡索引样式与作者印鉴徽标，支持一键复制永久链接与返回分类。
+ * 文章结尾版权与分类导览落款（无卡片外壳，纯发丝线排版）。
  */
 export function CopyrightCard({ post }: { post: BlogPost }) {
   const [copied, setCopied] = useState(false)
   const permalink = `${siteConfig.url}/blog/${post.slug}`
   const categoryLabel = BLOG_CATEGORY_LABELS[post.category]
-  const authorInitial = siteConfig.author.trim().slice(0, 1)
 
   const copyLink = async () => {
     try {
@@ -30,77 +27,70 @@ export function CopyrightCard({ post }: { post: BlogPost }) {
   }
 
   return (
-    <div className="flex flex-col gap-6">
-      <div className="relative isolate flex flex-col justify-between gap-5 rounded-xl p-5 sm:flex-row sm:items-center sm:px-6">
-        <PaperSurface className="bg-card/85" />
+    <div className="flex flex-col gap-6 border-t border-hair pt-6">
+      <div className="flex min-w-0 flex-col gap-1.5 text-xs leading-relaxed text-muted-foreground">
+        <p className="font-medium text-foreground">
+          <span>{post.title}</span>
+          <span className="mx-1.5 text-muted-foreground">·</span>
+          <span>{siteConfig.author}</span>
+          <span className="mx-1.5 text-muted-foreground">·</span>
+          <time dateTime={post.date} className="font-mono font-normal text-muted-foreground">
+            {formatDate(post.date)}
+          </time>
+          {post.updatedDate && (
+            <span className="font-mono font-normal text-muted-foreground">
+              （更新于 {formatDate(post.updatedDate)}）
+            </span>
+          )}
+        </p>
 
-        <div className="flex min-w-0 flex-col gap-1.5 text-xs leading-relaxed text-muted-foreground">
-          <p className="font-medium text-foreground">
-            <span>{post.title}</span>
-            <span className="mx-1.5 text-muted-foreground">·</span>
-            <span>{siteConfig.author}</span>
-            <span className="mx-1.5 text-muted-foreground">·</span>
-            <time dateTime={post.date} className="font-mono font-normal text-muted-foreground">
-              {formatDate(post.date)}
-            </time>
-            {post.updatedDate && (
-              <span className="font-mono font-normal text-muted-foreground">
-                （更新于 {formatDate(post.updatedDate)}）
-              </span>
-            )}
-          </p>
-
-          <div className="flex flex-wrap items-center gap-1.5 font-mono text-[11px]">
-            <a href={permalink} className="break-all transition-colors hover:text-primary hover:underline">
-              {permalink}
-            </a>
-            <button
-              type="button"
-              onClick={copyLink}
-              aria-label="复制永久链接"
-              title={copied ? '已复制' : '复制永久链接'}
-              className="inline-flex size-5 cursor-pointer items-center justify-center rounded text-muted-foreground transition-colors hover:text-primary"
-            >
-              {copied ? <Check className="size-3 text-primary" /> : <Copy className="size-3" />}
-            </button>
-          </div>
-
-          <p>
-            本文采用{' '}
-            <a
-              href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh-hans"
-              className="underline decoration-border underline-offset-4 transition-colors hover:text-primary"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              CC BY-NC-SA 4.0
-            </a>{' '}
-            协议许可。
-          </p>
+        <div className="flex flex-wrap items-center gap-2 font-mono text-[11px]">
+          <a href={permalink} className="ink-link break-all">
+            {permalink}
+          </a>
+          <button
+            type="button"
+            onClick={copyLink}
+            aria-label="复制永久链接"
+            title={copied ? '已复制' : '复制永久链接'}
+            className="ink-glide hit-expand inline-flex size-8 cursor-pointer items-center justify-center text-muted-foreground hover:scale-110 hover:text-primary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
+          >
+            {copied ? <Check className="size-3.5 text-primary" /> : <Copy className="size-3.5" />}
+          </button>
         </div>
 
-        {/* 右侧极简方形印鉴徽标 */}
-        <div
-          aria-hidden="true"
-          className="hidden shrink-0 select-none flex-col items-center justify-center rounded-lg border border-primary/35 bg-primary/8 px-3 py-2 font-mono text-primary sm:flex"
-        >
-          <span className="font-serif text-base font-medium leading-none">{authorInitial}</span>
-          <span className="mt-1 text-[9px] tracking-[0.18em] uppercase">XDD.INK</span>
-        </div>
+        <p>
+          本文采用{' '}
+          <a
+            href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh-hans"
+            className="ink-link"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            CC BY-NC-SA 4.0
+          </a>{' '}
+          协议许可。
+        </p>
       </div>
 
-      {/* 底部平直发丝线与文章导航 */}
       <div className="flex items-center justify-between border-t border-hair pt-4 font-mono text-xs text-muted-foreground">
         <Link
           href={buildBlogListUrl({ category: post.category })}
-          className="inline-flex items-center gap-1 transition-colors hover:text-primary"
+          className="group/ink inline-flex items-center gap-1.5 transition-colors hover:text-primary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
         >
-          <span>←</span>
-          <span>回到{categoryLabel}</span>
+          <span aria-hidden="true" className="ink-glide group-hover/ink:-translate-x-1">
+            ←
+          </span>
+          <span className="ink-line">回到{categoryLabel}</span>
         </Link>
-        <Link href="/blog" className="inline-flex items-center gap-1 transition-colors hover:text-primary">
-          <span>全部文章</span>
-          <span>→</span>
+        <Link
+          href="/blog"
+          className="group/ink inline-flex items-center gap-1.5 transition-colors hover:text-primary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
+        >
+          <span className="ink-line">全部文章</span>
+          <span aria-hidden="true" className="ink-glide group-hover/ink:translate-x-1">
+            →
+          </span>
         </Link>
       </div>
     </div>

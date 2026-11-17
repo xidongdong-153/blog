@@ -8,8 +8,8 @@ interface CopyInviteButtonProps {
 }
 
 /**
- * 复制友链邀请链接按钮
- * 点击后将 /links/apply 绝对链接写入剪贴板
+ * 复制友链邀请链接的无框文本触发器。
+ * 点击后将 /links/apply 绝对链接写入剪贴板。
  */
 export function CopyInviteButton({ className }: CopyInviteButtonProps) {
   const [copied, setCopied] = useState(false)
@@ -33,10 +33,10 @@ export function CopyInviteButton({ className }: CopyInviteButtonProps) {
       onClick={handleCopy}
       className={
         className ||
-        'inline-flex w-fit items-center gap-1.5 rounded-md border border-border/60 bg-muted/30 px-3 py-2 font-mono text-xs text-foreground motion-safe:transition-colors hover:border-foreground/30 hover:bg-muted/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background'
+        'group/ink inline-flex w-fit cursor-pointer items-center gap-1.5 py-1 font-mono text-xs text-foreground/85 transition-colors hover:text-primary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring'
       }
     >
-      <span>{copied ? '已复制邀请链接' : '复制邀请链接'}</span>
+      <span className="ink-line">{copied ? '已复制邀请链接' : '复制邀请链接'}</span>
       <span aria-hidden="true" className="font-mono text-[11px] opacity-70">
         {copied ? '✓' : '⎘'}
       </span>

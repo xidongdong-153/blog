@@ -61,7 +61,7 @@ MDX 渲染走异步 RSC（`mdx-content.tsx` 的 `compileMDX`），不需要 clie
 - 颜色、字号、间距、圆角与页面宽度以[设计规范](../DESIGN.md)为准。
 - 提示框与卡片避免使用 `border-l-4` 等单侧粗边框，采用完整发丝线 `border-hair`（或配合 `PaperSurface`）与语义背景色。
 - 公开一级页面外框统一 `max-w-5xl`；狭幅阅读区在外框内左对齐。文章列表有标签时 `lg` 起双栏，无标签时单列；搜索前后列宽一致。首页与五个一级页面共用 `max-w-5xl` 主外框，详情页保留各自阅读宽度，不在共享 `<main>` 上硬编码限宽。
-- 样式走 Tailwind 工具类与 `data-*` 变体（如 `data-[scrolled=true]:`、`data-[reader-focus=true]:`、`theme-system:` 等）；`src/app/globals.css` 仅存放 `@property` 注册、设计 token、prose 映射、keyframes 与视图过渡规则。
+- 样式走 Tailwind 工具类与 `data-*` 变体（如 `data-[scrolled=true]:`、`data-[reader-focus=true]:`、`theme-system:` 等）；`src/app/globals.css` 存放 `@property` 注册、设计 token、prose / `.field-note-prose` 排版映射、keyframes、视图过渡规则、浏览器选区与光标主题（`::selection` / `caret-color`）以及共享交互动效与触控工具类（`entrance`、`ink-link`、`ink-line`、`ink-row`、`ink-glide`、`hit-expand`）。
 
 ## 通用模式与组件
 
@@ -69,13 +69,12 @@ MDX 渲染走异步 RSC（`mdx-content.tsx` 的 `compileMDX`），不需要 clie
   - `SiteLayout`（`src/app/(site)/layout.tsx`）先挂载 `AmbientBackdrop`（`-z-20`），再挂载 `PaperCanvas`（`-z-10`），确保颗粒与纤维层叠于氛围光之上。
   - `AmbientBackdrop` 接收可选 `color` 或读取 `--page-highlight`，通过 `src/lib/utils.ts` 的 `sanitizeCssColor` 与 `globals.css` 的 `@property` `<color>` 校验双层兜底；文章页与预览页注入 `post.heroColor` 时同样经 `sanitizeCssColor` 过滤。
   - `PaperCanvas` 仅在挂载及防抖 `resize` 时绘制静态和纸纤维 `<canvas>`，并一次性生成 `211×211` DPR 感知双极性微噪点；`FxToggle` 与 `PaperCanvas` 共同通过 `readBackdropFxEnabled`、`site-fx-change` 自定义事件及 `storage`（含 `key === null`）保持同标签与跨标签状态一致，配合 `src/app/layout.tsx` 隔离 `try/catch` 的防闪烁脚本同步 `html.dataset.backdropFx`。
-  - `PaperSurface` 用于需要纸卡质感的容器（父节点须带 `relative isolate`），通过 `1px border-hair`、`--surface-shadow` 与微内高光构建边界，并为非 `bg-popover` 卡片附加顶部主色微光。
-- **一级页面标题 `PageHeader`**（`src/app/(site)/_components/site/page-header.tsx`）：接收 `eyebrow`、`title`、`description`，输出等宽眉标、衬线 H1、说明和分隔线，保持 Server Component。
+  - `PaperSurface` 仅用于需要明确层叠区隔的浮层与弹出面板（`bg-popover`、工位 HUD、移动菜单抽屉等）；公开正文列表、页脚与信息区块不再套用卡片外框。
+- **一级页面标题 `PageHeader`**（`src/app/(site)/_components/site/page-header.tsx`）：接收 `title`、`description`（可选保留 `eyebrow` 参数但不再渲染英文眉标），输出衬线 H1、说明和分隔线，保持 Server Component。
 - **文章搜索 `BlogSearch`**：接收 RSC 的 `sourceSwitch`、`toolbar`、`sidebar` 和列表 `children`；不把整个页面改成 client，详情见[站内搜索](search.md)。
-- **通用按钮组件 `Button`**（`src/app/(site)/_components/blog/button.tsx`）：支持 `back`、`pill`、`ahead` 及普通样式。
-- **文章卡片 `PostCard`**（`src/app/(site)/_components/blog/post-card.tsx`）：采用出版物排版与技术等宽眉标，标题配备 SVG 动态伸缩箭头，底部标签组采用低饱和等宽微标（`#TAG`）。可选 `hit` prop 接收搜索命中区间，标题按区间高亮，正文命中片段替换摘要位；组件自身不感知搜索状态。
+- **文章卡片 `PostCard`**（`src/app/(site)/_components/blog/post-card.tsx`）：采用无框发丝线排版（`.ink-row` 悬停竖线与轻右移），标题配备 SVG 动态箭头，分类与标签悬停生长墨线。可选 `hit` prop 接收搜索命中区间，标题按区间高亮，正文命中片段替换摘要位；组件自身不感知搜索状态。
 - **目录导轨 `TableOfContents`**（`src/app/(site)/_components/blog/toc.tsx`）：采用贯穿式 `1px` 细线垂直导轨与章节刻度锚点，当前视口对应章节高亮并带平滑缩放与明度反馈。
-- **笔记档案卡 `NoteCard`**（`src/app/(site)/_components/notes/note-card.tsx`）：左侧展示编号（`NOTE #001`）、日期与语义状态铭牌，右侧展示标题与正文摘要，底衬 `PaperSurface`。
+- **笔记档案条目 `NoteCard`**（`src/app/(site)/_components/notes/note-card.tsx`）：左侧展示编号（`NOTE #001`）、日期与语义状态，右侧展示标题、正文摘要与 `#标签` 文本，无外层卡片框线。
 - 列表渲染 key 用稳定业务键（`post.slug`、`tag`、`note.slug`），不用数组下标。
 - 日期显示统一 `<time dateTime={post.date}>{formatDate(post.date)}</time>`，见 `post-card.tsx` 和详情页。
 - 链接用 `next/link` 的 `Link`，站内跳转不写 `<a>`。
@@ -164,16 +163,16 @@ MDX 渲染走异步 RSC（`mdx-content.tsx` 的 `compileMDX`），不需要 clie
 
 五个一级页面的视觉值统一见[设计规范](../DESIGN.md)。这里仅保留组件行为与首页特有结构：
 
-- 文章和笔记的标题、摘要组成主要链接，分类及可点击标签独立；不嵌套链接。
-- 项目卡片不假设整卡可点击，只为真实目的地提供反馈；友链为单一目标，整卡链接。
-- 元信息保留等宽字体和必要的 `//` 或 `/` 刻度，不重复页面或模块标题。纯展示技术标签与可点击标签区分；筛选控件可以用边框，不强制所有标签为同一种文本样式。
-- `SiteHeader` 的移动菜单关闭时使用 `inert`，`Escape` 关闭并恢复按钮焦点；展开时保持页头可见，路由切换后关闭。
-- **首页非对称造物室 Hero**（`src/app/(site)/_components/home/hero.tsx`）：
-  - 桌面端采用 `lg:grid-cols-[minmax(0,1fr)_272px]` 非对称双栏：左栏依次呈现 `HeroLiveBadge`（细线锚点 + 城市 + 终端图标 + 实时 `presence` 快照，无循环脉冲圆点）、衬线宣言主标题、简介、技术标语与动作行（主书签按钮、`关于我` 下划线链、`⌘K` 搜索触发按钮与线性图标列）；右栏以 `PaperSurface` 站点索引卡收敛头像、三栏内容数（文章 / 笔记 / 标签）与技术栈直达链接。
+- 列表与导航交互统一去卡片、去按钮化；文章和笔记的标题、摘要组成主要链接，分类及可点击标签独立，不嵌套链接。
+- 项目条目不假设整条可点击，只为真实目的地提供反馈；友链整条作为单一外链。
+- 元信息保留等宽字体和必要的 `·` 或 `/` 刻度，不堆砌重复的英文眉标与章节序号。纯展示标签使用 `#标签` 文本，可点击标签通过悬停墨线生长提示交互。
+- `SiteHeader` 的移动菜单关闭时使用 `inert`，`Escape` 关闭并恢复按钮焦点；展开时保持完全不透明背景并确保页头可见，路由切换后关闭。桌面端「文章」悬停/聚焦预览支持鼠标移出与键盘失焦自动关闭。
+- **首页无卡片造物室 Hero**（`src/app/(site)/_components/home/hero.tsx`）：
+  - 桌面端采用 `lg:grid-cols-[minmax(0,1fr)_248px]` 非对称双栏：左栏依次呈现 `HeroLiveBadge`（细线锚点 + 城市 + 实时 `presence` 状态，无循环脉冲圆点）、衬线宣言主标题、中文简介与无框线性图标通道（悬停展开底部短墨线与微标签）；右栏以发丝线分隔，无卡片外壳地呈现作者头像与文章 / 笔记 / 标签计数链接。
   - 原 `spatial-field.tsx` 当前未在首页挂载，Hero 直接透出底层 `AmbientBackdrop` 与 `PaperCanvas` 的和纸与顶光质感。
-- **首页双栏主体与年度创作脉络**（`src/app/(site)/page.tsx`）：
-  - Hero 下方采用 `lg:grid-cols-[minmax(0,1.4fr)_minmax(0,0.9fr)]` 双栏主体：左栏 `RECENT / 最近更新` 渲染按 ISO 日期倒序合并文章与笔记后的前 5 条条目（`WritingTimeline`，使用 `${kind}-${slug}` 作 key 与 `divide-y divide-hair` 细线台账）；右栏以左侧发丝线分隔，依次排布 `01 / 随记`（最新 3 篇笔记，日期使用 `formatDate`）与 `02 / 关于与技术栈`。
-  - 主体下方接入 `YearlyTimeline` 双轨季度脉络（上轨文章实心节点、下轨笔记空心节点，带 `Q1–Q4` 刻度与当年进度指针）以及底部快速导航收尾条。
+- **首页单列台账与年度创作脉络**（`src/app/(site)/page.tsx`）：
+  - Hero 下方仅保留单列 `最近更新`（`WritingTimeline`，按 ISO 日期倒序合并文章与笔记后的前 5 条，使用 `${kind}-${slug}` 作 key 与 `divide-y divide-hair` 细线台账，悬停触发 `.ink-row` 左墨线生长与轻右移），移除首页重复的随记栏、技术栈胶囊与底部重复导航条。
+  - 主体下方接入无卡片外壳的 `YearlyTimeline` 双轨季度脉络（上轨文章实心节点、下轨笔记空心节点，带 `Q1–Q4` 刻度与当年进度指针）。
 
 ## 友链申请弹窗与邮件通知规范
 
@@ -181,7 +180,7 @@ MDX 渲染走异步 RSC（`mdx-content.tsx` 的 `compileMDX`），不需要 clie
 
 - **交互与无障碍契约**：
   - 弹窗外层使用 `role="dialog"`、`aria-modal="true"`，进入时聚焦首个输入项，支持 ESC 键与点击遮罩退出，并自动锁定背景 `body` 滚动。
-  - 内置「本站信息参考卡片」，提供一键复制站点名称、网址与简介功能，降低对方添加本站链接的摩擦。
+  - 内置「本站信息参考」区，提供一键复制站点名称、网址与简介功能，降低对方添加本站链接的摩擦。
   - 文案遵循亲切客观的技术交流口吻，提交按钮采用「发送 ↗」。
 - **API 与邮件投递契约**：
   - 后端接口：`POST /api/links/apply`，校验 `nickname`、`siteName`、`siteUrl`、`email`、`description` 等必填字段与合法 URL / 邮箱格式，并附带基于 IP 的简易滑动窗口频控（10 分钟最多 3 次）。

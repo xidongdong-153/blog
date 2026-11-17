@@ -99,9 +99,13 @@ export function HeaderAuth() {
           onClick={() => setModalOpen(true)}
           aria-label="登录"
           title="登录"
-          className="flex size-8 items-center justify-center rounded-md border border-hair bg-card/80 text-muted-foreground transition-colors duration-200 hover:border-primary/40 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring sm:size-7"
+          className="group/ink ink-glide hit-expand relative flex size-8 cursor-pointer items-center justify-center text-muted-foreground hover:-translate-y-0.5 hover:text-primary focus-visible:-translate-y-0.5 focus-visible:text-primary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
         >
-          <UserRound className="size-3.5" />
+          <UserRound className="ink-glide size-3.5 group-hover/ink:scale-110" />
+          <span
+            aria-hidden="true"
+            className="pointer-events-none absolute bottom-1 left-1/2 h-[1.5px] w-3 -translate-x-1/2 origin-center scale-x-0 rounded-full bg-primary opacity-0 transition-[transform,scale,opacity] duration-[280ms] ease-[var(--ease-spring)] group-hover/ink:scale-x-100 group-hover/ink:opacity-100 group-focus-visible/ink:scale-x-100 group-focus-visible/ink:opacity-100 motion-reduce:transition-opacity"
+          />
         </button>
 
         <AuthModal isOpen={modalOpen} onClose={() => setModalOpen(false)} />
@@ -120,16 +124,20 @@ export function HeaderAuth() {
         aria-label="账号"
         aria-expanded={menuOpen}
         title={user.name || '账号'}
-        className={`relative flex size-8 items-center justify-center overflow-hidden rounded-[8px] border bg-muted text-[11px] font-medium text-foreground transition-all hover:border-primary/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring sm:size-7 ${
-          isOwner ? 'border-primary/55' : 'border-border/70'
-        }`}
+        className="ink-glide hit-expand relative flex size-8 cursor-pointer items-center justify-center rounded-[8px] hover:scale-105 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
       >
-        {user.image ? (
-          // eslint-disable-next-line next/no-img-element
-          <img src={user.image} alt={user.name || '头像'} className="size-full object-cover" />
-        ) : (
-          <span>{fallbackLetter}</span>
-        )}
+        <span
+          className={`flex size-full items-center justify-center overflow-hidden rounded-[8px] bg-muted text-[11px] font-medium text-foreground ring-1 ${
+            isOwner ? 'ring-primary/55 hover:ring-primary' : 'ring-border/70 hover:ring-primary/50'
+          }`}
+        >
+          {user.image ? (
+            // eslint-disable-next-line next/no-img-element
+            <img src={user.image} alt={user.name || '头像'} className="size-full object-cover" />
+          ) : (
+            <span>{fallbackLetter}</span>
+          )}
+        </span>
       </button>
 
       {menuOpen && (

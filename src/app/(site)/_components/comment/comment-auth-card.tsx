@@ -2,9 +2,8 @@
 
 import { Settings } from 'lucide-react'
 import Link from 'next/link'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { signIn, signOut, useSession } from '@/lib/auth-client'
-import { PaperSurface } from '../site/paper-surface'
 import { GithubIcon, GoogleIcon } from './comment-icons'
 
 interface CommentAuthCardProps {
@@ -16,13 +15,19 @@ interface CommentAuthCardProps {
 }
 
 /**
- * 评论登录卡片：根据服务端 provider 配置展示登录按钮，并处理当前 session。
+ * 评论登录栏（无卡片外壳，发丝线分隔，无边框排版式登录入口）。
+ * 通过 mounted 状态隔离 SSR 与客户端首帧，消除 sessionPending 水合差异。
  */
 export function CommentAuthCard({ providers, isOwner }: CommentAuthCardProps) {
   const { data: session, isPending: sessionPending } = useSession()
+  const [mounted, setMounted] = useState(false)
   const [signingIn, setSigningIn] = useState<'github' | 'google' | null>(null)
   const [signingOut, setSigningOut] = useState(false)
   const [errorMsg, setErrorMsg] = useState<string | null>(null)
+
+  useEffect(() => {
+    setMounted(true)
+  }, [])
 
   const handleSignIn = async (provider: 'github' | 'google') => {
     try {
@@ -49,13 +54,11 @@ export function CommentAuthCard({ providers, isOwner }: CommentAuthCardProps) {
     }
   }
 
-  if (sessionPending) {
+  if (!mounted || sessionPending) {
     return (
-      <div className="flex h-16 items-center justify-between rounded-lg border border-border/40 bg-card/20 px-4">
-        <div className="flex items-center gap-3">
-          <div className="size-8 animate-pulse rounded-full bg-muted/60" />
-          <div className="h-4 w-24 animate-pulse rounded bg-muted/60" />
-        </div>
+      <div className="flex h-12 items-center gap-3 border-y border-hair py-3">
+        <div className="size-7 animate-pulse rounded-full bg-muted/60" />
+        <div className="h-3.5 w-24 animate-pulse rounded bg-muted/60" />
       </div>
     )
   }
@@ -66,9 +69,9 @@ export function CommentAuthCard({ providers, isOwner }: CommentAuthCardProps) {
     const fallbackLetter = (user.name || user.email || 'U').charAt(0).toUpperCase()
 
     return (
-      <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-border/60 bg-card/30 px-4 py-3">
-        <div className="flex items-center gap-3">
-          <div className="relative flex size-8 shrink-0 items-center justify-center overflow-hidden rounded-full bg-muted text-xs font-medium text-foreground">
+      <div className="flex flex-wrap items-center justify-between gap-3 border-y border-hair py-3.5">
+        <div className="flex min-w-0 items-center gap-3">
+          <div className="relative flex size-7 shrink-0 items-center justify-center overflow-hidden rounded-full bg-muted text-xs font-medium text-foreground">
             {user.image ? (
               // eslint-disable-next-line next/no-img-element
               <img src={user.image} alt={user.name} className="size-full object-cover" />
@@ -76,18 +79,16 @@ export function CommentAuthCard({ providers, isOwner }: CommentAuthCardProps) {
               <span>{fallbackLetter}</span>
             )}
           </div>
-          <div className="flex items-center gap-2">
-            <span className="text-sm font-medium text-foreground">{user.name}</span>
+          <div className="flex min-w-0 items-center gap-2">
+            <span className="truncate text-sm font-medium text-foreground">{user.name}</span>
             {isOwner && (
-              <div className="flex items-center gap-1.5">
-                <span className="rounded bg-primary/10 px-1.5 py-0.5 font-mono text-[10px] font-medium text-primary">
-                  作者
-                </span>
+              <div className="flex shrink-0 items-center gap-1.5">
+                <span className="font-mono text-[11px] font-medium text-primary">· 作者</span>
                 <Link
                   href="/admin/ai"
                   title="AI"
                   aria-label="打开 AI 管理台"
-                  className="rounded p-1 text-muted-foreground transition-colors hover:bg-muted/60 hover:text-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                  className="p-1 text-muted-foreground transition-colors hover:text-primary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
                 >
                   <Settings className="size-3.5" />
                 </Link>
@@ -100,7 +101,7 @@ export function CommentAuthCard({ providers, isOwner }: CommentAuthCardProps) {
           type="button"
           onClick={handleSignOut}
           disabled={signingOut}
-          className="font-mono text-xs text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring focus-visible:ring-offset-1 focus-visible:ring-offset-background disabled:opacity-50"
+          className="ink-link shrink-0 cursor-pointer font-mono text-xs text-muted-foreground hover:text-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring disabled:opacity-50"
         >
           {signingOut ? '退出中...' : '退出登录'}
         </button>
@@ -112,43 +113,44 @@ export function CommentAuthCard({ providers, isOwner }: CommentAuthCardProps) {
   const hasAnyProvider = providers.github || providers.google
 
   return (
-    <div className="relative isolate flex flex-col items-center gap-3 rounded-lg px-4 py-6 text-center">
-      <PaperSurface className="bg-card/90" />
-      <span className="text-xs text-muted-foreground">使用社交账号登录参与讨论</span>
+    <div className="flex flex-col gap-3 border-y border-hair py-4">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <span className="text-xs text-muted-foreground">使用社交账号登录参与讨论</span>
 
-      {errorMsg && <div className="rounded bg-destructive/10 p-2 text-xs text-destructive">{errorMsg}</div>}
+        {hasAnyProvider ? (
+          <div className="flex flex-wrap items-center gap-5 font-mono text-xs">
+            {providers.github && (
+              <button
+                type="button"
+                onClick={() => handleSignIn('github')}
+                disabled={Boolean(signingIn)}
+                aria-label="GitHub 登录"
+                className="group/ink inline-flex cursor-pointer items-center gap-2 py-1 text-foreground/85 transition-colors hover:text-primary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring disabled:opacity-50"
+              >
+                <GithubIcon className="ink-glide size-4 group-hover/ink:-translate-y-0.5" />
+                <span className="ink-line">GitHub 登录</span>
+              </button>
+            )}
 
-      {hasAnyProvider ? (
-        <div className="flex flex-wrap justify-center gap-3 pt-1">
-          {providers.github && (
-            <button
-              type="button"
-              onClick={() => handleSignIn('github')}
-              disabled={Boolean(signingIn)}
-              aria-label="GitHub 登录"
-              title="GitHub 登录"
-              className="inline-flex size-10 cursor-pointer items-center justify-center rounded-full border border-hair bg-background/85 text-foreground shadow-2xs transition-all duration-200 hover:-translate-y-0.5 hover:border-primary/45 hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-50"
-            >
-              <GithubIcon className="size-4.5" />
-            </button>
-          )}
+            {providers.google && (
+              <button
+                type="button"
+                onClick={() => handleSignIn('google')}
+                disabled={Boolean(signingIn)}
+                aria-label="Google 登录"
+                className="group/ink inline-flex cursor-pointer items-center gap-2 py-1 text-foreground/85 transition-colors hover:text-primary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring disabled:opacity-50"
+              >
+                <GoogleIcon className="ink-glide size-4 group-hover/ink:-translate-y-0.5" />
+                <span className="ink-line">Google 登录</span>
+              </button>
+            )}
+          </div>
+        ) : (
+          <div className="text-xs text-muted-foreground">暂未配置第三方登录提供商（GitHub / Google）。</div>
+        )}
+      </div>
 
-          {providers.google && (
-            <button
-              type="button"
-              onClick={() => handleSignIn('google')}
-              disabled={Boolean(signingIn)}
-              aria-label="Google 登录"
-              title="Google 登录"
-              className="inline-flex size-10 cursor-pointer items-center justify-center rounded-full border border-hair bg-background/85 text-foreground shadow-2xs transition-all duration-200 hover:-translate-y-0.5 hover:border-primary/45 hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-50"
-            >
-              <GoogleIcon className="size-4.5" />
-            </button>
-          )}
-        </div>
-      ) : (
-        <div className="text-xs text-muted-foreground">暂未配置第三方登录提供商（GitHub / Google）。</div>
-      )}
+      {errorMsg && <div className="text-xs text-destructive">{errorMsg}</div>}
     </div>
   )
 }

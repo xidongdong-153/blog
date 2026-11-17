@@ -100,21 +100,14 @@ export function CommentItem({ comment, slug, currentUserIsOwner, isLoggedIn, onR
   }
 
   return (
-    <div
-      id={`comment-${comment.id}`}
-      className="flex flex-col gap-3 rounded-lg border border-border/60 bg-card/30 p-4 transition-colors sm:p-5"
-    >
+    <div id={`comment-${comment.id}`} className="flex flex-col gap-3 py-5 first:pt-2">
       {/* 顶级评论头部 */}
       <div className="flex items-start justify-between gap-3">
-        <div className="flex items-center gap-2.5">
+        <div className="flex min-w-0 items-center gap-2.5">
           <AuthorAvatar author={comment.author} />
-          <div className="flex flex-wrap items-center gap-1.5 text-xs">
-            <span className="font-medium text-foreground">{comment.author.name}</span>
-            {comment.author.isOwner && (
-              <span className="rounded bg-primary/10 px-1.5 py-0.5 font-mono text-[10px] font-medium text-primary">
-                作者
-              </span>
-            )}
+          <div className="flex min-w-0 flex-wrap items-center gap-1.5 text-xs">
+            <span className="truncate font-medium text-foreground">{comment.author.name}</span>
+            {comment.author.isOwner && <span className="font-mono text-[11px] font-medium text-primary">· 作者</span>}
             <span className="text-muted-foreground">·</span>
             <time dateTime={comment.createdAt} className="font-mono text-muted-foreground">
               {formatDate(comment.createdAt)}
@@ -122,45 +115,44 @@ export function CommentItem({ comment, slug, currentUserIsOwner, isLoggedIn, onR
           </div>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex shrink-0 items-center gap-2">
           {comment.isPinned && !comment.deleted && (
-            <span className="inline-flex items-center gap-1 rounded bg-amber-500/10 px-1.5 py-0.5 font-mono text-[10px] font-medium text-amber-600 dark:text-amber-400">
-              <Pin className="size-2.5" />
+            <span className="inline-flex items-center gap-1 font-mono text-[11px] font-medium text-amber-700 dark:text-amber-400">
+              <Pin className="size-3" />
               <span>置顶</span>
             </span>
           )}
 
           {/* 站长管理控件 */}
           {currentUserIsOwner && !comment.deleted && (
-            <div className="flex items-center gap-1">
+            <div className="flex items-center gap-3">
               <button
                 type="button"
                 onClick={handleTogglePin}
                 disabled={pinning}
                 title={comment.isPinned ? '取消置顶' : '置顶此讨论'}
                 aria-label={comment.isPinned ? '取消置顶' : '置顶此讨论'}
-                className="rounded p-1 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:opacity-50"
+                className="hit-expand inline-flex size-8 cursor-pointer items-center justify-center text-muted-foreground transition-colors hover:text-primary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring disabled:opacity-50"
               >
                 <Pin className="size-3.5" />
               </button>
 
               {confirmingDeleteId === comment.id ? (
-                <div className="flex items-center gap-1.5 font-mono text-xs">
-                  <span className="text-red-500 text-[11px]">删除？</span>
+                <div className="flex items-center gap-3.5 font-mono text-xs">
                   <button
                     type="button"
                     onClick={() => handleDeleteComment(comment.id)}
                     disabled={deletingId === comment.id}
-                    className="rounded bg-red-600 px-1.5 py-0.5 text-[10px] text-white hover:bg-red-700 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:opacity-50"
+                    className="group/ink hit-expand inline-flex min-h-7 min-w-8 cursor-pointer items-center justify-center text-[11px] text-destructive focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring disabled:opacity-50"
                   >
-                    确认
+                    <span className="ink-line">确认删除</span>
                   </button>
                   <button
                     type="button"
                     onClick={() => setConfirmingDeleteId(null)}
-                    className="rounded bg-muted px-1.5 py-0.5 text-[10px] text-muted-foreground hover:text-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                    className="group/ink hit-expand inline-flex min-h-7 min-w-8 cursor-pointer items-center justify-center text-[11px] text-muted-foreground hover:text-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
                   >
-                    取消
+                    <span className="ink-line">取消</span>
                   </button>
                 </div>
               ) : (
@@ -170,7 +162,7 @@ export function CommentItem({ comment, slug, currentUserIsOwner, isLoggedIn, onR
                   disabled={deletingId === comment.id}
                   title="删除此评论"
                   aria-label="删除此评论"
-                  className="rounded p-1 text-muted-foreground transition-colors hover:bg-red-500/10 hover:text-red-600 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:opacity-50"
+                  className="hit-expand inline-flex size-8 cursor-pointer items-center justify-center text-muted-foreground transition-colors hover:text-destructive focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring disabled:opacity-50"
                 >
                   <Trash2 className="size-3.5" />
                 </button>
@@ -197,10 +189,10 @@ export function CommentItem({ comment, slug, currentUserIsOwner, isLoggedIn, onR
             onClick={() =>
               setReplyingTo(replyingTo?.id === comment.id ? null : { id: comment.id, authorName: comment.author.name })
             }
-            className="inline-flex items-center gap-1 rounded-md font-mono text-xs text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+            className="group/ink hit-expand inline-flex min-h-7 min-w-8 cursor-pointer items-center gap-1 font-mono text-xs text-muted-foreground transition-colors hover:text-foreground focus-visible:text-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
           >
             <Reply className="size-3" />
-            <span>回复</span>
+            <span className="ink-line">回复</span>
           </button>
         </div>
       )}
@@ -217,17 +209,15 @@ export function CommentItem({ comment, slug, currentUserIsOwner, isLoggedIn, onR
               className="flex flex-col gap-1.5 pl-3 sm:pl-4 border-l border-border/40"
             >
               <div className="flex items-start justify-between gap-2">
-                <div className="flex items-center gap-2">
+                <div className="flex min-w-0 flex-1 items-center gap-2">
                   <AuthorAvatar author={reply.author} />
-                  <div className="flex flex-wrap items-center gap-1 text-xs">
-                    <span className="font-medium text-foreground">{reply.author.name}</span>
+                  <div className="flex min-w-0 flex-wrap items-center gap-1 text-xs">
+                    <span className="truncate font-medium text-foreground">{reply.author.name}</span>
                     {reply.author.isOwner && (
-                      <span className="rounded bg-primary/10 px-1 py-0.2 font-mono text-[9px] font-medium text-primary">
-                        作者
-                      </span>
+                      <span className="font-mono text-[10px] font-medium text-primary">· 作者</span>
                     )}
                     {reply.replyToUser && (
-                      <span className="font-mono text-muted-foreground">
+                      <span className="min-w-0 font-mono text-muted-foreground [overflow-wrap:anywhere]">
                         回复 <span className="font-medium text-foreground">@{reply.replyToUser.name}</span>:
                       </span>
                     )}
@@ -239,24 +229,23 @@ export function CommentItem({ comment, slug, currentUserIsOwner, isLoggedIn, onR
                 </div>
 
                 {currentUserIsOwner && !reply.deleted && (
-                  <div>
+                  <div className="shrink-0">
                     {confirmingDeleteId === reply.id ? (
-                      <div className="flex items-center gap-1 font-mono text-xs">
-                        <span className="text-red-500 text-[10px]">删除？</span>
+                      <div className="flex items-center gap-3.5 font-mono text-xs">
                         <button
                           type="button"
                           onClick={() => handleDeleteComment(reply.id)}
                           disabled={deletingId === reply.id}
-                          className="rounded bg-red-600 px-1 py-0.5 text-[9px] text-white hover:bg-red-700 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:opacity-50"
+                          className="group/ink hit-expand inline-flex min-h-7 min-w-8 cursor-pointer items-center justify-center text-[10px] text-destructive focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring disabled:opacity-50"
                         >
-                          确认
+                          <span className="ink-line">确认删除</span>
                         </button>
                         <button
                           type="button"
                           onClick={() => setConfirmingDeleteId(null)}
-                          className="rounded bg-muted px-1 py-0.5 text-[9px] text-muted-foreground hover:text-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                          className="group/ink hit-expand inline-flex min-h-7 min-w-8 cursor-pointer items-center justify-center text-[10px] text-muted-foreground hover:text-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
                         >
-                          取消
+                          <span className="ink-line">取消</span>
                         </button>
                       </div>
                     ) : (
@@ -266,7 +255,7 @@ export function CommentItem({ comment, slug, currentUserIsOwner, isLoggedIn, onR
                         disabled={deletingId === reply.id}
                         title="删除此回复"
                         aria-label="删除此回复"
-                        className="rounded p-1 text-muted-foreground transition-colors hover:bg-red-500/10 hover:text-red-600 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:opacity-50"
+                        className="hit-expand inline-flex size-8 cursor-pointer items-center justify-center text-muted-foreground transition-colors hover:text-destructive focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring disabled:opacity-50"
                       >
                         <Trash2 className="size-3" />
                       </button>
@@ -292,10 +281,10 @@ export function CommentItem({ comment, slug, currentUserIsOwner, isLoggedIn, onR
                         replyingTo?.id === reply.id ? null : { id: reply.id, authorName: reply.author.name },
                       )
                     }
-                    className="inline-flex items-center gap-1 rounded-md font-mono text-[11px] text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                    className="group/ink hit-expand inline-flex min-h-7 min-w-8 cursor-pointer items-center gap-1 font-mono text-[11px] text-muted-foreground transition-colors hover:text-foreground focus-visible:text-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
                   >
                     <Reply className="size-2.5" />
-                    <span>回复</span>
+                    <span className="ink-line">回复</span>
                   </button>
                 </div>
               )}
@@ -306,7 +295,7 @@ export function CommentItem({ comment, slug, currentUserIsOwner, isLoggedIn, onR
 
       {/* 内联回复输入框 */}
       {replyingTo && (
-        <div className="mt-3 rounded-md border border-border/40 bg-background/40 p-3">
+        <div className="mt-2 border-l border-primary/40 pl-4">
           <CommentComposer
             slug={slug}
             replyToId={replyingTo.id}

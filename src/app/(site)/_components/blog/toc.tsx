@@ -220,7 +220,7 @@ export function TableOfContents({ headings, onItemClick, showRailTools = false }
               <li
                 key={heading.id}
                 style={{ '--toc-ripple-delay': `${Math.min(index, 14) * 40}ms` } as CSSProperties}
-                className="relative leading-none transition-[opacity,transform] duration-[350ms] ease-[cubic-bezier(0.4,0,0.2,1)] group-data-[reader-focus=true]/reader:pointer-events-none group-data-[reader-focus=true]/reader:-translate-x-2.5 group-data-[reader-focus=true]/reader:opacity-0 group-data-[reader-focus=true]/reader:[transition-delay:var(--toc-ripple-delay)]"
+                className="relative leading-none transition-[opacity,translate] duration-[350ms] ease-[cubic-bezier(0.4,0,0.2,1)] motion-reduce:transition-opacity group-data-[reader-focus=true]/reader:pointer-events-none group-data-[reader-focus=true]/reader:-translate-x-2.5 group-data-[reader-focus=true]/reader:opacity-0 group-data-[reader-focus=true]/reader:[transition-delay:var(--toc-ripple-delay)]"
               >
                 {/* 激活态垂直标尺线 */}
                 {isActive && (
@@ -282,24 +282,24 @@ export function TableOfContents({ headings, onItemClick, showRailTools = false }
               <button
                 type="button"
                 onClick={scrollToTop}
-                className="inline-flex w-fit cursor-pointer items-center gap-1.5 text-xs text-muted-foreground transition-colors hover:text-primary focus-visible:outline-2 focus-visible:outline-ring"
+                className="group/ink inline-flex w-fit cursor-pointer items-center gap-1.5 text-xs text-muted-foreground transition-colors hover:text-primary focus-visible:outline-2 focus-visible:outline-ring"
               >
-                <ArrowUp className="size-3.5" />
-                <span>回到顶部</span>
+                <ArrowUp className="ink-glide size-3.5 group-hover/ink:-translate-y-0.5" />
+                <span className="ink-line">回到顶部</span>
               </button>
             )}
           </div>
 
-          {/* 紧凑快捷工具栏 */}
-          <div className="flex items-center gap-1.5 pt-1 text-muted-foreground">
+          {/* 紧凑无框快捷工具栏 */}
+          <div className="flex items-center gap-3 pt-1 text-muted-foreground">
             <button
               type="button"
               onClick={toggleFocusMode}
               title={focusMode ? '退出专注阅读' : '开启专注阅读'}
               aria-label={focusMode ? '退出专注阅读' : '开启专注阅读'}
               aria-pressed={focusMode}
-              className={`flex size-7 cursor-pointer items-center justify-center rounded-md border border-transparent transition-colors hover:border-hair hover:bg-muted/60 hover:text-primary ${
-                focusMode ? 'border-primary/35 bg-primary/8 text-primary' : ''
+              className={`ink-glide hit-expand inline-flex size-8 cursor-pointer items-center justify-center hover:-translate-y-0.5 hover:text-primary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring ${
+                focusMode ? 'text-primary' : ''
               }`}
             >
               <BookOpen className="size-3.5" strokeWidth={1.7} />
@@ -310,7 +310,7 @@ export function TableOfContents({ headings, onItemClick, showRailTools = false }
               onClick={handleCopyPermalink}
               title={copiedLink ? '链接已复制' : '复制文章链接'}
               aria-label={copiedLink ? '链接已复制' : '复制文章链接'}
-              className="flex size-7 cursor-pointer items-center justify-center rounded-md border border-transparent transition-colors hover:border-hair hover:bg-muted/60 hover:text-primary"
+              className="ink-glide hit-expand inline-flex size-8 cursor-pointer items-center justify-center hover:-translate-y-0.5 hover:text-primary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
             >
               {copiedLink ? (
                 <Check className="size-3.5 text-primary" strokeWidth={1.8} />
@@ -324,7 +324,7 @@ export function TableOfContents({ headings, onItemClick, showRailTools = false }
               onClick={scrollToComments}
               title="前往评论区"
               aria-label="前往评论区"
-              className="flex size-7 cursor-pointer items-center justify-center rounded-md border border-transparent transition-colors hover:border-hair hover:bg-muted/60 hover:text-primary"
+              className="ink-glide hit-expand inline-flex size-8 cursor-pointer items-center justify-center hover:-translate-y-0.5 hover:text-primary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
             >
               <MessageSquare className="size-3.5" strokeWidth={1.7} />
             </button>

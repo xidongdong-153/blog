@@ -184,13 +184,16 @@ export function ThemeToggle() {
               aria-checked={isActive}
               aria-label={`切换到${item.label}主题`}
               onClick={(e) => selectTheme(item.key, e)}
-              className={`cursor-pointer transition-colors duration-200 hover:text-foreground ${
-                isActive
-                  ? 'font-semibold text-foreground underline decoration-primary/75 underline-offset-4'
-                  : 'text-muted-foreground'
-              }`}
+              className="group/ink hit-expand inline-flex min-h-7 min-w-8 cursor-pointer items-center justify-center whitespace-nowrap transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
+              data-active={isActive ? 'true' : undefined}
             >
-              {item.label}
+              <span
+                className={`ink-line ${
+                  isActive ? 'font-semibold text-foreground' : 'text-muted-foreground group-hover/ink:text-foreground'
+                }`}
+              >
+                {item.label}
+              </span>
             </button>
           </span>
         )

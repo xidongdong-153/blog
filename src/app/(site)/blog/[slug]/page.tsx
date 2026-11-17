@@ -93,10 +93,12 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
             <div className="flex flex-wrap items-center gap-3">
               <Link
                 href={buildBlogListUrl({ category: post.category })}
-                className="inline-flex items-center gap-1.5 font-mono transition-colors hover:text-primary"
+                className="group/ink inline-flex items-center gap-1.5 font-mono transition-colors hover:text-primary"
               >
-                <span>←</span>
-                <span>{categoryLabel}</span>
+                <span aria-hidden="true" className="ink-glide group-hover/ink:-translate-x-1">
+                  ←
+                </span>
+                <span className="ink-line">{categoryLabel}</span>
               </Link>
 
               {seriesNav && (
@@ -106,10 +108,12 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
                   </span>
                   <Link
                     href={`/blog/series/${seriesNav.series.id}`}
-                    className="inline-flex items-center gap-1.5 font-mono text-xs text-primary transition-colors hover:underline"
+                    className="group/ink inline-flex items-center gap-1.5 font-mono text-xs text-primary"
                   >
-                    <span>专栏：{seriesNav.series.title}</span>
-                    <span>→</span>
+                    <span className="ink-line">专栏：{seriesNav.series.title}</span>
+                    <span aria-hidden="true" className="ink-glide group-hover/ink:translate-x-1">
+                      →
+                    </span>
                   </Link>
                 </>
               )}

@@ -122,11 +122,9 @@ export function FriendApplyForm({ onSuccess }: FriendApplyFormProps) {
 
   if (isSuccess) {
     return (
-      <div className="flex flex-col gap-6 rounded-lg border border-border/60 bg-card/40 p-6 sm:p-8">
+      <div className="flex flex-col gap-6 border-y border-hair py-8">
         <div className="flex flex-col gap-2">
-          <div className="font-mono text-xs uppercase tracking-wider text-muted-foreground">
-            // 投递成功 / DELIVERED
-          </div>
+          <div className="font-mono text-xs text-primary">投递成功</div>
           <h2 className="font-serif text-2xl font-medium tracking-tight text-foreground">申请信息已送达</h2>
           <p className="text-sm leading-relaxed text-muted-foreground">
             你的友链申请已发送至喜东东的邮箱。收到后我会核对并尽快添加，回复邮件会发送到你的邮箱：
@@ -134,17 +132,20 @@ export function FriendApplyForm({ onSuccess }: FriendApplyFormProps) {
           </p>
         </div>
 
-        <div className="flex flex-wrap items-center gap-3 border-t border-border/40 pt-4">
+        <div className="flex flex-wrap items-center gap-6 border-t border-hair pt-4">
           <Link
             href="/links"
-            className="inline-flex items-center gap-1.5 rounded-md border border-border/60 bg-foreground px-4 py-2 font-mono text-xs font-medium text-background transition-opacity hover:opacity-90"
+            className="group/ink inline-flex items-center gap-1.5 font-mono text-xs font-medium text-primary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
           >
-            ← 返回友链列表
+            <span aria-hidden="true" className="ink-glide group-hover/ink:-translate-x-1">
+              ←
+            </span>
+            <span className="ink-line">返回友链列表</span>
           </Link>
           <button
             type="button"
             onClick={handleReset}
-            className="rounded-md border border-border/40 px-4 py-2 font-mono text-xs text-muted-foreground transition-colors hover:border-foreground/30 hover:text-foreground"
+            className="ink-link cursor-pointer font-mono text-xs text-muted-foreground hover:text-foreground"
           >
             重新填写
           </button>
@@ -154,15 +155,15 @@ export function FriendApplyForm({ onSuccess }: FriendApplyFormProps) {
   }
 
   return (
-    <div className="flex flex-col gap-6">
-      {/* 本站信息参考与复制卡片 */}
-      <div className="flex flex-col gap-3 rounded-lg border border-border/60 bg-card/40 p-4 sm:p-5 font-mono text-xs text-muted-foreground">
-        <div className="flex items-center justify-between border-b border-border/30 pb-2.5">
-          <span className="font-semibold text-foreground">// 本站信息参考</span>
+    <div className="flex flex-col gap-8">
+      {/* 本站信息参考（无卡片外壳） */}
+      <div className="flex flex-col gap-3 border-y border-hair py-5 font-mono text-xs text-muted-foreground">
+        <div className="flex items-center justify-between pb-1">
+          <span className="font-semibold text-foreground">本站信息参考</span>
           <button
             type="button"
             onClick={handleCopySiteInfo}
-            className="shrink-0 rounded border border-border/60 bg-muted/40 px-2.5 py-1 text-xs text-foreground transition-all hover:bg-muted active:scale-95 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+            className="ink-link shrink-0 cursor-pointer py-0.5 text-xs text-foreground/85 hover:text-primary"
           >
             {copied ? '已复制本站信息' : '复制本站配置'}
           </button>
@@ -188,23 +189,19 @@ export function FriendApplyForm({ onSuccess }: FriendApplyFormProps) {
       </div>
 
       {/* 填写表单主体 */}
-      <form
-        onSubmit={handleSubmit}
-        className="flex flex-col gap-4 rounded-lg border border-border/60 bg-card/30 p-5 sm:p-6"
-      >
-        <div className="border-b border-border/40 pb-3">
-          <div className="font-mono text-xs tracking-wider text-muted-foreground">// 填写站点信息</div>
-          <h2 className="mt-1 font-serif text-xl font-medium tracking-tight text-foreground">你的小站信息</h2>
+      <form onSubmit={handleSubmit} className="flex flex-col gap-5">
+        <div className="border-b border-hair pb-3">
+          <h2 className="font-serif text-xl font-medium tracking-tight text-foreground">你的小站信息</h2>
         </div>
 
         {/* 错误提示条 */}
         {errorMessage && (
-          <div className="rounded border border-destructive/40 bg-destructive/10 px-3 py-2 text-xs text-destructive">
+          <div className="border-l border-destructive bg-destructive/8 px-3 py-2 text-xs text-destructive">
             {errorMessage}
           </div>
         )}
 
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+        <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
           {/* 你的称呼 */}
           <div className="flex flex-col gap-1.5">
             <label htmlFor="form-nickname" className="font-mono text-xs text-muted-foreground">
@@ -218,7 +215,7 @@ export function FriendApplyForm({ onSuccess }: FriendApplyFormProps) {
               value={nickname}
               onChange={(e) => setNickname(e.target.value)}
               placeholder="例如：东东 / 昵称"
-              className="rounded-md border border-border/60 bg-muted/20 px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground/50 transition-colors focus-visible:border-foreground/40 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+              className="border-0 border-b border-hair bg-transparent px-0 py-2 text-sm text-foreground placeholder:text-muted-foreground/50 transition-colors focus-visible:border-primary focus-visible:outline-none"
             />
           </div>
 
@@ -235,7 +232,7 @@ export function FriendApplyForm({ onSuccess }: FriendApplyFormProps) {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder="用于接收审核回信"
-              className="rounded-md border border-border/60 bg-muted/20 px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground/50 transition-colors focus-visible:border-foreground/40 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+              className="border-0 border-b border-hair bg-transparent px-0 py-2 text-sm text-foreground placeholder:text-muted-foreground/50 transition-colors focus-visible:border-primary focus-visible:outline-none"
             />
           </div>
 
@@ -252,7 +249,7 @@ export function FriendApplyForm({ onSuccess }: FriendApplyFormProps) {
               value={siteName}
               onChange={(e) => setSiteName(e.target.value)}
               placeholder="例如：喜东东小站"
-              className="rounded-md border border-border/60 bg-muted/20 px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground/50 transition-colors focus-visible:border-foreground/40 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+              className="border-0 border-b border-hair bg-transparent px-0 py-2 text-sm text-foreground placeholder:text-muted-foreground/50 transition-colors focus-visible:border-primary focus-visible:outline-none"
             />
           </div>
 
@@ -269,7 +266,7 @@ export function FriendApplyForm({ onSuccess }: FriendApplyFormProps) {
               value={siteUrl}
               onChange={(e) => setSiteUrl(e.target.value)}
               placeholder="https://example.com"
-              className="rounded-md border border-border/60 bg-muted/20 px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground/50 transition-colors focus-visible:border-foreground/40 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+              className="border-0 border-b border-hair bg-transparent px-0 py-2 text-sm text-foreground placeholder:text-muted-foreground/50 transition-colors focus-visible:border-primary focus-visible:outline-none"
             />
           </div>
 
@@ -285,7 +282,7 @@ export function FriendApplyForm({ onSuccess }: FriendApplyFormProps) {
               value={avatarUrl}
               onChange={(e) => setAvatarUrl(e.target.value)}
               placeholder="https://example.com/avatar.png"
-              className="rounded-md border border-border/60 bg-muted/20 px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground/50 transition-colors focus-visible:border-foreground/40 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+              className="border-0 border-b border-hair bg-transparent px-0 py-2 text-sm text-foreground placeholder:text-muted-foreground/50 transition-colors focus-visible:border-primary focus-visible:outline-none"
             />
           </div>
 
@@ -305,7 +302,7 @@ export function FriendApplyForm({ onSuccess }: FriendApplyFormProps) {
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               placeholder="聊聊你的小站、平常写点什么内容..."
-              className="resize-none rounded-md border border-border/60 bg-muted/20 px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground/50 transition-colors focus-visible:border-foreground/40 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+              className="resize-none border-0 border-b border-hair bg-transparent px-0 py-2 text-sm text-foreground placeholder:text-muted-foreground/50 transition-colors focus-visible:border-primary focus-visible:outline-none"
             />
           </div>
 
@@ -316,7 +313,7 @@ export function FriendApplyForm({ onSuccess }: FriendApplyFormProps) {
                 type="checkbox"
                 checked={hasAddedUs}
                 onChange={(e) => setHasAddedUs(e.target.checked)}
-                className="h-4 w-4 rounded border-border/60 text-primary accent-foreground"
+                className="h-4 w-4 rounded border-border/60 text-primary accent-primary"
               />
               <span className="font-mono text-xs text-muted-foreground">
                 我已在自己站点加上了「{siteConfig.title}」
@@ -325,14 +322,14 @@ export function FriendApplyForm({ onSuccess }: FriendApplyFormProps) {
           </div>
         </div>
 
-        {/* 提交按钮与说明 */}
-        <div className="mt-2 flex flex-col gap-3 border-t border-border/40 pt-4 sm:flex-row sm:items-center sm:justify-between">
+        {/* 提交触发器与说明 */}
+        <div className="mt-2 flex flex-col gap-3 border-t border-hair pt-4 sm:flex-row sm:items-center sm:justify-between">
           <span className="font-mono text-xs text-muted-foreground">提交后会自动发送通知邮件到博主信箱</span>
 
           <button
             type="submit"
             disabled={isSubmitting}
-            className="inline-flex items-center justify-center gap-1.5 rounded-md border border-border/60 bg-foreground px-5 py-2 font-mono text-xs font-medium text-background transition-all hover:opacity-90 active:scale-[0.98] disabled:pointer-events-none disabled:opacity-50"
+            className="group/ink inline-flex cursor-pointer items-center gap-1.5 self-start py-1 font-mono text-xs font-medium text-primary transition-opacity disabled:pointer-events-none disabled:opacity-50 sm:self-auto"
           >
             {isSubmitting ? (
               <>
@@ -348,7 +345,15 @@ export function FriendApplyForm({ onSuccess }: FriendApplyFormProps) {
                 <span>正在发送...</span>
               </>
             ) : (
-              <span>提交申请 ↗</span>
+              <>
+                <span className="ink-line">提交申请</span>
+                <span
+                  aria-hidden="true"
+                  className="ink-glide group-hover/ink:translate-x-0.5 group-hover/ink:-translate-y-0.5"
+                >
+                  ↗
+                </span>
+              </>
             )}
           </button>
         </div>

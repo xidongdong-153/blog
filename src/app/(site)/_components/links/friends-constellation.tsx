@@ -3,7 +3,6 @@
 import { RefreshCw, Search } from 'lucide-react'
 import { useMemo, useState } from 'react'
 import { siteConfig } from '@/site.config'
-import { PaperSurface } from '../site/paper-surface'
 
 export interface ConstellationFriend {
   name: string
@@ -25,7 +24,7 @@ function seededUnit(seed: number): number {
 }
 
 /**
- * 交互式「友邻拓扑网络」组件。
+ * 交互式「友邻星图」组件（无外层卡片盒）。
  * 以中心主站为锚点在正交网格底图上放射连接各友邻节点，悬停或聚焦时高亮对应连线并展示站点简介。
  */
 export function FriendsConstellation({ friends }: { friends: ConstellationFriend[] }) {
@@ -51,8 +50,7 @@ export function FriendsConstellation({ friends }: { friends: ConstellationFriend
   }, [friends, seedOffset, normalizedQuery])
 
   return (
-    <div className="relative isolate overflow-hidden rounded-xl">
-      <PaperSurface className="bg-card/85" />
+    <div className="relative overflow-hidden border-y border-hair">
       {/* 正交制图网格 + 中心辐射连线 SVG */}
       <svg
         aria-hidden="true"
@@ -95,19 +93,19 @@ export function FriendsConstellation({ friends }: { friends: ConstellationFriend
         })}
       </svg>
 
-      {/* 顶部栏：拓扑标题 + 节点检索 */}
-      <div className="relative z-10 flex flex-wrap items-center justify-between gap-3 px-5 pt-4">
-        <span className="font-mono text-[10px] tracking-[0.2em] text-muted-foreground uppercase">Friends Topology</span>
+      {/* 顶部栏：星图标题 + 下划线节点检索 */}
+      <div className="relative z-10 flex flex-wrap items-center justify-between gap-3 pt-4">
+        <span className="font-mono text-xs text-muted-foreground">友邻星图</span>
 
-        <div className="relative flex w-full items-center sm:w-56">
-          <Search aria-hidden="true" className="pointer-events-none absolute left-2.5 size-3.5 text-muted-foreground" />
+        <div className="relative flex w-full items-center sm:w-52">
+          <Search aria-hidden="true" className="pointer-events-none absolute left-0.5 size-3.5 text-muted-foreground" />
           <input
             type="search"
             value={filter}
             onChange={(e) => setFilter(e.target.value)}
             placeholder="过滤友邻节点..."
             aria-label="在图谱中搜索友邻"
-            className="w-full rounded-md border border-hair bg-background/80 py-1.5 pl-8 pr-3 text-xs text-foreground placeholder:text-muted-foreground focus-visible:border-primary/45 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/15 [&::-webkit-search-cancel-button]:appearance-none"
+            className="w-full border-0 border-b border-hair bg-transparent py-1.5 pl-6 pr-2 text-xs text-foreground placeholder:text-muted-foreground/70 focus-visible:border-primary focus-visible:outline-none [&::-webkit-search-cancel-button]:appearance-none"
           />
         </div>
       </div>
@@ -166,9 +164,9 @@ export function FriendsConstellation({ friends }: { friends: ConstellationFriend
         {/* 悬停节点详情浮卡 */}
         {activeFriend && (
           <div className="pointer-events-none absolute bottom-3 left-1/2 z-30 w-[min(90%,340px)] -translate-x-1/2 rounded-lg border border-hair bg-popover/95 px-3.5 py-2.5 text-center shadow-md backdrop-blur-sm animate-[modal-scale-in_160ms_var(--ease-spring)_both]">
-            <div className="flex items-center justify-center gap-1.5 text-xs font-medium text-foreground">
-              <span>{activeFriend.name}</span>
-              <span className="text-primary">↗</span>
+            <div className="flex min-w-0 items-center justify-center gap-1.5 text-xs font-medium text-foreground">
+              <span className="truncate">{activeFriend.name}</span>
+              <span className="shrink-0 text-primary">↗</span>
             </div>
             <p className="mt-0.5 line-clamp-2 text-[11px] leading-relaxed text-muted-foreground">
               {activeFriend.description}
@@ -177,8 +175,8 @@ export function FriendsConstellation({ friends }: { friends: ConstellationFriend
         )}
       </div>
 
-      {/* 底部提示与重排按钮 */}
-      <div className="relative z-10 flex items-center justify-between border-t border-hair px-5 py-3 font-mono text-[11px] text-muted-foreground">
+      {/* 底部提示与重排 */}
+      <div className="relative z-10 flex items-center justify-between border-t border-hair py-3 font-mono text-[11px] text-muted-foreground">
         <span>悬停或聚焦节点查看简介</span>
         <button
           type="button"
@@ -186,10 +184,10 @@ export function FriendsConstellation({ friends }: { friends: ConstellationFriend
             setSeedOffset((prev) => prev + 1)
             setActiveFriend(null)
           }}
-          className="inline-flex cursor-pointer items-center gap-1.5 rounded px-2 py-1 transition-colors hover:text-primary focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+          className="group/ink inline-flex cursor-pointer items-center gap-1.5 py-0.5 transition-colors hover:text-primary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
         >
-          <span>重排节点</span>
-          <RefreshCw className="size-3" />
+          <span className="ink-line">重排节点</span>
+          <RefreshCw className="ink-glide size-3 group-hover/ink:rotate-90" />
         </button>
       </div>
     </div>

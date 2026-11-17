@@ -35,7 +35,7 @@ export function BlogToolbar({ currentCategory, currentSort, currentSource, categ
               scroll={false}
               aria-current={isActive ? 'true' : undefined}
               className={[
-                'group/filter inline-flex min-h-10 items-center gap-1.5 rounded-sm py-1 text-[13px] transition-[color,transform] duration-150 ease-out active:translate-y-px motion-reduce:transform-none motion-reduce:transition-none focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-ring',
+                'group/filter ink-glide inline-flex min-h-10 items-center gap-1.5 rounded-sm py-1 text-[13px] active:translate-y-px focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-ring',
                 isActive ? 'font-medium text-foreground' : 'text-muted-foreground hover:text-foreground',
               ].join(' ')}
             >
@@ -66,7 +66,7 @@ export function BlogToolbar({ currentCategory, currentSort, currentSource, categ
                     scroll={false}
                     aria-current={isActive ? 'true' : undefined}
                     className={[
-                      'group/filter inline-flex min-h-10 items-center rounded-sm px-1.5 py-0.5 transition-[color,transform] duration-150 ease-out active:translate-y-px motion-reduce:transform-none motion-reduce:transition-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring',
+                      'group/filter ink-glide inline-flex min-h-10 items-center rounded-sm px-1.5 py-0.5 active:translate-y-px focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring',
                       isActive ? 'font-medium text-foreground' : 'text-muted-foreground hover:text-foreground',
                     ].join(' ')}
                   >
@@ -83,10 +83,15 @@ export function BlogToolbar({ currentCategory, currentSort, currentSource, categ
         <Link
           href="/blog/archives"
           aria-label="按时间线查看全部文章"
-          className="inline-flex min-h-10 items-center gap-1 rounded-md px-2 py-0.5 text-muted-foreground transition-colors hover:text-primary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
+          className="group/ink inline-flex min-h-10 items-center gap-1 px-1 text-muted-foreground transition-colors hover:text-primary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
         >
-          <span>时间线</span>
-          <span className="text-xs">↗</span>
+          <span className="ink-line">时间线</span>
+          <span
+            aria-hidden="true"
+            className="ink-glide text-xs group-hover/ink:translate-x-0.5 group-hover/ink:-translate-y-0.5"
+          >
+            ↗
+          </span>
         </Link>
       </div>
     </div>

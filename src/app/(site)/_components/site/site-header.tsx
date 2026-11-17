@@ -60,6 +60,9 @@ export function SiteHeader({ posts = [], categories = [] }: SiteHeaderProps) {
   const navRef = useRef<HTMLElement>(null)
   const labelRefs = useRef<Record<string, HTMLSpanElement | null>>({})
   const menuButtonRef = useRef<HTMLButtonElement>(null)
+  const blogMenuItemRef = useRef<HTMLLIElement>(null)
+  const blogLinkRef = useRef<HTMLAnchorElement>(null)
+  const skipFocusOpenRef = useRef(false)
   const closeMenuTimerRef = useRef<number | null>(null)
   const handleCloseSearch = useCallback(() => setSearchOpen(false), [])
   const lastScrollY = useRef(0)
@@ -225,6 +228,25 @@ export function SiteHeader({ posts = [], categories = [] }: SiteHeaderProps) {
     setBlogMenuOpen(false)
   }, [pathname])
 
+  // 桌面端「文章」悬停/聚焦浮层按 Escape 关闭并回焦点到触发链
+  useEffect(() => {
+    if (!blogMenuOpen) return
+    const handleEscape = (event: KeyboardEvent) => {
+      if (event.key !== 'Escape') return
+      const focusInsidePopover =
+        document.activeElement instanceof Node &&
+        document.activeElement !== blogLinkRef.current &&
+        Boolean(blogMenuItemRef.current?.contains(document.activeElement))
+      setBlogMenuOpen(false)
+      if (focusInsidePopover) {
+        skipFocusOpenRef.current = true
+        blogLinkRef.current?.focus()
+      }
+    }
+    document.addEventListener('keydown', handleEscape)
+    return () => document.removeEventListener('keydown', handleEscape)
+  }, [blogMenuOpen])
+
   const openBlogMenu = () => {
     if (closeMenuTimerRef.current !== null) {
       window.clearTimeout(closeMenuTimerRef.current)
@@ -266,9 +288,9 @@ export function SiteHeader({ posts = [], categories = [] }: SiteHeaderProps) {
         ref={headerRef}
         data-visible={visible || expanded}
         data-scrolled={scrolled}
-        className="sticky top-0 z-[70] h-[4.5rem] w-full transition-[transform,opacity,background-color,border-color] duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-opacity motion-reduce:transform-none data-[scrolled=false]:border-b data-[scrolled=false]:border-transparent data-[scrolled=true]:border-b data-[scrolled=true]:border-hair data-[scrolled=true]:bg-background/85 data-[scrolled=true]:backdrop-blur-md data-[visible=false]:pointer-events-none data-[visible=false]:-translate-y-1.5 data-[visible=false]:opacity-0 data-[visible=true]:pointer-events-auto data-[visible=true]:translate-y-0 data-[visible=true]:opacity-100"
+        className="sticky top-0 z-[70] h-[4.5rem] w-full transition-[transform,translate,opacity,background-color,border-color] duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-opacity data-[scrolled=false]:border-b data-[scrolled=false]:border-transparent data-[scrolled=true]:border-b data-[scrolled=true]:border-hair data-[scrolled=true]:bg-background/85 data-[scrolled=true]:backdrop-blur-md data-[visible=false]:pointer-events-none data-[visible=false]:motion-safe:-translate-y-1.5 data-[visible=false]:opacity-0 data-[visible=true]:pointer-events-auto data-[visible=true]:translate-y-0 data-[visible=true]:opacity-100"
       >
-        <div className="mx-auto flex h-full max-w-7xl items-center justify-between gap-6 px-6 lg:px-8">
+        <div className="mx-auto flex h-full max-w-7xl items-center justify-between gap-3 px-6 sm:gap-6 lg:px-8">
           <PresenceStatus />
 
           <div className="flex shrink-0 items-center gap-4">
@@ -283,15 +305,29 @@ export function SiteHeader({ posts = [], categories = [] }: SiteHeaderProps) {
                     return (
                       <li
                         key={item.href}
+                        ref={blogMenuItemRef}
                         className="relative"
                         onMouseEnter={openBlogMenu}
                         onMouseLeave={scheduleCloseBlogMenu}
+                        onBlur={(event) => {
+                          const relatedTarget = event.relatedTarget
+                          if (!(relatedTarget instanceof Node) || !event.currentTarget.contains(relatedTarget)) {
+                            setBlogMenuOpen(false)
+                          }
+                        }}
                       >
                         <Link
+                          ref={blogLinkRef}
                           href={item.href}
                           aria-current={active ? 'page' : undefined}
                           aria-expanded={blogMenuOpen}
-                          onFocus={openBlogMenu}
+                          onFocus={() => {
+                            if (skipFocusOpenRef.current) {
+                              skipFocusOpenRef.current = false
+                              return
+                            }
+                            openBlogMenu()
+                          }}
                           className={`relative z-[1] inline-flex min-h-10 items-center whitespace-nowrap px-3.5 py-1.5 transition-colors duration-200 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-ring ${
                             active ? 'text-foreground' : 'text-muted-foreground hover:text-foreground'
                           }`}
@@ -327,6 +363,7 @@ export function SiteHeader({ posts = [], categories = [] }: SiteHeaderProps) {
                                         key={cat.category}
                                         href={buildBlogListUrl({ category: cat.category })}
                                         onMouseEnter={() => setHoveredCategory(cat.category)}
+                                        onFocus={() => setHoveredCategory(cat.category)}
                                         onClick={() => setBlogMenuOpen(false)}
                                         className={`group/row relative flex h-8 items-center justify-between px-3 text-[13px] transition-colors ${
                                           selected
@@ -366,7 +403,7 @@ export function SiteHeader({ posts = [], categories = [] }: SiteHeaderProps) {
                                         key={post.slug}
                                         href={`/blog/${post.slug}`}
                                         onClick={() => setBlogMenuOpen(false)}
-                                        className="flex h-8 items-center gap-2.5 rounded px-2 text-[13px] text-foreground/85 transition-colors hover:bg-muted/40 hover:text-foreground"
+                                        className="ink-glide flex h-8 items-center gap-2.5 px-2 text-[13px] text-foreground/85 hover:translate-x-1 hover:text-primary"
                                       >
                                         <span className="shrink-0 font-mono text-[11px] tabular-nums text-muted-foreground">
                                           {formatShortDate(post.date)}
@@ -385,9 +422,12 @@ export function SiteHeader({ posts = [], categories = [] }: SiteHeaderProps) {
                               <Link
                                 href="/blog"
                                 onClick={() => setBlogMenuOpen(false)}
-                                className="transition-colors hover:text-primary"
+                                className="group/ink inline-flex items-center gap-1 transition-colors hover:text-primary"
                               >
-                                查看全部文章 →
+                                <span className="ink-line">查看全部文章</span>
+                                <span aria-hidden="true" className="ink-glide group-hover/ink:translate-x-1">
+                                  →
+                                </span>
                               </Link>
                               <span className="font-mono text-[11px] tabular-nums">{posts.length} 篇文章</span>
                             </div>
@@ -434,19 +474,21 @@ export function SiteHeader({ posts = [], categories = [] }: SiteHeaderProps) {
               </div>
             </nav>
 
-            {/* 右侧分隔线与工具操作区（搜索 + 账号 + 移动菜单） */}
-            <div className="flex items-center gap-2 border-l border-hair pl-3.5 sm:gap-2.5 sm:pl-4">
+            {/* 右侧分隔线与工具操作区（无框搜索 + 账号 + 移动菜单） */}
+            <div className="flex items-center gap-3 border-l border-hair pl-2.5 sm:gap-3.5 sm:pl-4">
               <button
                 type="button"
                 onClick={() => setSearchOpen(true)}
                 aria-label="全站搜索 (⌘K)"
                 title="搜索 (⌘K)"
-                className="flex size-8 items-center justify-center gap-1.5 rounded-md border border-hair bg-card/80 text-muted-foreground transition-colors duration-200 hover:border-primary/40 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring md:h-7 md:w-auto md:px-2.5"
+                className="group/ink hit-expand relative flex size-8 cursor-pointer items-center justify-center gap-1.5 text-muted-foreground transition-colors duration-200 hover:text-primary focus-visible:text-primary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring md:h-9 md:w-auto md:px-1.5"
               >
-                <Search className="size-3.5 shrink-0" />
-                <kbd className="hidden font-mono text-[10px] leading-none text-muted-foreground md:inline-block">
-                  ⌘K
-                </kbd>
+                <span className="ink-line inline-flex items-center gap-1.5">
+                  <Search className="ink-glide size-3.5 shrink-0 group-hover/ink:scale-110" aria-hidden="true" />
+                  <span className="hidden font-mono text-[11px] leading-none text-muted-foreground/80 transition-colors group-hover/ink:text-primary md:inline-block">
+                    ⌘K
+                  </span>
+                </span>
               </button>
 
               <HeaderAuth />
@@ -458,7 +500,7 @@ export function SiteHeader({ posts = [], categories = [] }: SiteHeaderProps) {
                 aria-expanded={expanded}
                 aria-controls="mobile-nav"
                 onClick={() => setExpanded((prev) => !prev)}
-                className="flex size-9 items-center justify-center rounded-md border border-hair text-muted-foreground transition-colors hover:bg-muted/60 hover:text-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring sm:hidden"
+                className="ink-glide hit-expand flex size-8 cursor-pointer items-center justify-center text-muted-foreground hover:text-primary active:scale-95 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring sm:hidden"
               >
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
@@ -479,14 +521,14 @@ export function SiteHeader({ posts = [], categories = [] }: SiteHeaderProps) {
           </div>
         </div>
 
-        {/* 移动端折叠菜单 */}
+        {/* 移动端折叠菜单（完全不透明背景，避免底层文字穿透重影） */}
         <div
           id="mobile-nav"
           data-expanded={expanded}
           inert={!expanded}
-          className="isolate absolute left-4 right-4 top-[calc(100%+0.35rem)] grid rounded-xl backdrop-blur-md transition-[grid-template-rows,opacity] duration-300 ease-[var(--ease-spring)] data-[expanded=false]:pointer-events-none data-[expanded=false]:grid-rows-[0fr] data-[expanded=false]:opacity-0 data-[expanded=true]:pointer-events-auto data-[expanded=true]:grid-rows-[1fr] data-[expanded=true]:opacity-100 sm:hidden"
+          className="isolate absolute left-4 right-4 top-[calc(100%+0.35rem)] grid rounded-xl bg-popover transition-[grid-template-rows,opacity] duration-300 ease-[var(--ease-spring)] data-[expanded=false]:pointer-events-none data-[expanded=false]:grid-rows-[0fr] data-[expanded=false]:opacity-0 data-[expanded=true]:pointer-events-auto data-[expanded=true]:grid-rows-[1fr] data-[expanded=true]:opacity-100 sm:hidden"
         >
-          <PaperSurface className="bg-popover/95" />
+          <PaperSurface className="bg-popover" />
           <div className="overflow-hidden p-2">
             <nav aria-label="移动端主导航" className="flex flex-col gap-0.5 text-sm">
               {siteConfig.nav.map((item) => (
@@ -494,10 +536,8 @@ export function SiteHeader({ posts = [], categories = [] }: SiteHeaderProps) {
                   key={item.href}
                   href={item.href}
                   aria-current={isActive(item.href) ? 'page' : undefined}
-                  className={`flex min-h-11 items-center justify-between rounded-lg px-3 py-2 font-medium transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring ${
-                    isActive(item.href)
-                      ? 'bg-primary/10 text-primary'
-                      : 'text-muted-foreground hover:bg-muted/50 hover:text-foreground'
+                  className={`flex min-h-11 items-center justify-between px-3 py-2 font-medium transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring ${
+                    isActive(item.href) ? 'text-primary font-semibold' : 'text-muted-foreground hover:text-foreground'
                   }`}
                 >
                   <span>{item.name}</span>

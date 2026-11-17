@@ -40,7 +40,7 @@ export function ArticleReaderShell({ className, children }: { className: string;
 }
 
 /**
- * 切换「专注阅读」模式的轻量触发按钮。
+ * 切换「专注阅读」模式的无框文字触发器（悬停展开墨线，开启时常驻底线）。
  */
 export function ReaderFocusButton() {
   const { focusMode, toggleFocusMode } = useReaderFocus()
@@ -50,14 +50,13 @@ export function ReaderFocusButton() {
       type="button"
       onClick={toggleFocusMode}
       aria-pressed={focusMode}
-      className={`inline-flex shrink-0 cursor-pointer items-center gap-1.5 rounded-md border px-2.5 py-1 font-mono text-[11px] transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring ${
-        focusMode
-          ? 'border-primary/45 bg-primary/10 text-primary'
-          : 'border-hair bg-card/80 text-muted-foreground hover:border-primary/40 hover:text-foreground'
+      data-active={focusMode ? 'true' : undefined}
+      className={`group/ink inline-flex shrink-0 cursor-pointer items-center gap-1.5 py-1 font-mono text-xs transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring ${
+        focusMode ? 'font-medium text-primary' : 'text-muted-foreground hover:text-primary'
       }`}
     >
-      <BookOpen className="size-3" aria-hidden="true" />
-      <span>{focusMode ? '退出专注' : '专注阅读'}</span>
+      <BookOpen className="size-3.5" aria-hidden="true" />
+      <span className="ink-line">{focusMode ? '退出专注' : '专注阅读'}</span>
     </button>
   )
 }

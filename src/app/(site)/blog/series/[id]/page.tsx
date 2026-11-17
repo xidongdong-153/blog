@@ -47,36 +47,43 @@ export default async function SeriesDetailPage({ params }: SeriesPageProps) {
 
   return (
     <div className="mx-auto w-full max-w-4xl">
-      <main className="flex flex-col gap-10">
+      <div className="flex flex-col gap-10">
         {/* 面包屑与顶部眉标 */}
         <div className="flex flex-col gap-4 border-b border-border/40 pb-8">
           <div className="flex items-center gap-2 font-mono text-xs tracking-wider text-muted-foreground">
-            <Link href="/blog" className="transition-colors hover:text-primary">
-              ← 全部文章
+            <Link
+              href="/blog"
+              className="group/ink inline-flex items-center gap-1.5 transition-colors hover:text-primary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
+            >
+              <span aria-hidden="true" className="ink-glide group-hover/ink:-translate-x-1">
+                ←
+              </span>
+              <span className="ink-line">全部文章</span>
             </Link>
             <span>·</span>
             <span>系列专栏</span>
           </div>
 
-          <div className="flex flex-wrap items-center gap-2.5">
+          <div className="flex flex-wrap items-center gap-3 font-mono text-xs">
             <span
-              className={`inline-flex items-center rounded-md border px-2 py-0.5 font-mono text-xs tracking-wider ${
-                series.status === 'in-progress'
-                  ? 'border-emerald-500/30 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400'
-                  : 'border-border/60 bg-muted/40 text-muted-foreground'
-              }`}
+              className={
+                series.status === 'in-progress' ? 'text-emerald-700 dark:text-emerald-400' : 'text-muted-foreground'
+              }
             >
-              状态: {SERIES_STATUS_LABELS[series.status]}
+              {SERIES_STATUS_LABELS[series.status]}
             </span>
-            <span className="font-mono text-xs text-muted-foreground">已收录 {posts.length} 篇</span>
+            <span aria-hidden="true" className="text-muted-foreground/40">
+              ·
+            </span>
+            <span className="text-muted-foreground">已收录 {posts.length} 篇</span>
           </div>
 
           <h1 className="font-serif text-3xl font-medium tracking-tight text-foreground sm:text-4xl lg:text-5xl">
             {series.title}
           </h1>
 
-          <div className="flex flex-wrap items-center gap-4 pt-2">
-            <div className="flex flex-wrap gap-2 font-mono text-xs text-muted-foreground">
+          <div className="flex flex-wrap items-center gap-4 pt-1">
+            <div className="flex flex-wrap gap-x-3 gap-y-1 font-mono text-xs text-muted-foreground">
               {series.tags.map((tag) => (
                 <span key={tag} className="select-none">
                   #{tag}
@@ -89,7 +96,7 @@ export default async function SeriesDetailPage({ params }: SeriesPageProps) {
                 href={series.repositoryUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center gap-1.5 font-mono text-xs text-muted-foreground transition-colors hover:text-foreground"
+                className="group/ink inline-flex items-center gap-1.5 font-mono text-xs text-muted-foreground transition-colors hover:text-primary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
               >
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
@@ -104,7 +111,13 @@ export default async function SeriesDetailPage({ params }: SeriesPageProps) {
                   <path d="M15 22v-4a4.8 4.8 0 0 0-1-3.5c3 0 6-2 6-5.5.08-1.25-.27-2.48-1-3.5.28-1.15.28-2.35 0-3.5 0 0-1 0-3 1.5-2.64-.5-5.36-.5-8 0C6 2 5 2 5 2c-.3 1.15-.3 2.35 0 3.5A5.403 5.403 0 0 0 4 9c0 3.5 3 5.5 6 5.5-.39.49-.68 1.05-.85 1.65-.17.6-.22 1.23-.15 1.85v4" />
                   <path d="M9 18c-4.51 2-5-2-7-2" />
                 </svg>
-                <span>配套开源仓库 ↗</span>
+                <span className="ink-line">配套开源仓库</span>
+                <span
+                  aria-hidden="true"
+                  className="ink-glide group-hover/ink:translate-x-0.5 group-hover/ink:-translate-y-0.5"
+                >
+                  ↗
+                </span>
               </a>
             )}
           </div>
@@ -113,37 +126,42 @@ export default async function SeriesDetailPage({ params }: SeriesPageProps) {
         {/* 章节大纲目录树 */}
         <section aria-label="专栏章节目录" className="flex flex-col gap-6">
           <div className="flex items-center justify-between">
-            <h2 className="font-mono text-[11px] uppercase tracking-[0.2em] text-muted-foreground">章节大纲</h2>
+            <h2 className="font-mono text-xs text-muted-foreground">章节大纲</h2>
             <span className="font-mono text-xs text-muted-foreground">共 {posts.length} 讲</span>
           </div>
 
           {posts.length === 0 ? (
-            <div className="rounded-lg border border-border/60 bg-card/20 p-8 text-center">
-              <p className="text-sm text-muted-foreground">该专栏筹备中，首篇章节即将发布。</p>
-            </div>
+            <p className="py-6 text-sm text-muted-foreground">该专栏筹备中，首篇章节即将发布。</p>
           ) : (
             <div className="flex flex-col gap-8">
               {groupSeriesPosts(posts, series.groups).map((group) => (
                 <div key={group.name} className="flex flex-col gap-4">
-                  <div className="flex items-center justify-between border-b border-border/40 pb-2">
+                  <div className="flex items-center justify-between border-b border-hair pb-2">
                     <h3 className="font-sans text-sm font-semibold text-foreground/90">{group.name}</h3>
                     <span className="font-mono text-xs text-muted-foreground/70">{group.posts.length} 篇</span>
                   </div>
 
-                  <ol className="relative flex flex-col gap-4 border-l border-border/60 pl-6 ml-3">
+                  <ol className="relative ml-3 flex flex-col divide-y divide-hair border-l border-hair pl-6">
                     {group.posts.map((post, index) => {
                       const chapterOrder = post.series?.order ?? index + 1
                       const readingTime = calculateReadingTime(post.content)
 
                       return (
-                        <li key={post.slug} className="group relative">
-                          {/* 时间轴刻度圆点：精准锚定在垂直导轨中心线与第一行元数据中轴线 */}
-                          <span className="absolute -left-[24.5px] top-7 size-2 -translate-x-1/2 -translate-y-1/2 rounded-full border border-border bg-background transition-all duration-150 group-hover:scale-125 group-hover:border-primary group-hover:bg-primary" />
+                        <li key={post.slug} className="group/item relative py-5 first:pt-2">
+                          <span
+                            aria-hidden="true"
+                            className="absolute -left-[24.5px] top-7 -translate-x-1/2 -translate-y-1/2 group-first/item:top-4"
+                          >
+                            <span className="ink-glide block size-2 rounded-full border border-border bg-background group-hover/item:scale-125 group-hover/item:border-primary group-hover/item:bg-primary group-focus-within/item:scale-125 group-focus-within/item:border-primary group-focus-within/item:bg-primary" />
+                          </span>
 
-                          <div className="flex flex-col gap-2 rounded-lg border border-border/60 bg-card/30 p-5 transition-all hover:border-foreground/30 hover:bg-muted/30">
+                          <Link
+                            href={`/blog/${post.slug}`}
+                            className="ink-glide flex flex-col gap-2 focus-visible:translate-x-1.5 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-ring group-hover/item:translate-x-1.5"
+                          >
                             <div className="flex flex-wrap items-center justify-between gap-2">
                               <div className="flex flex-wrap items-center gap-2 font-mono text-xs text-muted-foreground">
-                                <span className="font-semibold text-foreground/80">{chapterOrder}</span>
+                                <span className="font-semibold text-primary tabular-nums">{chapterOrder}</span>
                                 <span>/</span>
                                 <time dateTime={post.date}>{formatDate(post.date)}</time>
                                 <span>/</span>
@@ -155,21 +173,19 @@ export default async function SeriesDetailPage({ params }: SeriesPageProps) {
                                   </>
                                 )}
                               </div>
-                              <span className="font-mono text-xs text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100">
+                              <span className="font-mono text-xs text-primary opacity-0 transition-opacity duration-200 group-hover/item:opacity-100 group-focus-within/item:opacity-100">
                                 阅读文章 →
                               </span>
                             </div>
 
-                            <h4 className="font-serif text-lg font-medium tracking-tight text-foreground sm:text-xl">
-                              <Link href={`/blog/${post.slug}`} className="transition-colors hover:text-primary">
-                                {post.title}
-                              </Link>
+                            <h4 className="min-w-0 font-serif text-lg font-medium tracking-tight text-foreground transition-colors [overflow-wrap:anywhere] group-hover/item:text-primary sm:text-xl">
+                              {post.title}
                             </h4>
 
                             {post.description && (
                               <p className="text-sm leading-relaxed text-muted-foreground">{post.description}</p>
                             )}
-                          </div>
+                          </Link>
                         </li>
                       )
                     })}
@@ -179,7 +195,7 @@ export default async function SeriesDetailPage({ params }: SeriesPageProps) {
             </div>
           )}
         </section>
-      </main>
+      </div>
     </div>
   )
 }

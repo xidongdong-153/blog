@@ -3,6 +3,7 @@
 import type { CommentItemView, CommentSortOrder } from '@/server/modules/comments/comments.types'
 import { useCallback, useEffect, useState } from 'react'
 import { useSession } from '@/lib/auth-client'
+import { FilterLabel } from '../blog/filter-label'
 import { CommentAuthCard } from './comment-auth-card'
 import { CommentComposer } from './comment-composer'
 import { CommentItem } from './comment-item'
@@ -92,43 +93,40 @@ export function CommentSection({ slug }: CommentSectionProps) {
           <span className="font-mono text-xs tabular-nums text-muted-foreground">({totalCount})</span>
         </div>
 
-        {/* 排序切换 */}
-        <div className="flex items-center gap-1 rounded-full border border-hair bg-card/85 p-1">
-          {SORT_OPTIONS.map((opt) => (
-            <button
-              key={opt.key}
-              type="button"
-              onClick={() => setSort(opt.key)}
-              className={`cursor-pointer rounded-full px-3 py-1 font-mono text-xs transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring ${
-                sort === opt.key
-                  ? 'bg-primary/14 font-medium text-primary'
-                  : 'text-muted-foreground hover:text-foreground'
-              }`}
-            >
-              {opt.label}
-            </button>
+        {/* 排序切换（无胶囊边框） */}
+        <div className="flex items-center gap-2 font-mono text-xs">
+          {SORT_OPTIONS.map((opt, index) => (
+            <span key={opt.key} className="inline-flex items-center gap-2">
+              {index > 0 && (
+                <span aria-hidden="true" className="text-muted-foreground/35">
+                  ·
+                </span>
+              )}
+              <button
+                type="button"
+                onClick={() => setSort(opt.key)}
+                aria-pressed={sort === opt.key}
+                className={`group/filter inline-flex min-h-9 cursor-pointer items-center py-1 transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring ${
+                  sort === opt.key ? 'font-medium text-foreground' : 'text-muted-foreground hover:text-foreground'
+                }`}
+              >
+                <FilterLabel active={sort === opt.key}>{opt.label}</FilterLabel>
+              </button>
+            </span>
           ))}
         </div>
       </div>
 
       <div className="flex flex-col gap-6">
-        {/* 认证状态卡片 */}
+        {/* 认证状态栏 */}
         <CommentAuthCard providers={authConfig.providers} isOwner={currentUserIsOwner} />
 
         {/* 已登录时展示评论发布输入框 */}
-        {isLoggedIn && (
-          <div className="rounded-lg border border-border/60 bg-card/20 p-4">
-            <CommentComposer slug={slug} onSuccess={fetchComments} />
-          </div>
-        )}
+        {isLoggedIn && <CommentComposer slug={slug} onSuccess={fetchComments} />}
 
         {/* 评论列表状态 */}
         {loading ? (
-          <div
-            role="status"
-            aria-live="polite"
-            className="flex flex-col gap-3 rounded-lg border border-border/40 bg-card/20 p-6"
-          >
+          <div role="status" aria-live="polite" className="flex flex-col gap-3 py-4">
             <div className="flex items-center gap-3">
               <div className="size-8 animate-pulse rounded-full bg-muted/60" />
               <div className="h-4 w-32 animate-pulse rounded bg-muted/60" />
@@ -136,25 +134,20 @@ export function CommentSection({ slug }: CommentSectionProps) {
             <div className="h-12 w-full animate-pulse rounded bg-muted/40" />
           </div>
         ) : error ? (
-          <div
-            role="alert"
-            className="flex flex-col items-center justify-center gap-3 rounded-lg border border-border/60 bg-card/30 p-8 text-center"
-          >
+          <div role="alert" className="flex flex-col items-start gap-2 py-6">
             <p className="text-sm text-red-600 dark:text-red-400">{error}</p>
             <button
               type="button"
               onClick={() => void fetchComments()}
-              className="inline-flex items-center rounded-md border border-border bg-background px-3 py-1.5 font-mono text-xs text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring focus-visible:ring-offset-1 focus-visible:ring-offset-background"
+              className="ink-link cursor-pointer font-mono text-xs text-muted-foreground hover:text-primary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
             >
               重新加载 ↻
             </button>
           </div>
         ) : comments.length === 0 ? (
-          <div className="rounded-lg border border-border/40 bg-card/10 p-8 text-center">
-            <p className="text-sm text-muted-foreground">暂无评论，来发表第一条见解吧。</p>
-          </div>
+          <p className="py-6 text-sm text-muted-foreground">暂无评论，来发表第一条见解吧。</p>
         ) : (
-          <div className="flex flex-col gap-4">
+          <div className="flex flex-col divide-y divide-hair">
             {comments.map((comment) => (
               <CommentItem
                 key={comment.id}

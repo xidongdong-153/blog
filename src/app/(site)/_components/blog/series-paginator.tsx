@@ -15,42 +15,41 @@ export interface SeriesPaginatorProps {
 }
 
 /**
- * 专栏文章详情页文末导轨组件。
- * 展示所属专栏并提供上一讲、下一讲卡片与返回专栏完整大纲的链接。
+ * 专栏文章详情页文末导轨组件（无套娃卡片，纯发丝线排版）。
  */
 export function SeriesPaginator({ nav }: SeriesPaginatorProps) {
   const { series, prev, next } = nav
 
   return (
-    <section
-      aria-label="系列阅读导轨"
-      className="flex flex-col gap-4 rounded-lg border border-border/60 bg-card/20 p-5"
-    >
-      <div className="flex flex-wrap items-center justify-between gap-2 border-b border-border/30 pb-3">
-        <div className="flex items-center gap-2 font-mono text-[11px] tracking-[0.16em] text-muted-foreground uppercase">
-          <span className="font-semibold text-foreground/80">专栏章节导轨</span>
-        </div>
+    <section aria-label="系列阅读导轨" className="flex flex-col gap-5 border-t border-hair pt-6">
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <span className="font-mono text-xs text-muted-foreground">专栏章节导轨</span>
 
         <Link
           href={`/blog/series/${series.id}`}
-          className="inline-flex items-center gap-1 font-mono text-xs text-primary transition-colors hover:underline"
+          className="group/ink inline-flex items-center gap-1 font-mono text-xs text-primary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
         >
-          <span>查看系列完整大纲</span>
-          <span>→</span>
+          <span className="ink-line">查看系列完整大纲</span>
+          <span aria-hidden="true" className="ink-glide group-hover/ink:translate-x-1">
+            →
+          </span>
         </Link>
       </div>
 
-      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         {prev ? (
           <Link
             href={`/blog/${prev.slug}`}
-            className="group flex flex-col gap-1 rounded-md border border-border/40 bg-card/40 p-3.5 transition-all hover:border-foreground/30 hover:bg-muted/30"
+            className="group/ink flex min-w-0 flex-col items-start gap-1 py-2 transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
           >
-            <span className="font-mono text-xs text-muted-foreground transition-colors group-hover:text-primary">
-              ← 上一讲
+            <span className="inline-flex items-center gap-1 font-mono text-xs text-muted-foreground transition-colors group-hover/ink:text-primary">
+              <span aria-hidden="true" className="ink-glide group-hover/ink:-translate-x-1">
+                ←
+              </span>
+              <span>上一讲</span>
             </span>
-            <span className="line-clamp-1 text-sm font-medium text-foreground transition-colors group-hover:text-primary">
-              {prev.title}
+            <span className="ink-line max-w-full font-serif text-base font-medium text-foreground transition-colors group-hover/ink:text-primary">
+              <span className="block truncate">{prev.title}</span>
             </span>
           </Link>
         ) : (
@@ -60,15 +59,18 @@ export function SeriesPaginator({ nav }: SeriesPaginatorProps) {
         {next && (
           <Link
             href={`/blog/${next.slug}`}
-            className={`group flex flex-col gap-1 rounded-md border border-border/40 bg-card/40 p-3.5 text-right transition-all hover:border-foreground/30 hover:bg-muted/30 ${
+            className={`group/ink flex min-w-0 flex-col items-end gap-1 py-2 text-right transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring ${
               !prev ? 'sm:col-start-2' : ''
             }`}
           >
-            <span className="font-mono text-xs text-muted-foreground transition-colors group-hover:text-primary">
-              下一讲 →
+            <span className="inline-flex items-center gap-1 font-mono text-xs text-muted-foreground transition-colors group-hover/ink:text-primary">
+              <span>下一讲</span>
+              <span aria-hidden="true" className="ink-glide group-hover/ink:translate-x-1">
+                →
+              </span>
             </span>
-            <span className="line-clamp-1 text-sm font-medium text-foreground transition-colors group-hover:text-primary">
-              {next.title}
+            <span className="ink-line max-w-full font-serif text-base font-medium text-foreground transition-colors group-hover/ink:text-primary">
+              <span className="block truncate">{next.title}</span>
             </span>
           </Link>
         )}

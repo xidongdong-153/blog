@@ -41,7 +41,7 @@ export function BlogSearch({
           </label>
           <Search
             aria-hidden="true"
-            className="pointer-events-none absolute left-3.5 size-3.5 text-muted-foreground/70"
+            className="pointer-events-none absolute left-0.5 size-3.5 text-muted-foreground/70"
           />
           <input
             id="site-search"
@@ -50,15 +50,14 @@ export function BlogSearch({
             autoComplete="off"
             onChange={(event) => setQuery(event.target.value)}
             placeholder="搜索文章标题、标签或正文..."
-            style={{ backgroundImage: 'var(--field-gradient)' }}
-            className="min-h-10 w-full min-w-0 rounded-lg border border-hair bg-card/85 py-2 pl-9 pr-9 text-sm text-foreground transition-[border-color,box-shadow] placeholder:text-muted-foreground/70 focus-visible:border-primary/45 focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-primary/12 [&::-webkit-search-cancel-button]:appearance-none"
+            className="min-h-10 w-full min-w-0 border-0 border-b border-hair bg-transparent py-2 pl-6 pr-8 text-sm text-foreground transition-colors placeholder:text-muted-foreground/65 focus-visible:border-primary focus-visible:outline-none [&::-webkit-search-cancel-button]:appearance-none"
           />
           {isSearching && (
             <button
               type="button"
               onClick={() => setQuery('')}
               aria-label="清除"
-              className="absolute right-2.5 flex size-6 items-center justify-center rounded text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-2 focus-visible:outline-ring"
+              className="absolute right-1 flex size-6 cursor-pointer items-center justify-center rounded text-muted-foreground transition-colors hover:text-primary focus-visible:outline-2 focus-visible:outline-ring"
             >
               <X className="size-3.5" />
             </button>

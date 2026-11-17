@@ -56,11 +56,7 @@ const PROJECTS: Project[] = [
 export default function ProjectsPage() {
   return (
     <div className="mx-auto flex w-full max-w-5xl flex-col gap-10 sm:gap-12">
-      <PageHeader
-        eyebrow="Projects · Open Source"
-        title="项目"
-        description="开源工具、Web 应用与 AI Agent 实践项目。"
-      />
+      <PageHeader title="项目" description="开源工具、Web 应用与 AI Agent 实践项目。" />
 
       {/* 双栏无框项目网格 */}
       <div className="grid gap-x-12 gap-y-8 sm:grid-cols-2">
@@ -69,12 +65,12 @@ export default function ProjectsPage() {
           return (
             <article key={project.title} className="flex min-w-0 flex-col justify-between border-b border-hair pb-7">
               <div className="flex flex-col gap-2.5">
-                <div className="flex items-baseline justify-between gap-4">
-                  <h2 className="font-serif text-xl font-medium tracking-tight text-foreground">
+                <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
+                  <h2 className="min-w-0 font-serif text-xl font-medium tracking-tight text-foreground [overflow-wrap:anywhere]">
                     {project.href ? (
                       <Link
                         href={project.href}
-                        className="rounded-sm transition-colors hover:text-primary hover:underline underline-offset-4 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-ring"
+                        className="ink-link inline-block rounded-sm focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-ring"
                       >
                         {project.title}
                       </Link>
@@ -97,30 +93,39 @@ export default function ProjectsPage() {
                 <div className="flex flex-wrap gap-x-2.5 gap-y-1 font-mono text-xs text-muted-foreground/75">
                   {project.tags.map((tag) => (
                     <span key={tag} className="select-none">
-                      {tag}
+                      #{tag}
                     </span>
                   ))}
                 </div>
 
                 {(project.github || project.seriesId) && (
-                  <div className="flex flex-wrap items-center gap-4 font-mono text-xs">
+                  <div className="flex flex-wrap items-center gap-5 font-mono text-xs">
                     {project.github && (
                       <a
                         href={project.github}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="inline-flex min-h-9 items-center gap-1 rounded-sm text-muted-foreground transition-colors hover:text-primary focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-ring"
+                        className="group/ink inline-flex min-h-9 items-center gap-1 rounded-sm text-muted-foreground transition-colors hover:text-primary focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-ring"
                       >
-                        <span>源码 ↗</span>
+                        <span className="ink-line">源码</span>
+                        <span
+                          aria-hidden="true"
+                          className="ink-glide group-hover/ink:translate-x-0.5 group-hover/ink:-translate-y-0.5"
+                        >
+                          ↗
+                        </span>
                       </a>
                     )}
 
                     {project.seriesId && (
                       <Link
                         href={`/blog/series/${project.seriesId}`}
-                        className="inline-flex min-h-9 items-center gap-1 rounded-sm text-primary transition-colors hover:underline underline-offset-4 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-ring"
+                        className="group/ink inline-flex min-h-9 items-center gap-1 rounded-sm text-primary focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-ring"
                       >
-                        <span>配套专栏 →</span>
+                        <span className="ink-line">配套专栏</span>
+                        <span aria-hidden="true" className="ink-glide group-hover/ink:translate-x-1">
+                          →
+                        </span>
                       </Link>
                     )}
                   </div>

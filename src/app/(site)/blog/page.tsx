@@ -72,7 +72,7 @@ export default async function BlogPage({ searchParams }: BlogPageProps) {
   return (
     <div data-page-entrance className="mx-auto flex w-full max-w-5xl flex-col gap-8 sm:gap-10">
       <div className="entrance">
-        <PageHeader eyebrow="Blog" title="文章" description="技术实践、折腾记录与日常思考。" />
+        <PageHeader title="文章" description="技术实践、折腾记录与日常思考。" />
       </div>
 
       {featuredSeries && (
