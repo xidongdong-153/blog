@@ -1,10 +1,11 @@
 ---
-description: 'RSC/client、MDX、评论、后台 AI、交互和无障碍组件约定'
+description: 'RSC/client 边界、和纸背景体系、MDX、评论、后台 AI、交互与无障碍组件约定'
 status: implemented
 paths:
   - 'src/app/(site)/_components/**'
   - 'src/app/(site)/layout.tsx'
   - 'src/app/(site)/template.tsx'
+  - 'src/app/layout.tsx'
   - 'src/app/globals.css'
   - 'next.config.ts'
 ---
@@ -13,22 +14,28 @@ paths:
 
 ## RSC / client 划分
 
-默认全部写 Server Components，不用加任何指令。只有用到浏览器 API（localStorage、事件监听）的组件才加 `'use client'`。
+默认全部写 Server Components，不用加任何指令。只有用到浏览器 API（`localStorage`、Canvas、DOM 事件监听或前端局部交互状态）的组件才加 `'use client'`。
 
-现状：项目中的 client 组件包括：
+现状：项目中的公开/通用 client 组件包括：
 
-- `src/app/(site)/_components/site/theme-toggle.tsx`（主题存储与媒体监听）
-- `src/app/(site)/_components/site/site-header.tsx`（滚动感应与移动端菜单展开）
-- `src/app/(site)/_components/blog/toc.tsx`（TOC 目录展开折叠、点击互斥锁、侧栏自滚动与 RAF 进度更新）
-- `src/app/(site)/_components/blog/floating-action-group.tsx`（移动端抽屉唤出与返回顶部百分比计算）
-- `src/app/(site)/_components/blog/series-chapter-sidebar.tsx`（专栏章节大纲展示、当前讲激活高亮、目录过滤与折叠状态持久化）
+- `src/app/(site)/_components/site/paper-canvas.tsx`（全视口静态和纸纤维 Canvas 绘制、DPR 胶片颗粒生成、`site-backdrop-fx` 与跨标签 `storage` 同步）
+- `src/app/(site)/_components/site/fx-toggle.tsx`（页脚背景效果开关及同/跨标签状态同步）
+- `src/app/(site)/_components/site/theme-toggle.tsx`（主题三态切换、圆形 View Transition 扩散与媒体监听）
+- `src/app/(site)/_components/site/site-header.tsx`（滚动显隐、文章下拉菜单、命令搜索唤起与移动端抽屉）
+- `src/app/(site)/_components/site/command-search-modal.tsx`（全站 `⌘K` 命令搜索弹窗与焦点捕获）
+- `src/app/(site)/_components/site/header-auth.tsx` / `auth-modal.tsx`（页头登录状态与社交登录弹窗）
+- `src/app/(site)/_components/home/presence.tsx` / `hero-live-badge.tsx`（Mac 活动接口轮询、自定义事件广播与 Hero 工位状态复用）
+- `src/app/(site)/_components/home/yearly-timeline.tsx`（首页年度双轨季度刻度与节点浮卡交互）
+- `src/app/(site)/_components/blog/blog-search.tsx`（站内文章搜索、内存索引过滤与结果渲染）
+- `src/app/(site)/_components/blog/article-reader-shell.tsx`（专注阅读模式切换与 `data-reader-focus` 驱动）
+- `src/app/(site)/_components/blog/toc.tsx`（TOC 展开折叠、点击互斥锁、侧栏自滚动与 RAF 进度更新）
+- `src/app/(site)/_components/blog/floating-action-group.tsx` / `series-chapter-sidebar.tsx`（移动端抽屉与专栏大纲导航）
 - `src/app/(site)/_components/comment/comment-section.tsx`（社交登录、评论树读取、平铺回复与前台管理）
-- `src/app/(site)/_components/home/presence.tsx`（活动接口轮询、在线状态和后台工具展开）
-- `src/app/(site)/_components/blog/blog-search.tsx`（搜索输入、内存索引过滤与结果渲染）
+- `src/app/(site)/_components/links/friends-constellation.tsx` / `friend-apply-modal.tsx`（友邻拓扑星图与友链申请弹窗）
 
-MDX 渲染走异步 RSC（`mdx-content.tsx` 的 `compileMDX`），不需要 client。高频滚动联动场景使用 `requestAnimationFrame` 调度，直接更新对应节点的样式（如 TOC 进度条、SiteHeader 连续水膜插值），避免高频触发 React 整体组件树重新渲染。SiteHeader 不使用布尔阈值硬切与布局重排（如动态 margin），改用 0~80px 连续进度驱动独立背景水膜层透明度、渐进遮罩与微缩放；显隐判断加入滚动死区累积位移（向下 12px、向上 8px 缓冲及顶部 200px 常驻安全区），彻底避免慢拖滚动条时的方向震荡；显隐动画使用可中断的纯 GPU Transition（下滑 160ms ease-out 平滑微缩淡出，上滑 240ms 阻尼曲线聚显并带表面张力平息静止）。
+MDX 渲染走异步 RSC（`mdx-content.tsx` 的 `compileMDX`），不需要 client。高频滚动联动场景（如 TOC 进度条）使用 `requestAnimationFrame` 直接更新 DOM 样式，避免高频触发 React 整树重渲染。`SiteHeader` 通过滚动偏移死区避免方向震荡，借助 `data-scrolled` 与 `data-visible` 驱动 `backdrop-blur-md` 边框与纯 GPU 平移/透明度过渡，不使用会引发重排的动态 margin。
 
-判断标准：组件要 `useState` / `useEffect` / 浏览器 API 才转 client；只展示数据、拼接 className 的都留在 server。client 边界收得越小越好，不要为了方便把整棵子树标成 client。
+判断标准：组件要 `useState` / `useEffect` / 浏览器 API 才转 client；只展示数据、拼接 className 的都留在 server（如 `AmbientBackdrop`、`PaperSurface`、`PageHeader`、`SiteFooter`、`PostCard`、`NoteCard`）。client 边界收得越小越好，不要为了方便把整棵子树标成 client。
 
 ## 导出方式
 
@@ -45,26 +52,31 @@ MDX 渲染走异步 RSC（`mdx-content.tsx` 的 `compileMDX`），不需要 clie
 
 ## 注释
 
-每个组件、每个导出函数写中文 JSDoc，说明它做什么、关键约定是什么（存储键、锚点规则、防闪烁时序这类）。参考 `mdx-content.tsx`、`theme-toggle.tsx` 的注释风格。
+每个组件、每个导出函数写中文 JSDoc，说明它做什么、关键约定是什么（存储键、锚点规则、防闪烁时序这类）。参考 `mdx-content.tsx`、`paper-canvas.tsx`、`theme-toggle.tsx` 的注释风格。
 
-## Tailwind
+## Tailwind 与设计系统对齐
 
-- 常规色系统一使用 HSL 语义 token（`background`、`foreground`、`muted`、`muted-foreground`、`primary`、`border` 等），不硬编码底色。既有状态色是设计规范列明的例外，必须伴随文字并检查对比度。
-- 正文排版用 `prose prose-stone dark:prose-invert`（@tailwindcss/typography），见 `mdx-content.tsx`。
-- 颜色、字号、间距、圆角与页面宽度以[设计规范](../DESIGN.md)为准。五页卡片用 `rounded-lg`，控件用 `rounded-md`；头像、页头和弹窗等例外见设计规范。
-- 提示框与卡片避免使用 `border-l-4` 等单侧粗边框（side-tab 反模式），采用完整微边框 `rounded-xl border` 配合语义背景色。
-- 五个一级内容页使用 `max-w-5xl` 外框；窄阅读区在外框内左对齐。文章列表有标签时 lg 起双栏，无标签时单列；搜索前后列宽一致。首页、普通文章详情、专栏详情与笔记详情保留各自阅读布局，不在共享 main 上限制最大宽度。
-- 不写自定义组件 CSS 类，样式全部走 Tailwind 工具类与 data 变体（如 `data-[scrolled=true]:`、`theme-system:` 等）；`src/app/globals.css` 仅用于存放设计 token、keyframes 和变体定义。
+- 常规色系统一使用 HSL 语义 token（`background`、`foreground`、`muted`、`muted-foreground`、`primary`、`border`、`hair` 等），不硬编码底色。既有状态色是设计规范列明的例外，必须伴随文字并检查对比度。
+- 正文排版用 `prose prose-stone dark:prose-invert`（`@tailwindcss/typography`），笔记详情使用 `.field-note-prose`（`globals.css`）。
+- 颜色、字号、间距、圆角与页面宽度以[设计规范](../DESIGN.md)为准。
+- 提示框与卡片避免使用 `border-l-4` 等单侧粗边框，采用完整发丝线 `border-hair`（或配合 `PaperSurface`）与语义背景色。
+- 公开一级页面外框统一 `max-w-5xl`；狭幅阅读区在外框内左对齐。文章列表有标签时 `lg` 起双栏，无标签时单列；搜索前后列宽一致。首页与五个一级页面共用 `max-w-5xl` 主外框，详情页保留各自阅读宽度，不在共享 `<main>` 上硬编码限宽。
+- 样式走 Tailwind 工具类与 `data-*` 变体（如 `data-[scrolled=true]:`、`data-[reader-focus=true]:`、`theme-system:` 等）；`src/app/globals.css` 仅存放 `@property` 注册、设计 token、prose 映射、keyframes 与视图过渡规则。
 
 ## 通用模式与组件
 
-- 一级页面标题 `PageHeader`（`src/app/(site)/_components/site/page-header.tsx`）：接收 `eyebrow`、`title`、`description`，输出统一眉标、H1、说明和分隔线，保持 Server Component。页面负责外框和标题到内容的间距。
-- 文章搜索 `BlogSearch` 接收 RSC 的 `sourceSwitch`、`toolbar`、`sidebar` 和列表 `children`；不把整个页面改成 client，详情见[搜索规范](search.md)。
-- 通用按钮组件 `Button`（`src/app/(site)/_components/blog/button.tsx`）：统一支持 `back`（向左动态展开箭头）、`pill`（圆角胶囊标签）、`ahead`（向右动态展开箭头）及普通样式。
-- 文章卡片 `PostCard`（`src/app/(site)/_components/blog/post-card.tsx`）：采用出版物排版与技术等宽眉标（`// ARTICLE / DATE / READING_TIME`），标题配备 SVG 动态伸缩展开箭头，底部标签组采用低饱和等宽微标（`#TAG`），替换通用圆角胶囊块。可选 `hit` prop 接收搜索命中区间，标题按区间高亮，正文命中片段替换摘要位；组件自身不感知搜索状态。
-- 目录导轨 `TableOfContents`（`src/app/(site)/_components/blog/toc.tsx`）：采用贯穿式 1px 细线垂直导轨与章节刻度锚点（Rail Wayfinding），当前视口对应章节高亮并带平滑缩放与文字明度反馈。
-- 字体排版体系：大标题（Hero 主标与文章详情页 H1）使用西文高切角锐度衬线体 `Newsreader`（`font-serif`），元数据使用打字机等宽体（`font-mono`），正文使用中性克制的现代无衬线体 `Satoshi`。
-- 列表渲染 key 用稳定业务键（`post.slug`、`tag`），不用数组下标。
+- **全站背景底座（`AmbientBackdrop` + `PaperCanvas` + `PaperSurface`）**：
+  - `SiteLayout`（`src/app/(site)/layout.tsx`）先挂载 `AmbientBackdrop`（`-z-20`），再挂载 `PaperCanvas`（`-z-10`），确保颗粒与纤维层叠于氛围光之上。
+  - `AmbientBackdrop` 接收可选 `color` 或读取 `--page-highlight`，通过 `src/lib/utils.ts` 的 `sanitizeCssColor` 与 `globals.css` 的 `@property` `<color>` 校验双层兜底；文章页与预览页注入 `post.heroColor` 时同样经 `sanitizeCssColor` 过滤。
+  - `PaperCanvas` 仅在挂载及防抖 `resize` 时绘制静态和纸纤维 `<canvas>`，并一次性生成 `211×211` DPR 感知双极性微噪点；`FxToggle` 与 `PaperCanvas` 共同通过 `readBackdropFxEnabled`、`site-fx-change` 自定义事件及 `storage`（含 `key === null`）保持同标签与跨标签状态一致，配合 `src/app/layout.tsx` 隔离 `try/catch` 的防闪烁脚本同步 `html.dataset.backdropFx`。
+  - `PaperSurface` 用于需要纸卡质感的容器（父节点须带 `relative isolate`），通过 `1px border-hair`、`--surface-shadow` 与微内高光构建边界，并为非 `bg-popover` 卡片附加顶部主色微光。
+- **一级页面标题 `PageHeader`**（`src/app/(site)/_components/site/page-header.tsx`）：接收 `eyebrow`、`title`、`description`，输出等宽眉标、衬线 H1、说明和分隔线，保持 Server Component。
+- **文章搜索 `BlogSearch`**：接收 RSC 的 `sourceSwitch`、`toolbar`、`sidebar` 和列表 `children`；不把整个页面改成 client，详情见[站内搜索](search.md)。
+- **通用按钮组件 `Button`**（`src/app/(site)/_components/blog/button.tsx`）：支持 `back`、`pill`、`ahead` 及普通样式。
+- **文章卡片 `PostCard`**（`src/app/(site)/_components/blog/post-card.tsx`）：采用出版物排版与技术等宽眉标，标题配备 SVG 动态伸缩箭头，底部标签组采用低饱和等宽微标（`#TAG`）。可选 `hit` prop 接收搜索命中区间，标题按区间高亮，正文命中片段替换摘要位；组件自身不感知搜索状态。
+- **目录导轨 `TableOfContents`**（`src/app/(site)/_components/blog/toc.tsx`）：采用贯穿式 `1px` 细线垂直导轨与章节刻度锚点，当前视口对应章节高亮并带平滑缩放与明度反馈。
+- **笔记档案卡 `NoteCard`**（`src/app/(site)/_components/notes/note-card.tsx`）：左侧展示编号（`NOTE #001`）、日期与语义状态铭牌，右侧展示标题与正文摘要，底衬 `PaperSurface`。
+- 列表渲染 key 用稳定业务键（`post.slug`、`tag`、`note.slug`），不用数组下标。
 - 日期显示统一 `<time dateTime={post.date}>{formatDate(post.date)}</time>`，见 `post-card.tsx` 和详情页。
 - 链接用 `next/link` 的 `Link`，站内跳转不写 `<a>`。
 - 空列表使用中文说明，区分没有内容和筛选无匹配；保留适用的清除、来源切换或申请入口。
@@ -141,13 +153,12 @@ MDX 渲染走异步 RSC（`mdx-content.tsx` 的 `compileMDX`），不需要 clie
 
 ## 页面切换视图过渡 (View Transitions)
 
-- 采用 Next.js 路由模板 `src/app/(site)/template.tsx` 重新挂载机制驱动入场，并在 `next.config.ts` 开启 `experimental.viewTransition: true` 配合原生 CSS 视图过渡。禁止引入 Framer Motion 等额外客户端动画库。
-- 普通页面保留 160ms 透明度淡入，原生视图过渡退场为 120ms。首页和 `/blog` 根节点声明 `data-page-entrance`，模板通过 `.page-transition-enter:not(:has([data-page-entrance]))` 排除整页淡入，避免与内容块动画叠加。排除条件写在原 CSS 选择器上，不能用 Tailwind 分层工具类覆盖未分层的动画声明。
-- 首页 Hero 按署名、头像、主标题、简介和按钮依次入场，延迟为 0–240ms；下方 Section 与统计延迟为 300–360ms。文章页按标题、精选系列、搜索栏、工具栏和条目展开。共享 Tailwind 工具类 `entrance` 执行 480ms 淡入与 10px 上移，曲线为 `cubic-bezier(0.22, 1, 0.36, 1)`，不添加动画库或客户端状态。
-- `PostCard` 仅在传入 `entranceIndex` 时播放，条目延迟从 180ms 起每项增加 60ms，封顶 360ms。主列表 section 的 key 包含来源、分类、排序和页码，参数切换时重播列表，`BlogSearch` 自身保持稳定以保留输入；搜索结果使用文章 slug 作 key，不因每次键入重建全部结果。
-- `entrance` 使用 backwards 填充，结束后不保留 transform 或透明度。内容无须等待脚本初始化；键盘焦点进入时立即可见；打印和减少动态效果模式不播放内容块入场。动画只在挂载时触发，不在滚动时反复触发。
-- 常驻组件（`header`、`footer`、`#global-ambient-backdrop`）留在 `src/app/(site)/layout.tsx`，通过 `view-transition-name: persistent-site-chrome` 配合 `animation: none;` 隔离，避免页面切换时导航栏与背景发生晃动。
-- 必须包含 `@media (prefers-reduced-motion: reduce)` 无障碍媒体查询，在用户开启减少动态效果时回退至即时切换。
+- 采用 Next.js 路由模板 `src/app/(site)/template.tsx` 重新挂载机制驱动入场，并在 `next.config.ts` 开启 `experimental.viewTransition: true` 配合原生 CSS 视图过渡，不引入 Framer Motion 等客户端动画库。
+- 原生视图过渡在 `globals.css` 中定义：`::view-transition-old(root)` 为 `180ms` 微上移淡出，`::view-transition-new(root)` 为 `340ms` 微上移聚显；模板节点对不含 `[data-page-entrance]` 的页面执行 `240ms` `.page-transition-enter` 透明度淡入，避免与首页和 `/blog` 的区块入场动画叠加（排除条件写在原 CSS 选择器上，不用 Tailwind 分层工具类覆盖）。
+- 首页与文章列表中的分段元素使用共享工具类 `entrance` 执行 `520ms var(--ease-spring)` 淡入与 `10px` 上移，通过 `--entrance-delay`（`PostCard` 从 `180ms` 起每项增加 `60ms`、封顶 `360ms`）控制交错节奏。主列表 `section` 的 key 包含来源、分类、排序和页码，搜索结果以 `slug` 作 key 以保留输入状态。
+- `entrance` 使用 `backwards` 填充，结束后不保留 `transform` 或 `opacity`；键盘焦点进入时强制立即可见。
+- **常驻组件隔离与主题切换解耦**：`#site-header`、`#site-footer`、`#global-ambient-backdrop` 与 `#site-film-backdrop` 仅在 `html:not([data-theme-transition='true'])` 时各自挂载 `view-transition-name`（`site-header` / `site-footer` / `site-ambient-backdrop` / `site-film-backdrop`）且 `animation: none`，保证路由切换时顶栏、页脚与背景静止稳定，而在点击 `ThemeToggle` 触发全屏圆形扩散切换主题时不遮挡扩散层。
+- 必须包含 `@media (prefers-reduced-motion: reduce)` 无障碍媒体查询，开启减少动态效果时禁用 `.page-transition-enter` 并将视图过渡时长缩至 `0.01ms`。
 
 ## 页面设计约定
 
@@ -155,21 +166,14 @@ MDX 渲染走异步 RSC（`mdx-content.tsx` 的 `compileMDX`），不需要 clie
 
 - 文章和笔记的标题、摘要组成主要链接，分类及可点击标签独立；不嵌套链接。
 - 项目卡片不假设整卡可点击，只为真实目的地提供反馈；友链为单一目标，整卡链接。
-- 元信息保留等宽字体和必要的 `//`，不重复页面或模块标题。纯展示技术标签与可点击标签区分；筛选控件可以用边框，不强制所有标签为同一种文本样式。
-- `SiteHeader` 的移动菜单关闭时使用 `inert`，Escape 关闭并恢复按钮焦点；展开时保持页头可见，路由切换后关闭。
-- **Hero 无界融入全站顶光规范**：
-  - 首页 Hero 采用完全无边框的自然沉浸结构，不设容器外围边框、实色背景与卡片阴影，保持正文出版物排版纯净无界。
-  - 背景动效 Canvas（`SpatialField`）突破父容器限制横向全宽铺展（`w-screen left-1/2 -translate-x-1/2`），通过大椭圆径向 CSS `mask-image` / `-webkit-mask-image` 衰减 Alpha 通道向四周柔和羽化；严禁在 Canvas 上方叠加使用 `--background` 实色的纯色或半透渐变层，让全站底层 `AmbientBackdrop` 的漫射顶光无界贯通。
-- **首页 Hero 署名式元数据**：
-  - Hero 顶部身份信息为单行元数据（如 `上海 / 独立开发者 / 联系我 ↗`）：两侧细横线锚点、`/` 分隔、`font-mono text-xs tracking-wider text-muted-foreground`。
-  - 不使用状态圆点、胶囊底色和 `pulse` / `ping` 循环动画伪装在线状态；「联系我」为指向 `/contact` 的文字链接，靠颜色与下划线表达可点击。
-- **首页纵向 Section 编排**：
-  - `Section` 组件接收必填 `index` 序号，Label 为等宽小字 `h2`（序号 + `/` + 标题，如 `01 / 最近写的`），行尾细线 `flex-1` 延展，Label 恒在内容上方。
-  - 桌面端不切换左右分栏，内容占满可用宽度；三个 Section 共用同一套间距节奏，不加卡片背景或外围边框。
-- **首页最近写作时间线**：
-  - `page.tsx` 将已过滤 draft 的文章与笔记映射为 `{ kind, slug, title, date }`，按 ISO `date` 倒序后取前 8 条，再传给 `WritingTimeline`。
-  - `WritingTimeline` 用 `${kind}-${slug}` 作为 key，根据 `kind` 生成 `/blog/<slug>` 或 `/notes/<slug>` 链接；日期显示使用 `formatTimelineDate`，不在组件中直接格式化日期。
-  - 时间线分类微标使用 `font-mono text-xs uppercase tracking-wider`，列表行用 `divide-y` 细线，不给每行添加卡片底色。
+- 元信息保留等宽字体和必要的 `//` 或 `/` 刻度，不重复页面或模块标题。纯展示技术标签与可点击标签区分；筛选控件可以用边框，不强制所有标签为同一种文本样式。
+- `SiteHeader` 的移动菜单关闭时使用 `inert`，`Escape` 关闭并恢复按钮焦点；展开时保持页头可见，路由切换后关闭。
+- **首页非对称造物室 Hero**（`src/app/(site)/_components/home/hero.tsx`）：
+  - 桌面端采用 `lg:grid-cols-[minmax(0,1fr)_272px]` 非对称双栏：左栏依次呈现 `HeroLiveBadge`（细线锚点 + 城市 + 终端图标 + 实时 `presence` 快照，无循环脉冲圆点）、衬线宣言主标题、简介、技术标语与动作行（主书签按钮、`关于我` 下划线链、`⌘K` 搜索触发按钮与线性图标列）；右栏以 `PaperSurface` 站点索引卡收敛头像、三栏内容数（文章 / 笔记 / 标签）与技术栈直达链接。
+  - 原 `spatial-field.tsx` 当前未在首页挂载，Hero 直接透出底层 `AmbientBackdrop` 与 `PaperCanvas` 的和纸与顶光质感。
+- **首页双栏主体与年度创作脉络**（`src/app/(site)/page.tsx`）：
+  - Hero 下方采用 `lg:grid-cols-[minmax(0,1.4fr)_minmax(0,0.9fr)]` 双栏主体：左栏 `RECENT / 最近更新` 渲染按 ISO 日期倒序合并文章与笔记后的前 5 条条目（`WritingTimeline`，使用 `${kind}-${slug}` 作 key 与 `divide-y divide-hair` 细线台账）；右栏以左侧发丝线分隔，依次排布 `01 / 随记`（最新 3 篇笔记，日期使用 `formatDate`）与 `02 / 关于与技术栈`。
+  - 主体下方接入 `YearlyTimeline` 双轨季度脉络（上轨文章实心节点、下轨笔记空心节点，带 `Q1–Q4` 刻度与当年进度指针）以及底部快速导航收尾条。
 
 ## 友链申请弹窗与邮件通知规范
 
@@ -198,4 +202,4 @@ MDX 渲染走异步 RSC（`mdx-content.tsx` 的 `compileMDX`），不需要 clie
   - **操作按钮**：动词 + 宾语或单一明确动作，如"审核"、"管理友链"、"退出登录"、"前往配置"。
   - **空状态**：客观陈述当前为空的实际原因（如"暂无待审核的友链申请。"、"暂无评论。"），不写过度包装的修饰句。
 
-源码入口：[站点布局](../src/app/%28site%29/layout.tsx)、[MDX 渲染](../src/app/%28site%29/_components/blog/mdx-content.tsx)、[全局样式](../src/app/globals.css)。字体与五页视觉值以 DESIGN.md 为准；Newsreader 和 Satoshi 的西文字形不代表中文也使用这些字体。
+源码入口：[根布局](../src/app/layout.tsx)、[站点布局](../src/app/%28site%29/layout.tsx)、[和纸底纹](../src/app/%28site%29/_components/site/paper-canvas.tsx)、[MDX 渲染](../src/app/%28site%29/_components/blog/mdx-content.tsx)、[全局样式](../src/app/globals.css)。字体与五页视觉值以 [DESIGN.md](../DESIGN.md) 为准；Newsreader 和 Satoshi 的西文字形不代表中文也使用这些字体。

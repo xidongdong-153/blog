@@ -36,6 +36,8 @@ pnpm build
 ## 维护文档
 
 - [文档索引](docs/index.md)
+- [设计规范](DESIGN.md)
+- [组件约定](docs/components.md)
 - [架构与目录](docs/architecture.md)
 - [内容管理](docs/content.md)
 - [功能状态](docs/features.md)
