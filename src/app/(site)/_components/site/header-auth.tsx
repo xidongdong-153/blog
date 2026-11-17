@@ -87,13 +87,20 @@ export function HeaderAuth() {
     }
   }
 
-  if (sessionPending) {
-    return <div className="size-7 animate-pulse rounded-md bg-muted/60" />
+  if (sessionPending && !session?.user) {
+    return (
+      <div
+        aria-hidden="true"
+        className="relative flex size-8 shrink-0 items-center justify-center text-muted-foreground"
+      >
+        <UserRound className="size-3.5" />
+      </div>
+    )
   }
 
   if (!session?.user) {
     return (
-      <div ref={containerRef} className="relative">
+      <div ref={containerRef} className="relative size-8 shrink-0">
         <button
           type="button"
           onClick={() => setModalOpen(true)}
@@ -117,7 +124,7 @@ export function HeaderAuth() {
   const fallbackLetter = (user.name || user.email || 'U').charAt(0).toUpperCase()
 
   return (
-    <div ref={containerRef} className="relative">
+    <div ref={containerRef} className="relative size-8 shrink-0">
       <button
         type="button"
         onClick={() => setMenuOpen((prev) => !prev)}

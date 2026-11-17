@@ -32,7 +32,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html
       lang="zh-CN"
-      className={`${satoshi.variable} ${newsreader.variable} has-[[data-slot=admin-layout]]:[scrollbar-gutter:stable]`}
+      className={`${satoshi.variable} ${newsreader.variable} [scrollbar-gutter:stable]`}
       suppressHydrationWarning
     >
       <head>
@@ -42,7 +42,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           }}
         />
       </head>
-      <body className="min-h-screen antialiased has-[[data-slot=admin-layout]]:data-[scroll-locked]:mr-0! has-[[data-slot=admin-layout]]:data-[scroll-locked]:[--removed-body-scroll-bar-size:0px]!">
+      <body className="min-h-screen antialiased data-[scroll-locked]:mr-0! data-[scroll-locked]:[--removed-body-scroll-bar-size:0px]!">
         {children}
       </body>
     </html>
