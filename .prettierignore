@@ -3,7 +3,6 @@ node_modules
 pnpm-lock.yaml
 content
 public
-.trellis
 .pi
 .agents
 .agent

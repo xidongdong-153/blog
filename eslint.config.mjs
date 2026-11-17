@@ -33,7 +33,6 @@ const baseConfig = antfu({
     '.cache',
     'temp',
     'tmp',
-    '.trellis',
     '.pi',
     '.agents',
   ],

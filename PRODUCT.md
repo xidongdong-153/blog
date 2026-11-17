@@ -27,7 +27,7 @@ web
 - Next.js App Router，开发端口 4400，页面包含静态内容与动态服务
 - MDX 内容管理，支持 KaTeX 数学公式和代码高亮
 - 登录、评论、友链申请、AI 摘要和访客状态由服务端模块提供
-- 浏览器内搜索、RSS 等功能的实现状态统一见[功能状态表](.trellis/spec/frontend/feature-status.md)，不在这里维护第二份清单
+- 浏览器内搜索、RSS 等功能的实现状态统一见[功能状态表](docs/features.md)，不在这里维护第二份清单
 
 ## Brand Commitments
 

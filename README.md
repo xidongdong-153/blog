@@ -35,10 +35,10 @@ pnpm build
 
 ## 维护文档
 
-- [规范索引](.trellis/spec/frontend/index.md)
-- [目录结构](.trellis/spec/frontend/directory-structure.md)
-- [内容约定](.trellis/spec/frontend/content-guidelines.md)
-- [功能状态](.trellis/spec/frontend/feature-status.md)
-- [Mac 活动服务](.trellis/spec/frontend/presence-guidelines.md)
-- [部署、排查与回滚](.trellis/spec/frontend/deployment-guidelines.md)
-- [质量检查](.trellis/spec/frontend/quality-guidelines.md)
+- [文档索引](docs/index.md)
+- [架构与目录](docs/architecture.md)
+- [内容管理](docs/content.md)
+- [功能状态](docs/features.md)
+- [Mac 活动接口](docs/presence.md)
+- [部署、排查与回滚](docs/deployment.md)
+- [开发约定与检查](docs/development.md)
