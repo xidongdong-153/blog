@@ -26,7 +26,6 @@ export default async function TagsPage() {
             </span>
           </Link>
         </div>
-        <p className="text-sm leading-relaxed text-muted-foreground">所有文章分类索引与知识主题。</p>
       </header>
 
       {tags.length === 0 ? (

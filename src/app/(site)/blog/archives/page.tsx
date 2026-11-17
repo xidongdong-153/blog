@@ -6,7 +6,7 @@ import { ArchivesView } from '../../_components/blog/archives-view'
 export const dynamic = 'force-dynamic'
 
 export const metadata: Metadata = {
-  title: '写作归档',
+  title: '归档',
 }
 
 /** 写作归档页：聚合全部已发布文章与笔记。 */

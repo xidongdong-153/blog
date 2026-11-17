@@ -93,7 +93,7 @@ export function ArchivesView({ entries }: { entries: TimelineArchiveEntry[] }) {
       {/* 头部时间与产量遥测区 */}
       <header className="flex flex-col gap-6 border-b border-hair pb-8">
         <div className="flex flex-wrap items-baseline justify-between gap-4">
-          <h1 className="font-serif text-3xl font-medium tracking-tight text-foreground sm:text-4xl">写作归档</h1>
+          <h1 className="font-serif text-3xl font-medium tracking-tight text-foreground sm:text-4xl">归档</h1>
 
           <div role="group" aria-label="视图密度" className="inline-flex items-center gap-2 font-mono text-xs">
             <button
@@ -122,12 +122,12 @@ export function ArchivesView({ entries }: { entries: TimelineArchiveEntry[] }) {
           </div>
         </div>
 
-        {/* 遥测指标行 */}
-        <div className="grid grid-cols-2 gap-6 sm:grid-cols-4">
+        {/* 统计行 */}
+        <div className="grid grid-cols-3 gap-6">
           <div className="flex flex-col gap-0.5">
             <div className="font-serif text-3xl font-medium tabular-nums text-foreground">{entries.length}</div>
             <span className="font-mono text-[11px] text-muted-foreground">
-              公开记录（{articleCount} 文章 · {noteCount} 笔记）
+              共 {entries.length} 篇（{articleCount} 文章 · {noteCount} 笔记）
             </span>
           </div>
 
@@ -143,15 +143,7 @@ export function ArchivesView({ entries }: { entries: TimelineArchiveEntry[] }) {
               {metrics ? metrics.yearPercent : '--'}
               <span className="ml-0.5 text-sm text-muted-foreground">%</span>
             </div>
-            <span className="font-mono text-[11px] text-muted-foreground">年度进度</span>
-          </div>
-
-          <div className="flex flex-col gap-0.5">
-            <div className="font-serif text-3xl font-medium tabular-nums text-foreground">
-              {metrics ? metrics.todayPercent : '--'}
-              <span className="ml-0.5 text-sm text-muted-foreground">%</span>
-            </div>
-            <span className="font-mono text-[11px] text-muted-foreground">今日进度</span>
+            <span className="font-mono text-[11px] text-muted-foreground">今年已过</span>
           </div>
         </div>
 

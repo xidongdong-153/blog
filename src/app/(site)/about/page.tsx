@@ -10,36 +10,32 @@ export const metadata: Metadata = {
 export default function AboutPage() {
   return (
     <div className="mx-auto flex w-full max-w-5xl flex-col gap-10 sm:gap-12">
-      <PageHeader title="关于" description="关于作者、技术栈与实践记录。" />
+      <PageHeader title="关于" />
 
-      {/* 个人简介与引语 */}
+      {/* 个人简介 */}
       <section className="flex max-w-[46rem] flex-col gap-5">
-        <blockquote className="border-l border-primary/50 pl-4 font-serif text-[15px] leading-relaxed text-foreground/85">
-          保持好奇，在代码、交互与 AI 协同的工作流中持续造物。
-        </blockquote>
-
-        <h2 className="font-serif text-2xl font-normal tracking-wide text-foreground">现状与方向</h2>
+        <h2 className="font-serif text-2xl font-normal tracking-wide text-foreground">我在做什么</h2>
         <div className="flex flex-col gap-3 text-[15px] leading-7 text-foreground/85">
           {profileConfig.about.map((paragraph) => (
             <p key={paragraph}>{paragraph}</p>
           ))}
           <p>
-            偏好{' '}
+            平时主要用{' '}
             <span className="bg-[linear-gradient(to_top,color-mix(in_oklch,hsl(var(--primary))_18%,transparent)_42%,transparent_42%)] px-0.5 font-medium">
-              TypeScript 全栈体系
+              TypeScript 全栈
             </span>
-            ，采用 Next.js 与 Hono 构建端到端类型安全的应用；长期关注{' '}
+            ，拿 Next.js 和 Hono 写应用；最近花精力最多的是{' '}
             <span className="bg-[linear-gradient(to_top,color-mix(in_oklch,hsl(var(--primary))_18%,transparent)_42%,transparent_42%)] px-0.5 font-medium">
               AI Agent 工作流
             </span>
-            、界面微动效细节与直观克制的产品体验。
+            和界面交互细节。
           </p>
         </div>
       </section>
 
       {/* 无卡片技术体系 */}
       <section className="flex flex-col gap-5 border-t border-hair pt-8">
-        <h2 className="font-serif text-2xl font-normal tracking-wide text-foreground">技术体系</h2>
+        <h2 className="font-serif text-2xl font-normal tracking-wide text-foreground">常用技术</h2>
         <div className="grid gap-8 sm:grid-cols-3">
           {profileConfig.skills.map((group) => (
             <div key={group.title} className="flex flex-col gap-3 border-t border-hair pt-4">
@@ -80,8 +76,7 @@ export default function AboutPage() {
 
       {/* 无按钮社交通道 */}
       <section className="flex flex-col gap-4 border-t border-hair pt-8">
-        <h2 className="font-serif text-2xl font-normal tracking-wide text-foreground">社交通道</h2>
-        <p className="text-sm text-muted-foreground">欢迎交流探讨 AI Agent、Web 开发与 TypeScript 全栈技术。</p>
+        <h2 className="font-serif text-2xl font-normal tracking-wide text-foreground">找到我</h2>
         <div className="flex flex-wrap gap-6">
           {siteConfig.social.map((item) => (
             <a

@@ -18,16 +18,16 @@ interface Project {
 }
 
 const STATUS_CONFIG: Record<Project['status'], { label: string; className: string }> = {
-  active: { label: '活跃', className: 'text-emerald-700 dark:text-emerald-400' },
+  active: { label: '在写', className: 'text-emerald-700 dark:text-emerald-400' },
   maintained: { label: '维护中', className: 'text-primary' },
-  experimental: { label: '实验性', className: 'text-amber-700 dark:text-amber-400' },
+  experimental: { label: '实验中', className: 'text-amber-700 dark:text-amber-400' },
   archived: { label: '已归档', className: 'text-muted-foreground' },
 }
 
 const PROJECTS: Project[] = [
   {
     title: 'Pi Agent Desktop',
-    description: '基于 Pi SDK 核心框架构建的个人专属 AI 工作台，探索会话生命周期调度与多 Agent 协同。',
+    description: '基于 Pi SDK 做的个人 AI 工作台，用来折腾会话调度和多 Agent 协同。',
     tags: ['TypeScript', 'Pi SDK', 'AI Agent', 'Desktop'],
     github: 'https://github.com/xidongdong-153/blog',
     seriesId: 'pi-agent-desktop',
@@ -36,7 +36,7 @@ const PROJECTS: Project[] = [
   },
   {
     title: 'Personal Blog',
-    description: '采用 Next.js 16 与 React 19 构建的技术博客，具备暖纸质感阅读体验、全局命令搜索与自动化 AI 摘要。',
+    description: '就是你现在看的这个博客，Next.js + Turso，带全站搜索和 AI 摘要。',
     tags: ['Next.js 16', 'React 19', 'Tailwind CSS 4', 'TypeScript'],
     github: 'https://github.com/xidongdong-153/blog',
     period: '2026',
@@ -44,8 +44,7 @@ const PROJECTS: Project[] = [
   },
   {
     title: 'Starter',
-    description:
-      'TypeScript 全栈 Monorepo 脚手架，包含 Next.js 前台、Vite React 管理后台与 Hono API 服务，集成 Better Auth、Drizzle ORM 与 SQLite。',
+    description: 'TypeScript 全栈 Monorepo 脚手架，包含 Next.js、Vite、Hono、Better Auth 和 Drizzle ORM。',
     tags: ['TypeScript', 'Turborepo', 'Next.js', 'Hono', 'Drizzle ORM'],
     github: 'https://github.com/xidongdong-153/starter',
     period: '2025',
@@ -56,7 +55,7 @@ const PROJECTS: Project[] = [
 export default function ProjectsPage() {
   return (
     <div className="mx-auto flex w-full max-w-5xl flex-col gap-10 sm:gap-12">
-      <PageHeader title="项目" description="开源工具、Web 应用与 AI Agent 实践项目。" />
+      <PageHeader title="项目" />
 
       {/* 双栏无框项目网格 */}
       <div className="grid gap-x-12 gap-y-8 sm:grid-cols-2">

@@ -116,10 +116,10 @@ export function YearlyTimeline({ entries, totalYearCount, yearLabel }: YearlyTim
     })
 
   return (
-    <section aria-label="年度创作脉络" className="entrance border-t border-hair pt-8 [--entrance-delay:240ms]">
+    <section aria-label="年度记录" className="entrance border-t border-hair pt-8 [--entrance-delay:240ms]">
       <div className="mb-6 flex flex-wrap items-baseline justify-between gap-3">
         <h2 className="font-serif text-xl font-medium tracking-tight text-foreground sm:text-2xl">
-          {yearLabel} 创作脉络
+          {yearLabel} 年记录
         </h2>
 
         <div className="flex flex-wrap items-center gap-4 font-mono text-[11px] text-muted-foreground">

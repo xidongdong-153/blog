@@ -26,14 +26,7 @@ function publishPresenceSnapshot(next: PublicPresence) {
   }
 }
 
-const IDLE_MESSAGES = [
-  '不在工位，大概率正在摸鱼',
-  '键盘已冷却，人不知去向',
-  '工位放空中，正在给大脑散热',
-  '溜达去了，稍后再来抓我',
-  '出去吹吹风，暂时没敲代码',
-  '正在给生活充电，稍后回来',
-] as const
+const IDLE_MESSAGES = ['暂时离开键盘', '这会儿没写代码', '电脑歇着呢', '出门透口气去了'] as const
 
 const TOOL_ICON_MAP: Partial<Record<string, string>> = {
   pi: '/images/presence/pi.png',
@@ -219,7 +212,7 @@ export function PresenceStatus() {
         </div>
 
         <span className="font-serif text-[18px] font-medium tracking-[0.02em] text-foreground transition-colors group-hover:text-primary">
-          {siteConfig.author}
+          {siteConfig.title}
         </span>
       </Link>
 
@@ -232,7 +225,7 @@ export function PresenceStatus() {
         >
           <PaperSurface className="bg-popover" />
           <div className="flex items-center justify-between border-b border-hair pb-2">
-            <span className="font-mono text-[10px] tracking-[0.2em] text-muted-foreground uppercase">Workstation</span>
+            <span className="font-mono text-[10px] tracking-[0.2em] text-muted-foreground">工位</span>
             <span
               className={`inline-flex items-center gap-1 font-mono text-[10px] font-medium ${
                 active ? 'text-primary' : 'text-muted-foreground'
@@ -252,7 +245,7 @@ export function PresenceStatus() {
                     &gt;_ {getToolLabel(foregroundTool)}
                   </p>
                   {desktopApp && (
-                    <p className="truncate font-mono text-[11px] text-muted-foreground">in {desktopApp.label}</p>
+                    <p className="truncate font-mono text-[11px] text-muted-foreground">{desktopApp.label}</p>
                   )}
                 </div>
               </div>
@@ -263,7 +256,7 @@ export function PresenceStatus() {
               </div>
             ) : (
               <p className="py-1 text-xs leading-relaxed text-muted-foreground">
-                {active ? '在看别的内容，没在敲代码' : idleMessage}
+                {active ? '在看别的内容，没在写代码' : idleMessage}
               </p>
             )}
 
@@ -286,10 +279,6 @@ export function PresenceStatus() {
                   )
                 })}
               </div>
-            )}
-
-            {active && presence?.terminalDetection === 'unknown' && (
-              <p className="pt-1.5 font-mono text-[11px] text-muted-foreground">终端焦点未探测</p>
             )}
           </div>
         </div>

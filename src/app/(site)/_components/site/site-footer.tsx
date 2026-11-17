@@ -34,26 +34,26 @@ export function SiteFooter() {
         {/* 四栏编目索引 */}
         <div className="grid grid-cols-2 gap-x-6 gap-y-7 sm:grid-cols-4">
           <div>
-            <div className="mb-3 font-mono text-[11px] tracking-wider text-muted-foreground">关于</div>
+            <div className="mb-3 font-mono text-[11px] tracking-wider text-muted-foreground">更多</div>
             <ul className="space-y-2 text-[13px] text-foreground/85">
               <li>
                 <Link href="/about" className="ink-link inline-block py-0.5">
-                  关于我
+                  关于
                 </Link>
               </li>
               <li>
                 <Link href="/projects" className="ink-link inline-block py-0.5">
-                  开源项目
+                  项目
                 </Link>
               </li>
               <li>
                 <Link href="/links" className="ink-link inline-block py-0.5">
-                  朋友们
+                  友链
                 </Link>
               </li>
               <li>
                 <Link href="/status" className="ink-link inline-block py-0.5">
-                  服务状态
+                  状态
                 </Link>
               </li>
             </ul>
@@ -64,22 +64,22 @@ export function SiteFooter() {
             <ul className="space-y-2 text-[13px] text-foreground/85">
               <li>
                 <Link href="/blog" className="ink-link inline-block py-0.5">
-                  全部文章
+                  文章
                 </Link>
               </li>
               <li>
                 <Link href="/notes" className="ink-link inline-block py-0.5">
-                  工程随记
+                  笔记
                 </Link>
               </li>
               <li>
                 <Link href="/blog/archives" className="ink-link inline-block py-0.5">
-                  写作归档
+                  归档
                 </Link>
               </li>
               <li>
                 <Link href="/blog/tags" className="ink-link inline-block py-0.5">
-                  标签索引
+                  标签
                 </Link>
               </li>
             </ul>
@@ -90,12 +90,12 @@ export function SiteFooter() {
             <ul className="space-y-2 text-[13px] text-foreground/85">
               <li>
                 <Link href="/contact" className="ink-link inline-block py-0.5">
-                  联系通道
+                  联系
                 </Link>
               </li>
               <li>
                 <a href="/rss.xml" target="_blank" rel="noreferrer" className="ink-link inline-block py-0.5">
-                  RSS 订阅
+                  RSS
                 </a>
               </li>
               <li>
@@ -148,7 +148,7 @@ export function SiteFooter() {
               © {year} {siteConfig.author}
             </span>
           </div>
-          <span title="我们行常人不可行之事 —— 黑锋骑士团">We do what the living cannot.</span>
+          <span>上海</span>
         </div>
       </div>
     </footer>

@@ -52,9 +52,9 @@ export interface Profile {
 
 export const profileConfig: Profile = {
   avatar: '/avatar.jpg',
-  location: 'Shanghai',
+  location: '上海',
   tagline: 'Full-stack developer working with TypeScript.',
-  about: ['做全栈和 AI Agent 开发，主要使用 TypeScript。', '这里写项目实践、技术笔记和一些日常想法。'],
+  about: ['做全栈和 AI Agent 开发，平时用 TypeScript 最多。', '这里放项目实践、技术笔记和一些零碎想法。'],
   skills: [
     {
       title: '网页 / 前端',

@@ -5,8 +5,8 @@ import { getStatusPageData } from '@/server/modules/system/system.service'
 export const dynamic = 'force-dynamic'
 
 export const metadata: Metadata = {
-  title: '服务状态',
-  description: '站点基础设施、外部服务通道与数据库实时健康指标。',
+  title: '状态',
+  description: '站点、数据库与外部服务实时运行状态。',
 }
 
 function formatUptime(seconds: number): string {
@@ -34,11 +34,7 @@ export default async function StatusPage() {
     <div className="mx-auto flex w-full max-w-3xl flex-col gap-10">
       {/* 头部标题区域 */}
       <header className="flex flex-col gap-2 border-b border-hair pb-6">
-        <h1 className="font-serif text-3xl font-medium tracking-tight text-foreground sm:text-4xl">服务状态</h1>
-        <p className="text-sm leading-relaxed text-muted-foreground">
-          站点核心服务、分布式云数据库及外部集成通道的实时健康指标。所有状态均在服务端内部执行探测，不对外暴露任何 API
-          接口。
-        </p>
+        <h1 className="font-serif text-3xl font-medium tracking-tight text-foreground sm:text-4xl">状态</h1>
       </header>
 
       {/* 总体状态横幅（无卡片、无循环脉冲） */}
@@ -50,18 +46,13 @@ export default async function StatusPage() {
           />
           <div>
             <div className="font-serif text-base font-medium tracking-tight text-foreground sm:text-lg">
-              {isAllOperational ? '所有服务运行正常' : '部分服务响应延迟或降级'}
-            </div>
-            <div className="text-xs text-muted-foreground">
-              {isAllOperational
-                ? '全部受控服务与数据库均处于健康可用状态。'
-                : '受控服务中存在访问异常，核心静态页面正常由边缘服务保障。'}
+              {isAllOperational ? '全部服务正常' : '部分服务响应异常'}
             </div>
           </div>
         </div>
 
         <div className="flex items-center gap-2 font-mono text-xs text-muted-foreground sm:text-right">
-          <span>探测时间</span>
+          <span>检查时间</span>
           <span className="font-medium tabular-nums text-foreground">
             {formattedDate} {formattedTime}
           </span>
@@ -70,39 +61,22 @@ export default async function StatusPage() {
 
       {/* 细分服务状态列表（发丝线台账） */}
       <section className="flex flex-col gap-4">
-        <h2 className="font-mono text-xs tracking-wider text-muted-foreground">核心服务组件</h2>
+        <h2 className="font-mono text-xs tracking-wider text-muted-foreground">服务</h2>
 
         <div className="flex flex-col divide-y divide-hair border-t border-hair">
           {/* 服务 1：站点前端与渲染引擎 */}
           <div className="flex flex-col gap-3 py-5">
             <div className="flex items-center justify-between gap-4">
               <div className="flex flex-col">
-                <span className="text-sm font-medium text-foreground">Web 渲染与应用服务</span>
+                <span className="text-sm font-medium text-foreground">站点服务</span>
                 <span className="font-mono text-xs text-muted-foreground">
-                  Next.js 16 (Turbopack) · Node.js {processData.nodeVersion}
+                  Next.js 16 · Node.js {processData.nodeVersion}
                 </span>
               </div>
               <span className="inline-flex shrink-0 items-center gap-1.5 font-mono text-xs font-medium text-emerald-700 dark:text-emerald-400">
                 <span className="size-1.5 rounded-full bg-emerald-500" />
-                正常运行
+                正常
               </span>
-            </div>
-
-            <div className="flex flex-col gap-1.5 pt-1">
-              <div className="flex h-3.5 items-center gap-1">
-                {Array.from({ length: 30 }).map((_, i) => (
-                  <div
-                    key={i}
-                    className="h-full flex-1 rounded-xs bg-emerald-500/65 transition-[background-color,scale] duration-150 hover:scale-y-125 hover:bg-emerald-500 motion-reduce:transition-colors motion-reduce:hover:scale-y-100"
-                    title={`第 ${i + 1} 天: 可用率 100%`}
-                  />
-                ))}
-              </div>
-              <div className="flex justify-between font-mono text-[11px] text-muted-foreground">
-                <span>30 天前</span>
-                <span className="font-medium text-foreground">100% 可用性</span>
-                <span>今日</span>
-              </div>
             </div>
           </div>
 
@@ -110,10 +84,8 @@ export default async function StatusPage() {
           <div className="flex flex-col gap-3 py-5">
             <div className="flex items-center justify-between gap-4">
               <div className="flex flex-col">
-                <span className="text-sm font-medium text-foreground">Turso 分布式云数据库</span>
-                <span className="font-mono text-xs text-muted-foreground">
-                  libSQL 引擎 · 节点: AWS AP-NorthEast (Tokyo)
-                </span>
+                <span className="text-sm font-medium text-foreground">数据库 (Turso)</span>
+                <span className="font-mono text-xs text-muted-foreground">libSQL · {dbResult.message}</span>
               </div>
               <div className="flex shrink-0 items-center gap-3 font-mono text-xs">
                 <span className="tabular-nums text-muted-foreground">{dbResult.latency}ms</span>
@@ -129,27 +101,8 @@ export default async function StatusPage() {
                       dbResult.status === 'operational' ? 'bg-emerald-500' : 'bg-amber-500'
                     }`}
                   />
-                  {dbResult.status === 'operational' ? '正常连接' : '响应异常'}
+                  {dbResult.status === 'operational' ? '正常' : '异常'}
                 </span>
-              </div>
-            </div>
-
-            <div className="flex flex-col gap-1.5 pt-1">
-              <div className="flex h-3.5 items-center gap-1">
-                {Array.from({ length: 30 }).map((_, i) => (
-                  <div
-                    key={i}
-                    className="h-full flex-1 rounded-xs bg-emerald-500/65 transition-[background-color,scale] duration-150 hover:scale-y-125 hover:bg-emerald-500 motion-reduce:transition-colors motion-reduce:hover:scale-y-100"
-                    title={`第 ${i + 1} 天: 可用率 100%`}
-                  />
-                ))}
-              </div>
-              <div className="flex justify-between font-mono text-[11px] text-muted-foreground">
-                <span>30 天前</span>
-                <span className="font-medium text-foreground">
-                  实时耗时 {dbResult.latency}ms ({dbResult.message})
-                </span>
-                <span>今日</span>
               </div>
             </div>
           </div>
@@ -158,8 +111,8 @@ export default async function StatusPage() {
           <div className="flex flex-col gap-2 py-5">
             <div className="flex items-center justify-between gap-4">
               <div className="flex flex-col">
-                <span className="text-sm font-medium text-foreground">实时活动状态采集</span>
-                <span className="font-mono text-xs text-muted-foreground">Hammerspoon 本地守护进程 · 只读状态源</span>
+                <span className="text-sm font-medium text-foreground">工位状态</span>
+                <span className="font-mono text-xs text-muted-foreground">本地设备活动同步</span>
               </div>
               <span
                 className={`inline-flex shrink-0 items-center gap-1.5 font-mono text-xs font-medium ${
@@ -176,17 +129,14 @@ export default async function StatusPage() {
                 {presenceResult.label}
               </span>
             </div>
-            <p className="text-xs leading-relaxed text-muted-foreground">
-              当作者本地开发设备处于非工作或未联网状态时自动显示为待机离线，不影响全站访客浏览。
-            </p>
           </div>
 
           {/* 服务 4：邮件通知服务 */}
           <div className="flex flex-col gap-2 py-5">
             <div className="flex items-center justify-between gap-4">
               <div className="flex flex-col">
-                <span className="text-sm font-medium text-foreground">邮件投递通道 (Resend)</span>
-                <span className="font-mono text-xs text-muted-foreground">用于友链申请与重要站点通知推送</span>
+                <span className="text-sm font-medium text-foreground">邮件通知 (Resend)</span>
+                <span className="font-mono text-xs text-muted-foreground">友链审核与站点通知</span>
               </div>
               <span
                 className={`inline-flex shrink-0 items-center gap-1.5 font-mono text-xs font-medium ${
@@ -201,45 +151,31 @@ export default async function StatusPage() {
                 {emailResult.label}
               </span>
             </div>
-            <p className="text-xs leading-relaxed text-muted-foreground">
-              未配置 API Key 时将自动落入控制台模拟日志模式，保证本地与测试环境正常工作。
-            </p>
           </div>
         </div>
       </section>
 
-      {/* 近期事件与系统指标 */}
+      {/* 运行指标 */}
       <section className="flex flex-col gap-5 border-t border-hair pt-8">
-        <h2 className="font-mono text-xs tracking-wider text-muted-foreground">近期事件与环境指标</h2>
+        <h2 className="font-mono text-xs tracking-wider text-muted-foreground">运行指标</h2>
 
-        <div className="flex items-center gap-3 text-xs text-muted-foreground">
-          <span className="size-1.5 shrink-0 rounded-full bg-emerald-500" />
-          <span>近 90 天内未发生任何计划外服务严重中断事件。所有基础设施平稳运行。</span>
-        </div>
-
-        <div className="grid grid-cols-2 gap-6 border-t border-hair pt-5 sm:grid-cols-4">
+        <div className="grid grid-cols-3 gap-6">
           <div className="flex flex-col gap-1">
-            <span className="font-mono text-[11px] text-muted-foreground">系统运行时间</span>
+            <span className="font-mono text-[11px] text-muted-foreground">运行时长</span>
             <span className="font-mono text-xs font-semibold tabular-nums text-foreground">
               {formatUptime(processData.uptime)}
             </span>
           </div>
           <div className="flex flex-col gap-1">
-            <span className="font-mono text-[11px] text-muted-foreground">运行时平台</span>
+            <span className="font-mono text-[11px] text-muted-foreground">平台</span>
             <span className="font-mono text-xs font-semibold text-foreground">
               {processData.platform} ({processData.arch})
             </span>
           </div>
           <div className="flex flex-col gap-1">
-            <span className="font-mono text-[11px] text-muted-foreground">Node 内存分配</span>
+            <span className="font-mono text-[11px] text-muted-foreground">内存</span>
             <span className="font-mono text-xs font-semibold tabular-nums text-foreground">
               {processData.memory.heapUsedMb} MB / {processData.memory.rssMb} MB
-            </span>
-          </div>
-          <div className="flex flex-col gap-1">
-            <span className="font-mono text-[11px] text-muted-foreground">接口暴露状态</span>
-            <span className="font-mono text-xs font-semibold text-emerald-700 dark:text-emerald-400">
-              纯内部服务端渲染
             </span>
           </div>
         </div>

@@ -20,12 +20,12 @@ export interface HeaderPostItem {
 
 const QUICK_ROUTES = [
   { name: '首页', href: '/', hint: 'Home' },
-  { name: '全部文章', href: '/blog', hint: 'Blog' },
-  { name: '写作归档', href: '/blog/archives', hint: 'Archives' },
-  { name: '随记笔记', href: '/notes', hint: 'Notes' },
-  { name: '开源项目', href: '/projects', hint: 'Projects' },
-  { name: '友邻链接', href: '/links', hint: 'Friends' },
-  { name: '关于我', href: '/about', hint: 'About' },
+  { name: '文章', href: '/blog', hint: 'Blog' },
+  { name: '归档', href: '/blog/archives', hint: 'Archives' },
+  { name: '笔记', href: '/notes', hint: 'Notes' },
+  { name: '项目', href: '/projects', hint: 'Projects' },
+  { name: '友链', href: '/links', hint: 'Links' },
+  { name: '关于', href: '/about', hint: 'About' },
 ] as const
 
 interface CommandSearchModalProps {

@@ -13,10 +13,10 @@ export function AiSummary({ summary }: AiSummaryProps) {
   }
 
   return (
-    <section aria-label="关键洞察" className="border-y border-hair py-5">
+    <section aria-label="AI 摘要" className="border-y border-hair py-5">
       <div className="mb-2 flex items-center gap-1.5 font-mono text-xs text-muted-foreground">
         <Sparkles className="size-3.5 text-primary" aria-hidden="true" />
-        <span>关键洞察</span>
+        <span>AI 摘要</span>
       </div>
       <p className="break-words font-sans text-sm leading-7 text-foreground/85">{summary.trim()}</p>
     </section>
