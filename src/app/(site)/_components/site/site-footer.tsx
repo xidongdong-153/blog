@@ -14,7 +14,7 @@ export function SiteFooter() {
   const hostLabel = siteConfig.url.replace(/^https?:\/\//, '').toUpperCase()
 
   return (
-    <footer id="site-footer" className="mt-20 px-6 pb-12 pt-8 text-xs text-muted-foreground sm:mt-24">
+    <footer id="site-footer" className="relative z-10 mt-20 px-6 pb-12 pt-8 text-xs text-muted-foreground sm:mt-24">
       <div className="mx-auto w-full max-w-5xl">
         <div className="relative isolate overflow-hidden rounded-xl px-6 py-7 sm:px-9 sm:py-8">
           <PaperSurface />

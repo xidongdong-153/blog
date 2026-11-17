@@ -1,19 +1,38 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { SITE_FX_CHANGE_EVENT, SITE_FX_STORAGE_KEY } from './paper-canvas'
+import { readBackdropFxEnabled, SITE_FX_CHANGE_EVENT, SITE_FX_STORAGE_KEY } from './paper-canvas'
 
 /**
  * 页脚版式栏中的背景效果（微噪点纸面与氛围光）开关。
+ * 同步监听同标签自定义事件与跨标签 StorageEvent（含 localStorage.clear），保持按钮与全局状态一致。
  */
 export function FxToggle() {
   const [enabled, setEnabled] = useState(true)
 
   useEffect(() => {
-    try {
-      setEnabled(localStorage.getItem(SITE_FX_STORAGE_KEY) !== 'off')
-    } catch {
-      setEnabled(true)
+    setEnabled(readBackdropFxEnabled())
+
+    const handleFxChange = (event: Event) => {
+      const custom = event as CustomEvent<{ enabled?: boolean }>
+      if (typeof custom.detail?.enabled === 'boolean') {
+        setEnabled(custom.detail.enabled)
+      } else {
+        setEnabled(readBackdropFxEnabled())
+      }
+    }
+
+    const handleStorage = (event: StorageEvent) => {
+      if (event.key === null || event.key === SITE_FX_STORAGE_KEY) {
+        setEnabled(readBackdropFxEnabled())
+      }
+    }
+
+    window.addEventListener(SITE_FX_CHANGE_EVENT, handleFxChange)
+    window.addEventListener('storage', handleStorage)
+    return () => {
+      window.removeEventListener(SITE_FX_CHANGE_EVENT, handleFxChange)
+      window.removeEventListener('storage', handleStorage)
     }
   }, [])
 

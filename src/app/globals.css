@@ -8,6 +8,18 @@
 @custom-variant theme-light (&:where(html[data-theme='light'] *));
 @custom-variant theme-dark (&:where(html[data-theme='dark'] *));
 
+@property --page-highlight {
+  syntax: '<color>';
+  inherits: true;
+  initial-value: #6fa996;
+}
+
+@property --page-highlight-secondary {
+  syntax: '<color>';
+  inherits: true;
+  initial-value: #b9ccc0;
+}
+
 @theme inline {
   --color-background: hsl(var(--background));
   --color-foreground: hsl(var(--foreground));
@@ -248,6 +260,14 @@
 html[data-backdrop-fx='off'] #global-ambient-backdrop,
 html[data-backdrop-fx='off'] #site-film-backdrop {
   opacity: 0 !important;
+}
+
+html:has([data-reader-focus='true']) #global-ambient-backdrop {
+  opacity: 0.16;
+}
+
+html:has([data-reader-focus='true']) #site-film-backdrop {
+  opacity: 0.55;
 }
 
 body {

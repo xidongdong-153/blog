@@ -12,6 +12,7 @@ import {
   getSeriesDetail,
   getSeriesNav,
 } from '@/lib/content'
+import { sanitizeCssColor } from '@/lib/utils'
 import { getArticleSummaryBySlug } from '@/server/modules/ai/summary.service'
 import { AiGeneratedLabel } from '../../_components/blog/ai-generated-label'
 import { AiSummary } from '../../_components/blog/ai-summary'
@@ -53,6 +54,7 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
   const seriesNav = await getSeriesNav(post)
   const seriesDetail = seriesNav ? await getSeriesDetail(seriesNav.series.id) : null
   const categoryLabel = BLOG_CATEGORY_LABELS[post.category]
+  const safeHeroColor = sanitizeCssColor(post.heroColor)
 
   let summary: string | null = null
   if (!post.disableAiSummary) {
@@ -69,7 +71,7 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
 
   return (
     <>
-      {post.heroColor && <style>{`:root { --page-highlight: ${post.heroColor} }`}</style>}
+      {safeHeroColor && <style>{`:root { --page-highlight: ${safeHeroColor} }`}</style>}
 
       <ArticleReaderShell
         className={

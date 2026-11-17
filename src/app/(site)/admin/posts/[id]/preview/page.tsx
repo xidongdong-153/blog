@@ -4,6 +4,7 @@ import { notFound } from 'next/navigation'
 import { MdxContent } from '@/app/(site)/_components/blog/mdx-content'
 import { TableOfContents } from '@/app/(site)/_components/blog/toc'
 import { BLOG_CATEGORY_LABELS, calculateReadingTime, extractHeadings, formatDate } from '@/lib/content'
+import { sanitizeCssColor } from '@/lib/utils'
 import { requirePostAdmin } from '@/server/modules/posts/posts-admin'
 import { validatePostCompilation } from '@/server/modules/posts/posts-compile'
 import { getManagedPost, PostServiceError } from '@/server/modules/posts/posts.service'
@@ -51,9 +52,10 @@ export default async function PreviewPostPage({
     )
   }
   const headings = extractHeadings(doc.content)
+  const safeHeroColor = sanitizeCssColor(doc.heroColor)
   return (
     <div className="mx-auto w-full max-w-5xl">
-      {doc.heroColor && <style>{`:root { --page-highlight: ${doc.heroColor} }`}</style>}
+      {safeHeroColor && <style>{`:root { --page-highlight: ${safeHeroColor} }`}</style>}
       <p className="mb-6 border-b border-border pb-3 text-xs text-muted-foreground">
         工作稿预览 · 版本 {post.revision}
       </p>

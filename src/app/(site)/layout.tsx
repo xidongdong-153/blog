@@ -35,8 +35,8 @@ export default async function SiteLayout({ children }: { children: React.ReactNo
   return (
     <VisitorPresenceProvider>
       <div className="relative flex min-h-screen flex-col overflow-x-clip">
-        <PaperCanvas />
         <AmbientBackdrop id="global-ambient-backdrop" />
+        <PaperCanvas />
         <PostPreviewChrome>
           <SiteHeader posts={headerPosts} categories={headerCategories} />
         </PostPreviewChrome>
