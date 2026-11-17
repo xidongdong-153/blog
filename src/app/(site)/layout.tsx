@@ -8,7 +8,7 @@ import { SiteFooter } from './_components/site/site-footer'
 import { SiteHeader } from './_components/site/site-header'
 import { VisitorPresenceProvider } from './_components/visitor/visitor-presence-provider'
 
-/** 站点路由组布局：所有公开页面共享页头、页脚、和纸背景画布与访客实时在线连接。 */
+/** 站点路由组布局：所有公开页面共享页头、页脚、岩石细纹画布与访客实时在线连接。 */
 export default async function SiteLayout({ children }: { children: React.ReactNode }) {
   let headerPosts: HeaderPostItem[] = []
   let headerCategories: HeaderCategoryStat[] = []

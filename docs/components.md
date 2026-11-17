@@ -1,5 +1,5 @@
 ---
-description: 'RSC/client 边界、和纸背景体系、MDX、评论、后台 AI、交互与无障碍组件约定'
+description: 'RSC/client 边界、岩石细纹背景、MDX、评论、后台 AI、交互与无障碍组件约定'
 status: implemented
 paths:
   - 'src/app/(site)/_components/**'
@@ -18,7 +18,7 @@ paths:
 
 现状：项目中的公开/通用 client 组件包括：
 
-- `src/app/(site)/_components/site/paper-canvas.tsx`（全视口静态和纸纤维 Canvas 绘制、DPR 胶片颗粒生成、`site-backdrop-fx` 与跨标签 `storage` 同步）
+- `src/app/(site)/_components/site/paper-canvas.tsx`（双主题静态岩石细纹、挂载时随机生成、`site-backdrop-fx` 与跨标签 `storage` 同步）
 - `src/app/(site)/_components/site/fx-toggle.tsx`（页脚背景效果开关及同/跨标签状态同步）
 - `src/app/(site)/_components/site/theme-toggle.tsx`（主题三态切换、圆形 View Transition 扩散与媒体监听）
 - `src/app/(site)/_components/site/site-header.tsx`（滚动显隐、文章下拉菜单、命令搜索唤起与移动端抽屉）
@@ -66,9 +66,9 @@ MDX 渲染走异步 RSC（`mdx-content.tsx` 的 `compileMDX`），不需要 clie
 ## 通用模式与组件
 
 - **全站背景底座（`AmbientBackdrop` + `PaperCanvas` + `PaperSurface`）**：
-  - `SiteLayout`（`src/app/(site)/layout.tsx`）先挂载 `AmbientBackdrop`（`-z-20`），再挂载 `PaperCanvas`（`-z-10`），确保颗粒与纤维层叠于氛围光之上。
+  - `SiteLayout`（`src/app/(site)/layout.tsx`）先挂载 `AmbientBackdrop`（`-z-20`），再挂载 `PaperCanvas`（`-z-10`），纹理画布保持透明，让底色和文章氛围光透出。
   - `AmbientBackdrop` 接收可选 `color` 或读取 `--page-highlight`，通过 `src/lib/utils.ts` 的 `sanitizeCssColor` 与 `globals.css` 的 `@property` `<color>` 校验双层兜底；文章页与预览页注入 `post.heroColor` 时同样经 `sanitizeCssColor` 过滤。
-  - `PaperCanvas` 仅在挂载及防抖 `resize` 时绘制静态和纸纤维 `<canvas>`，并一次性生成 `211×211` DPR 感知双极性微噪点；`FxToggle` 与 `PaperCanvas` 共同通过 `readBackdropFxEnabled`、`site-fx-change` 自定义事件及 `storage`（含 `key === null`）保持同标签与跨标签状态一致，配合 `src/app/layout.tsx` 隔离 `try/catch` 的防闪烁脚本同步 `html.dataset.backdropFx`。
+  - `PaperCanvas` 使用 `rock-texture.ts` 绘制双主题静态岩石细纹：每次挂载生成随机种子，站内跳转、主题切换、开关与尺寸变化保持同一种子；挂载和防抖 `resize` 后在空闲时绘制，背景关闭或页面隐藏时暂停，恢复后按需补绘。单画布最多 300 万像素且边长不超过 4096，材质采样最多 80 万像素，绘制失败时保留站点底色；`FxToggle` 与 `PaperCanvas` 共同通过 `readBackdropFxEnabled`、`site-fx-change` 自定义事件及 `storage`（含 `key === null`）保持同标签与跨标签状态一致，配合 `src/app/layout.tsx` 隔离 `try/catch` 的防闪烁脚本同步 `html.dataset.backdropFx`。
   - `PaperSurface` 仅用于需要明确层叠区隔的浮层与弹出面板（`bg-popover`、工位 HUD、移动菜单抽屉等）；公开正文列表、页脚与信息区块不再套用卡片外框。
 - **一级页面标题 `PageHeader`**（`src/app/(site)/_components/site/page-header.tsx`）：接收 `title`、`description`（可选保留 `eyebrow` 参数但不再渲染英文眉标），输出衬线 H1、说明和分隔线，保持 Server Component。
 - **文章搜索 `BlogSearch`**：接收 RSC 的 `sourceSwitch`、`toolbar`、`sidebar` 和列表 `children`；不把整个页面改成 client，详情见[站内搜索](search.md)。
@@ -169,7 +169,7 @@ MDX 渲染走异步 RSC（`mdx-content.tsx` 的 `compileMDX`），不需要 clie
 - `SiteHeader` 的移动菜单关闭时使用 `inert`，`Escape` 关闭并恢复按钮焦点；展开时保持完全不透明背景并确保页头可见，路由切换后关闭。桌面端「文章」悬停/聚焦预览支持鼠标移出与键盘失焦自动关闭。
 - **首页无卡片造物室 Hero**（`src/app/(site)/_components/home/hero.tsx`）：
   - 桌面端采用 `lg:grid-cols-[minmax(0,1fr)_248px]` 非对称双栏：左栏依次呈现 `HeroLiveBadge`（细线锚点 + 城市 + 实时 `presence` 状态，无循环脉冲圆点）、衬线宣言主标题、中文简介与无框线性图标通道（悬停展开底部短墨线与微标签）；右栏以发丝线分隔，无卡片外壳地呈现作者头像与文章 / 笔记 / 标签计数链接。
-  - 原 `spatial-field.tsx` 当前未在首页挂载，Hero 直接透出底层 `AmbientBackdrop` 与 `PaperCanvas` 的和纸与顶光质感。
+  - 原 `spatial-field.tsx` 当前未在首页挂载，Hero 直接透出底层 `AmbientBackdrop` 与 `PaperCanvas` 的岩石细纹与顶光质感。
 - **首页单列台账与年度创作脉络**（`src/app/(site)/page.tsx`）：
   - Hero 下方仅保留单列 `最近更新`（`WritingTimeline`，按 ISO 日期倒序合并文章与笔记后的前 5 条，使用 `${kind}-${slug}` 作 key 与 `divide-y divide-hair` 细线台账，悬停触发 `.ink-row` 左墨线生长与轻右移），移除首页重复的随记栏、技术栈胶囊与底部重复导航条。
   - 主体下方接入无卡片外壳的 `YearlyTimeline` 双轨季度脉络（上轨文章实心节点、下轨笔记空心节点，带 `Q1–Q4` 刻度与当年进度指针）。
@@ -201,4 +201,4 @@ MDX 渲染走异步 RSC（`mdx-content.tsx` 的 `compileMDX`），不需要 clie
   - **操作按钮**：动词 + 宾语或单一明确动作，如"审核"、"管理友链"、"退出登录"、"前往配置"。
   - **空状态**：客观陈述当前为空的实际原因（如"暂无待审核的友链申请。"、"暂无评论。"），不写过度包装的修饰句。
 
-源码入口：[根布局](../src/app/layout.tsx)、[站点布局](../src/app/%28site%29/layout.tsx)、[和纸底纹](../src/app/%28site%29/_components/site/paper-canvas.tsx)、[MDX 渲染](../src/app/%28site%29/_components/blog/mdx-content.tsx)、[全局样式](../src/app/globals.css)。字体与五页视觉值以 [DESIGN.md](../DESIGN.md) 为准；Newsreader 和 Satoshi 的西文字形不代表中文也使用这些字体。
+源码入口：[根布局](../src/app/layout.tsx)、[站点布局](../src/app/%28site%29/layout.tsx)、[岩石底纹](../src/app/%28site%29/_components/site/paper-canvas.tsx)、[MDX 渲染](../src/app/%28site%29/_components/blog/mdx-content.tsx)、[全局样式](../src/app/globals.css)。字体与五页视觉值以 [DESIGN.md](../DESIGN.md) 为准；Newsreader 和 Satoshi 的西文字形不代表中文也使用这些字体。

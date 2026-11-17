@@ -9,8 +9,8 @@ interface AmbientBackdropProps extends React.HTMLAttributes<HTMLDivElement> {
 
 /**
  * 页面首屏 Bokashi 顶光晕染与错落氛围光底座。
- * 位于纸面纤维与颗粒层之下（-z-20），通过顶部洗墨渐变、双侧错落椭圆与底部柔和遮罩消隐，
- * 使天光氛围自然透出纸张质感并支持单篇文章 heroColor 动态染色（含非法色值容错回退）。
+ * 位于透明岩石细纹层之下（-z-20），通过顶部洗墨渐变、双侧错落椭圆与底部柔和遮罩消隐，
+ * 使氛围光自然透出岩石细纹并支持单篇文章 heroColor 动态染色（含非法色值容错回退）。
  */
 export function AmbientBackdrop({ color, className = '', ...props }: AmbientBackdropProps) {
   const safeColor = sanitizeCssColor(color)

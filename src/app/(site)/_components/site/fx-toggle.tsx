@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react'
 import { readBackdropFxEnabled, SITE_FX_CHANGE_EVENT, SITE_FX_STORAGE_KEY } from './paper-canvas'
 
 /**
- * 页脚版式栏中的背景效果（微噪点纸面与氛围光）开关。
+ * 页脚版式栏中的背景效果（岩石细纹与氛围光）开关。
  * 同步监听同标签自定义事件与跨标签 StorageEvent（含 localStorage.clear），保持按钮与全局状态一致。
  */
 export function FxToggle() {
