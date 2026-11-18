@@ -143,7 +143,7 @@ export default async function PreviewPostPage({
         </article>
 
         {headings.length > 0 && (
-          <aside className="sticky top-20 hidden max-h-[calc(100vh-6rem)] w-52 shrink-0 overflow-y-auto lg:block">
+          <aside className="sticky top-20 hidden max-h-[calc(100vh-6rem)] w-52 shrink-0 flex-col lg:flex">
             <TableOfContents headings={headings} />
           </aside>
         )}

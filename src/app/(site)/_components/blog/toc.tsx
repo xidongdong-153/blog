@@ -3,7 +3,7 @@
 import type { CSSProperties } from 'react'
 import type { Heading } from '@/lib/content'
 import { ArrowUp, BookOpen, Check, Link2, MessageSquare } from 'lucide-react'
-import { useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { useReaderFocus } from './article-reader-shell'
 
 interface TableOfContentsProps {
@@ -11,51 +11,105 @@ interface TableOfContentsProps {
   onItemClick?: () => void
   /** 是否在桌面侧栏底部附带环形阅读进度与悬浮快捷操作 */
   showRailTools?: boolean
+  /** 是否置于移动端抽屉等外层自滚动容器中 */
+  inDrawer?: boolean
+}
+
+function getScrollMaskImage(edges: { top: boolean; bottom: boolean }): string | undefined {
+  if (edges.top && edges.bottom) {
+    return 'linear-gradient(to bottom, transparent 0%, black 18px, black calc(100% - 18px), transparent 100%)'
+  }
+  if (edges.top) {
+    return 'linear-gradient(to bottom, transparent 0%, black 18px, black 100%)'
+  }
+  if (edges.bottom) {
+    return 'linear-gradient(to bottom, black 0%, black calc(100% - 18px), transparent 100%)'
+  }
+  return undefined
 }
 
 /**
  * 文章目录与右侧阅读进度组件。
- * 1. 支持多章节视口感知与专注模式级联淡隐 (--toc-ripple-delay)。
- * 2. 桌面侧栏底部附带渐隐分隔线、SVG 环形阅读进度与轻量快捷操作栏。
+ * 1. 采用贯穿式 1px 垂直导轨与主次章节刻度锚点，隐藏原生滚动条并在超长目录溢出端提供渐隐提示。
+ * 2. 开启专注阅读时平滑折叠目录使进度与快捷栏过渡到顶部，关闭后随目录展开回归底部。
  */
-export function TableOfContents({ headings, onItemClick, showRailTools = false }: TableOfContentsProps) {
+export function TableOfContents({
+  headings,
+  onItemClick,
+  showRailTools = false,
+  inDrawer = false,
+}: TableOfContentsProps) {
   const [activeIds, setActiveIds] = useState<string[]>([])
   const [scrollPercent, setScrollPercent] = useState(0)
   const [copiedLink, setCopiedLink] = useState(false)
+  const [scrollEdges, setScrollEdges] = useState({ top: false, bottom: false })
   const { focusMode, toggleFocusMode } = useReaderFocus()
 
-  const containerRef = useRef<HTMLDivElement>(null)
+  const containerRef = useRef<HTMLElement>(null)
+  const listRef = useRef<HTMLUListElement>(null)
   const suppressFollowRef = useRef(false)
   const pendingClickSlugRef = useRef<string>('')
   const activeIdsRef = useRef<string[]>([])
   const rafIdRef = useRef<number>(0)
+  const copyTimerRef = useRef<number>(0)
+  const focusModeRef = useRef(focusMode)
+  const prevFocusModeRef = useRef(focusMode)
+
+  const isCollapsed = showRailTools && focusMode
 
   useEffect(() => {
-    const container = containerRef.current
-    const scrollContainer = container?.closest<HTMLElement>('#sidebar') ?? container
+    focusModeRef.current = focusMode
+  }, [focusMode])
 
-    const releaseFollow = () => {
-      suppressFollowRef.current = false
+  const updateScrollEdges = useCallback(() => {
+    const listEl = listRef.current
+    if (!listEl || inDrawer) {
+      setScrollEdges((prev) => (prev.top || prev.bottom ? { top: false, bottom: false } : prev))
+      return
     }
+    const hasOverflow = listEl.scrollHeight > listEl.clientHeight + 2
+    const nextTop = hasOverflow && listEl.scrollTop > 4
+    const nextBottom = hasOverflow && listEl.scrollTop + listEl.clientHeight < listEl.scrollHeight - 4
+    setScrollEdges((prev) =>
+      prev.top === nextTop && prev.bottom === nextBottom ? prev : { top: nextTop, bottom: nextBottom },
+    )
+  }, [inDrawer])
 
-    const ensureLinkVisible = (link: HTMLElement) => {
-      if (!scrollContainer) return
+  const ensureLinkVisible = useCallback(
+    (id: string) => {
+      if (inDrawer || focusModeRef.current) return
+      const scrollContainer = listRef.current
+      if (!scrollContainer || scrollContainer.clientHeight === 0) return
+      if (scrollContainer.scrollHeight <= scrollContainer.clientHeight + 1) return
+
+      const links = scrollContainer.querySelectorAll<HTMLAnchorElement>('a[href^="#"]')
+      const targetHref = `#${id}`
+      const link = Array.from(links).find((item) => item.getAttribute('href') === targetHref)
+      if (!link) return
+
       const containerRect = scrollContainer.getBoundingClientRect()
       const linkRect = link.getBoundingClientRect()
-      const edgePadding = 48
+      const edgePadding = 40
       const isAbove = linkRect.top < containerRect.top + edgePadding
       const isBelow = linkRect.bottom > containerRect.bottom - edgePadding
-
       if (!isAbove && !isBelow) return
 
       const centerOffset = (containerRect.height - linkRect.height) / 2
       const targetScrollTop = scrollContainer.scrollTop + (linkRect.top - containerRect.top) - centerOffset
-
       const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
       scrollContainer.scrollTo({
-        top: targetScrollTop,
+        top: Math.max(0, targetScrollTop),
         behavior: reducedMotion ? 'auto' : 'smooth',
       })
+    },
+    [inDrawer],
+  )
+
+  useEffect(() => {
+    const listEl = listRef.current
+
+    const releaseFollow = () => {
+      suppressFollowRef.current = false
     }
 
     const updatePositionAndStyle = () => {
@@ -114,11 +168,8 @@ export function TableOfContents({ headings, onItemClick, showRailTools = false }
         activeIdsRef.current = currentActiveIds
         setActiveIds(currentActiveIds)
 
-        if (currentActiveIds.length > 0 && !suppressFollowRef.current && container) {
-          const firstActiveLink = container.querySelector<HTMLAnchorElement>(`a[href="#${currentActiveIds[0]}"]`)
-          if (firstActiveLink) {
-            ensureLinkVisible(firstActiveLink)
-          }
+        if (currentActiveIds.length > 0 && !suppressFollowRef.current) {
+          ensureLinkVisible(currentActiveIds[0])
         }
       }
     }
@@ -132,21 +183,26 @@ export function TableOfContents({ headings, onItemClick, showRailTools = false }
     }
 
     updatePositionAndStyle()
+    updateScrollEdges()
     const timer1 = window.setTimeout(updatePositionAndStyle, 100)
     const timer2 = window.setTimeout(updatePositionAndStyle, 300)
     const timer3 = window.setTimeout(updatePositionAndStyle, 600)
 
     const contentElement = document.querySelector('article')
     let resizeObserver: ResizeObserver | null = null
-    if (contentElement && typeof ResizeObserver !== 'undefined') {
+    if (typeof ResizeObserver !== 'undefined') {
       resizeObserver = new ResizeObserver(() => {
         scheduleUpdate()
+        updateScrollEdges()
       })
-      resizeObserver.observe(contentElement)
+      if (contentElement) resizeObserver.observe(contentElement)
+      if (listEl) resizeObserver.observe(listEl)
     }
 
+    listEl?.addEventListener('scroll', updateScrollEdges, { passive: true })
     window.addEventListener('scroll', scheduleUpdate, { passive: true })
     window.addEventListener('resize', scheduleUpdate)
+    window.addEventListener('resize', updateScrollEdges)
     window.addEventListener('wheel', releaseFollow, { passive: true })
     window.addEventListener('touchstart', releaseFollow, { passive: true })
     window.addEventListener('keydown', releaseFollow)
@@ -155,8 +211,10 @@ export function TableOfContents({ headings, onItemClick, showRailTools = false }
       window.clearTimeout(timer1)
       window.clearTimeout(timer2)
       window.clearTimeout(timer3)
+      listEl?.removeEventListener('scroll', updateScrollEdges)
       window.removeEventListener('scroll', scheduleUpdate)
       window.removeEventListener('resize', scheduleUpdate)
+      window.removeEventListener('resize', updateScrollEdges)
       window.removeEventListener('wheel', releaseFollow)
       window.removeEventListener('touchstart', releaseFollow)
       window.removeEventListener('keydown', releaseFollow)
@@ -165,7 +223,34 @@ export function TableOfContents({ headings, onItemClick, showRailTools = false }
         window.cancelAnimationFrame(rafIdRef.current)
       }
     }
-  }, [headings])
+  }, [headings, ensureLinkVisible, updateScrollEdges])
+
+  useEffect(() => {
+    const wasFocused = prevFocusModeRef.current
+    prevFocusModeRef.current = focusMode
+    if (!wasFocused || focusMode) return
+
+    const frameId = window.requestAnimationFrame(() => {
+      updateScrollEdges()
+      if (activeIdsRef.current[0]) {
+        ensureLinkVisible(activeIdsRef.current[0])
+      }
+    })
+    const settleTimer = window.setTimeout(updateScrollEdges, 430)
+
+    return () => {
+      window.cancelAnimationFrame(frameId)
+      window.clearTimeout(settleTimer)
+    }
+  }, [focusMode, ensureLinkVisible, updateScrollEdges])
+
+  useEffect(() => {
+    return () => {
+      if (copyTimerRef.current) {
+        window.clearTimeout(copyTimerRef.current)
+      }
+    }
+  }, [])
 
   const handleLinkClick = (e: React.MouseEvent<HTMLAnchorElement>, id: string) => {
     e.preventDefault()
@@ -177,7 +262,8 @@ export function TableOfContents({ headings, onItemClick, showRailTools = false }
     activeIdsRef.current = [id]
     setActiveIds([id])
 
-    target.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    target.scrollIntoView({ behavior: reducedMotion ? 'auto' : 'smooth', block: 'start' })
 
     if (onItemClick) {
       onItemClick()
@@ -188,71 +274,122 @@ export function TableOfContents({ headings, onItemClick, showRailTools = false }
     try {
       await navigator.clipboard.writeText(window.location.href)
       setCopiedLink(true)
-      window.setTimeout(setCopiedLink, 1800, false)
+      if (copyTimerRef.current) {
+        window.clearTimeout(copyTimerRef.current)
+      }
+      copyTimerRef.current = window.setTimeout(setCopiedLink, 1800, false)
     } catch {
       // 忽略剪贴板权限错误
     }
   }
 
   const scrollToComments = () => {
-    document.getElementById('comments')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    document.getElementById('comments')?.scrollIntoView({ behavior: reducedMotion ? 'auto' : 'smooth', block: 'start' })
   }
 
   const scrollToTop = () => {
-    window.scrollTo({ top: 0, behavior: 'smooth' })
+    const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    window.scrollTo({ top: 0, behavior: reducedMotion ? 'auto' : 'smooth' })
   }
 
   const ringRadius = 6.5
   const ringCircumference = 2 * Math.PI * ringRadius
   const strokeDashoffset = ringCircumference - (scrollPercent / 100) * ringCircumference
+  const maskImage = !inDrawer ? getScrollMaskImage(scrollEdges) : undefined
+  const primaryActiveId = activeIds[0]
 
   return (
     <nav ref={containerRef} aria-label="文章目录" className="select-none text-xs leading-relaxed">
       {headings.length > 0 && (
-        <ul
-          inert={showRailTools && focusMode ? true : undefined}
-          aria-hidden={showRailTools && focusMode ? true : undefined}
-          className="flex max-h-[54vh] flex-col gap-1 overflow-y-auto pr-1"
+        <div
+          inert={isCollapsed ? true : undefined}
+          aria-hidden={isCollapsed ? true : undefined}
+          className={`grid transition-[grid-template-rows,opacity] ease-[cubic-bezier(0.32,0.72,0,1)] motion-reduce:transition-opacity motion-reduce:duration-150 ${
+            isCollapsed
+              ? 'pointer-events-none grid-rows-[0fr] opacity-0 [transition-duration:380ms,220ms]'
+              : 'grid-rows-[1fr] opacity-100 [transition-duration:440ms,320ms]'
+          }`}
         >
-          {headings.map((heading, index) => {
-            const isActive = activeIds.includes(heading.id)
-            return (
-              <li
-                key={heading.id}
-                style={{ '--toc-ripple-delay': `${Math.min(index, 14) * 40}ms` } as CSSProperties}
-                className="relative leading-none transition-[opacity,translate] duration-[350ms] ease-[cubic-bezier(0.4,0,0.2,1)] motion-reduce:transition-opacity group-data-[reader-focus=true]/reader:pointer-events-none group-data-[reader-focus=true]/reader:-translate-x-2.5 group-data-[reader-focus=true]/reader:opacity-0 group-data-[reader-focus=true]/reader:[transition-delay:var(--toc-ripple-delay)]"
-              >
-                {/* 激活态垂直标尺线 */}
-                {isActive && (
-                  <span
-                    aria-hidden="true"
-                    className="absolute left-0 top-1.5 h-3.5 w-[2px] rounded-full bg-primary transition-all duration-200"
-                  />
-                )}
-                <a
-                  href={`#${heading.id}`}
-                  onClick={(e) => handleLinkClick(e, heading.id)}
-                  title={heading.text}
-                  className={`block truncate py-1 text-left transition-colors duration-200 ${
-                    heading.depth === 3 ? 'pl-5 text-[11.5px]' : 'pl-3 text-[12.5px]'
-                  } ${isActive ? 'font-medium text-primary' : 'text-muted-foreground hover:text-foreground'}`}
-                >
-                  {heading.text}
-                </a>
-              </li>
-            )
-          })}
-        </ul>
+          <div className={inDrawer ? 'min-h-0' : 'min-h-0 -mx-1.5 overflow-hidden px-1.5'}>
+            <ul
+              ref={listRef}
+              style={maskImage ? { maskImage, WebkitMaskImage: maskImage } : undefined}
+              className={
+                inDrawer
+                  ? 'flex flex-col py-0.5'
+                  : showRailTools
+                    ? 'no-scrollbar -mx-1 flex max-h-[min(54vh,calc(100vh-16rem))] flex-col overflow-y-auto px-1 py-1.5'
+                    : 'no-scrollbar -mx-1 flex max-h-[calc(100vh-8rem)] flex-col overflow-y-auto px-1 py-1.5'
+              }
+            >
+              {headings.map((heading, index) => {
+                const isPrimaryActive = heading.id === primaryActiveId
+                const isSecondaryActive = !isPrimaryActive && activeIds.includes(heading.id)
+                const enterDelay = `${60 + Math.min(index, 8) * 16}ms`
+                const exitDelay = `${Math.min(index, 6) * 14}ms`
+
+                return (
+                  <li
+                    key={heading.id}
+                    style={{ '--toc-ripple-delay': isCollapsed ? exitDelay : enterDelay } as CSSProperties}
+                    className={`relative transition-[opacity,translate] ease-[cubic-bezier(0.22,1,0.36,1)] before:pointer-events-none before:absolute before:inset-y-0 before:left-[1px] before:w-px before:bg-hair first:before:top-2 last:before:bottom-2 motion-reduce:transition-opacity ${
+                      isCollapsed
+                        ? 'pointer-events-none -translate-x-2 opacity-0 duration-150 [transition-delay:var(--toc-ripple-delay)]'
+                        : 'translate-x-0 opacity-100 duration-[260ms] [transition-delay:var(--toc-ripple-delay)]'
+                    }`}
+                  >
+                    {/* 导轨激活刻度条（主锚点实亮，同屏次级章节柔亮） */}
+                    <span
+                      aria-hidden="true"
+                      className={`pointer-events-none absolute top-1.5 bottom-1.5 left-[0.5px] w-[2px] origin-center rounded-full bg-primary transition-[opacity,transform] duration-200 motion-reduce:transition-opacity ${
+                        isPrimaryActive
+                          ? 'scale-y-100 opacity-100'
+                          : isSecondaryActive
+                            ? 'scale-y-75 opacity-35'
+                            : 'scale-y-0 opacity-0'
+                      }`}
+                    />
+                    <a
+                      href={`#${heading.id}`}
+                      onClick={(e) => handleLinkClick(e, heading.id)}
+                      title={heading.text}
+                      aria-current={isPrimaryActive ? 'location' : undefined}
+                      className={`block rounded-sm py-1 text-left leading-[1.45] transition-colors duration-200 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring ${
+                        heading.depth === 3 ? 'pl-6 text-xs' : 'pl-3.5 text-[12.5px]'
+                      } ${
+                        isPrimaryActive
+                          ? 'font-medium text-primary'
+                          : isSecondaryActive
+                            ? 'text-foreground/85 hover:text-foreground'
+                            : 'text-muted-foreground hover:text-foreground'
+                      }`}
+                    >
+                      <span className="line-clamp-2 [overflow-wrap:anywhere]">{heading.text}</span>
+                    </a>
+                  </li>
+                )
+              })}
+            </ul>
+
+            {showRailTools && (
+              <div className="py-3.5">
+                <div
+                  aria-hidden="true"
+                  className="h-px w-full max-w-[10.5rem] bg-gradient-to-r from-border via-border/45 to-transparent"
+                />
+              </div>
+            )}
+          </div>
+        </div>
       )}
 
       {showRailTools && (
-        <div className="mt-4 flex flex-col gap-4 pl-2 transition-opacity duration-300 group-data-[reader-focus=true]/reader:opacity-45">
-          <div aria-hidden="true" className="h-px w-36 bg-gradient-to-r from-border via-border/45 to-transparent" />
-
-          {/* 环形阅读进度 + 回到顶部 */}
-          <div className="flex flex-col gap-1.5">
-            <div className="flex items-center gap-2 font-mono text-xs tabular-nums text-foreground/80">
-              <svg aria-hidden="true" viewBox="0 0 18 18" className="size-4 -rotate-90">
+        <div className="flex flex-col gap-2.5 transition-opacity duration-300 group-data-[reader-focus=true]/reader:opacity-75 group-data-[reader-focus=true]/reader:hover:opacity-100 group-data-[reader-focus=true]/reader:focus-within:opacity-100">
+          {/* 环形阅读进度 + 同行回到顶部（无纵向跳变） */}
+          <div className="flex items-center justify-between gap-2 pr-1">
+            <div className="flex items-center gap-2 font-mono text-xs tabular-nums text-foreground/85">
+              <svg aria-hidden="true" viewBox="0 0 18 18" className="size-4 shrink-0 -rotate-90">
                 <circle
                   cx="9"
                   cy="9"
@@ -260,7 +397,7 @@ export function TableOfContents({ headings, onItemClick, showRailTools = false }
                   fill="none"
                   stroke="currentColor"
                   strokeWidth="1.5"
-                  className="text-border/70"
+                  className="text-border/75"
                 />
                 <circle
                   cx="9"
@@ -278,31 +415,40 @@ export function TableOfContents({ headings, onItemClick, showRailTools = false }
               <span>{scrollPercent}%</span>
             </div>
 
-            {scrollPercent > 4 && (
-              <button
-                type="button"
-                onClick={scrollToTop}
-                className="group/ink inline-flex w-fit cursor-pointer items-center gap-1.5 text-xs text-muted-foreground transition-colors hover:text-primary focus-visible:outline-2 focus-visible:outline-ring"
-              >
-                <ArrowUp className="ink-glide size-3.5 group-hover/ink:-translate-y-0.5" />
-                <span className="ink-line">回到顶部</span>
-              </button>
-            )}
+            <button
+              type="button"
+              onClick={scrollToTop}
+              tabIndex={scrollPercent > 4 ? 0 : -1}
+              aria-hidden={scrollPercent <= 4 ? true : undefined}
+              className={`group/ink hit-expand inline-flex cursor-pointer items-center gap-1 text-xs text-muted-foreground transition-[opacity,color] duration-200 hover:text-primary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring ${
+                scrollPercent > 4 ? 'opacity-100' : 'pointer-events-none opacity-0'
+              }`}
+            >
+              <ArrowUp className="ink-glide size-3 group-hover/ink:-translate-y-0.5" />
+              <span className="ink-line">回到顶部</span>
+            </button>
           </div>
 
-          {/* 紧凑无框快捷工具栏 */}
-          <div className="flex items-center gap-3 pt-1 text-muted-foreground">
+          {/* 紧凑无框快捷工具栏（左缘与进度环对齐） */}
+          <div className="-ml-1.5 flex items-center gap-3 text-muted-foreground">
             <button
               type="button"
               onClick={toggleFocusMode}
               title={focusMode ? '退出专注阅读' : '开启专注阅读'}
               aria-label={focusMode ? '退出专注阅读' : '开启专注阅读'}
               aria-pressed={focusMode}
-              className={`ink-glide hit-expand inline-flex size-8 cursor-pointer items-center justify-center hover:-translate-y-0.5 hover:text-primary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring ${
+              data-active={focusMode ? 'true' : undefined}
+              className={`group/ink ink-glide hit-expand relative inline-flex size-7 cursor-pointer items-center justify-center rounded-sm hover:-translate-y-0.5 hover:text-primary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring ${
                 focusMode ? 'text-primary' : ''
               }`}
             >
               <BookOpen className="size-3.5" strokeWidth={1.7} />
+              <span
+                aria-hidden="true"
+                className={`pointer-events-none absolute right-1.5 bottom-0.5 left-1.5 h-[1.5px] origin-center rounded-full bg-primary transition-[transform,opacity] duration-200 ${
+                  focusMode ? 'scale-x-100 opacity-100' : 'scale-x-0 opacity-0'
+                }`}
+              />
             </button>
 
             <button
@@ -310,7 +456,7 @@ export function TableOfContents({ headings, onItemClick, showRailTools = false }
               onClick={handleCopyPermalink}
               title={copiedLink ? '链接已复制' : '复制文章链接'}
               aria-label={copiedLink ? '链接已复制' : '复制文章链接'}
-              className="ink-glide hit-expand inline-flex size-8 cursor-pointer items-center justify-center hover:-translate-y-0.5 hover:text-primary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
+              className="ink-glide hit-expand inline-flex size-7 cursor-pointer items-center justify-center rounded-sm hover:-translate-y-0.5 hover:text-primary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
             >
               {copiedLink ? (
                 <Check className="size-3.5 text-primary" strokeWidth={1.8} />
@@ -324,10 +470,22 @@ export function TableOfContents({ headings, onItemClick, showRailTools = false }
               onClick={scrollToComments}
               title="前往评论区"
               aria-label="前往评论区"
-              className="ink-glide hit-expand inline-flex size-8 cursor-pointer items-center justify-center hover:-translate-y-0.5 hover:text-primary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
+              className="ink-glide hit-expand inline-flex size-7 cursor-pointer items-center justify-center rounded-sm hover:-translate-y-0.5 hover:text-primary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
             >
               <MessageSquare className="size-3.5" strokeWidth={1.7} />
             </button>
+
+            <span className="sr-only" aria-live="polite">
+              {copiedLink ? '链接已复制' : ''}
+            </span>
+            <span
+              aria-hidden="true"
+              className={`font-mono text-xs text-primary transition-opacity duration-200 ${
+                copiedLink ? 'opacity-100' : 'pointer-events-none opacity-0'
+              }`}
+            >
+              已复制
+            </span>
           </div>
         </div>
       )}

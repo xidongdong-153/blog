@@ -691,6 +691,18 @@ textarea {
   outline-offset: 4px;
 }
 
+/* 隐藏滚动条但保留滚动能力（用于右侧文章目录导轨等局部滚动区） */
+@utility no-scrollbar {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+
+  &::-webkit-scrollbar {
+    display: none !important;
+    width: 0 !important;
+    height: 0 !important;
+  }
+}
+
 /* 滚动条 */
 @media (forced-colors: none) {
   ::-webkit-scrollbar {

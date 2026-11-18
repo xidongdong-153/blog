@@ -209,8 +209,8 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
           id="sidebar"
           className={
             seriesDetail
-              ? 'sticky top-24 hidden max-h-[calc(100vh-7rem)] w-48 shrink-0 overflow-y-auto xl:block'
-              : 'sticky top-24 hidden max-h-[calc(100vh-7rem)] w-52 shrink-0 overflow-y-auto lg:block'
+              ? 'sticky top-24 hidden max-h-[calc(100vh-7rem)] w-48 shrink-0 flex-col xl:flex'
+              : 'sticky top-24 hidden max-h-[calc(100vh-7rem)] w-52 shrink-0 flex-col lg:flex'
           }
         >
           <TableOfContents headings={headings} showRailTools />

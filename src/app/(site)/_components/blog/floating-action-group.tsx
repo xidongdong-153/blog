@@ -209,7 +209,7 @@ export function FloatingActionGroup({ headings, series, seriesPosts, currentSlug
         <div
           aria-hidden={!isDrawerOpen}
           inert={!isDrawerOpen}
-          className={`fixed inset-0 z-50 ${hasSeries ? 'xl:hidden' : 'lg:hidden'} ${!isDrawerOpen ? 'pointer-events-none' : ''}`}
+          className={`fixed inset-0 z-[80] ${hasSeries ? 'xl:hidden' : 'lg:hidden'} ${!isDrawerOpen ? 'pointer-events-none' : ''}`}
         >
           <div
             ref={backdropRef}
@@ -362,7 +362,7 @@ export function FloatingActionGroup({ headings, series, seriesPosts, currentSlug
                         </div>
                       </div>
                     ) : (
-                      <TableOfContents headings={headings} onItemClick={() => closeDrawer(false)} />
+                      <TableOfContents headings={headings} inDrawer onItemClick={() => closeDrawer(false)} />
                     )}
                   </div>
                 </div>
