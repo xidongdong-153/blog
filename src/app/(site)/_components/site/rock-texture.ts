@@ -3,13 +3,34 @@ interface Point {
   y: number
 }
 
+type CurveProfile =
+  | { kind: 'power'; power: number }
+  | { kind: 'sigmoid'; a: number; b: number }
+  | {
+      kind: 'stick-slip'
+      power: number
+      n1: number
+      amp1: number
+      phase1: number
+      n2: number
+      amp2: number
+      phase2: number
+    }
+
 interface RockVein {
   points: Point[]
+  cumLengths: Float64Array
+  totalLength: number
+  midArcRatio: number
   width: number
   kind: 'main' | 'branch' | 'short'
   phase: number
-  startAt: number
-  duration: number
+  startMs: number
+  durationMs: number
+  leftDurationMs: number
+  rightDurationMs: number
+  curve: CurveProfile
+  leftCurve: CurveProfile
   growMode: 'forward' | 'center'
 }
 
@@ -31,11 +52,15 @@ interface RockParticle {
 
 interface VeinEmitter {
   vein: RockVein
-  checkpoints: number[]
-  nextIdx: number
+  leftCheckpoints: number[]
+  rightCheckpoints: number[]
+  leftNextIdx: number
+  rightNextIdx: number
 }
 
 export interface RockScene {
+  /** 本次裂纹入场生长的动态总时长（毫秒），随种子与各条裂纹速度随机变化。 */
+  readonly totalDurationMs: number
   /** 推进裂纹生长时散落粉尘的物理状态，返回当前是否仍有未落定粒子。 */
   stepParticles: (dtSeconds: number, progress: number) => boolean
   /** 清空所有在场粉尘，用于直接切入静态终态。 */
@@ -54,7 +79,9 @@ const RELIEF = 0.25
 const VEIN_STRENGTH = 0.3
 const MAX_CANVAS_PIXELS = 3_000_000
 const MAX_MATERIAL_PIXELS = 800_000
-const CRACK_EASE_POWER = 2.35
+const MIN_SCENE_DURATION_MS = 750
+const MAX_SCENE_DURATION_MS = 3600
+const SURFACE_FADE_MS = 220
 const INITIAL_SAMPLE_CAPACITY = 520
 const MAX_LIVE_PARTICLES = 240
 const LIGHT_PARTICLE_RGB: readonly [ParticleRgb, ParticleRgb, ParticleRgb] = [
@@ -80,16 +107,128 @@ function ensureSampleCapacity(needed: number) {
   sampleBufT = new Float64Array(nextSize)
 }
 
-function easeCrack(u: number): number {
-  if (u <= 0) return 0
-  if (u >= 1) return 1
-  return 1 - (1 - u) ** CRACK_EASE_POWER
+function clamp(value: number, min: number, max: number): number {
+  return Math.min(max, Math.max(min, value))
 }
 
-function invertEaseCrack(y: number): number {
-  if (y <= 0) return 0
-  if (y >= 1) return 1
-  return 1 - (1 - y) ** (1 / CRACK_EASE_POWER)
+function logUniform(random: () => number, min: number, max: number): number {
+  return min * (max / min) ** random()
+}
+
+function divergeBias(bias: number, peerBias: number, min: number, max: number, ratio = 1.24): number {
+  if (Math.abs(bias - peerBias) / peerBias >= 0.18) return bias
+  const up = peerBias * ratio
+  const down = peerBias / ratio
+  if (bias >= peerBias) {
+    return up <= max ? up : Math.max(min, down)
+  }
+  return down >= min ? down : Math.min(max, up)
+}
+
+function evalCrackCurve(u: number, profile: CurveProfile): number {
+  if (!Number.isFinite(u)) return u === Infinity ? 1 : 0
+  if (u <= 0) return 0
+  if (u >= 1) return 1
+
+  if (profile.kind === 'power') {
+    return 1 - (1 - u) ** profile.power
+  }
+
+  if (profile.kind === 'sigmoid') {
+    const ua = u ** profile.a
+    const vb = (1 - u) ** profile.b
+    const denom = ua + vb
+    return denom > 0 ? ua / denom : u
+  }
+
+  const h =
+    u +
+    profile.amp1 * (Math.sin(2 * Math.PI * profile.n1 * u + profile.phase1) - Math.sin(profile.phase1)) +
+    profile.amp2 * (Math.sin(2 * Math.PI * profile.n2 * u + profile.phase2) - Math.sin(profile.phase2))
+  const clampedH = clamp(h, 0, 1)
+  return 1 - (1 - clampedH) ** profile.power
+}
+
+function invertCrackCurve(target: number, profile: CurveProfile): number {
+  if (!Number.isFinite(target)) return target === Infinity ? 1 : 0
+  if (target <= 0) return 0
+  if (target >= 1) return 1
+  if (profile.kind === 'power') {
+    const exact = 1 - (1 - target) ** (1 / profile.power)
+    return evalCrackCurve(exact, profile) >= target ? exact : Math.min(1, exact + 1e-9)
+  }
+  let lo = 0
+  let hi = 1
+  for (let i = 0; i < 26; i++) {
+    const mid = (lo + hi) * 0.5
+    if (evalCrackCurve(mid, profile) < target) lo = mid
+    else hi = mid
+  }
+  return hi
+}
+
+type CurveWeights = readonly [number, number, number, number]
+
+function pickCurveProfile(random: () => number, [wImpact, wSteady, wCreep, wStickSlip]: CurveWeights): CurveProfile {
+  const total = wImpact + wSteady + wCreep + wStickSlip
+  let roll = random() * total
+  if (roll < wImpact) {
+    return { kind: 'power', power: 1.8 + random() * 1.3 }
+  }
+  roll -= wImpact
+  if (roll < wSteady) {
+    return { kind: 'power', power: 1.05 + random() * 0.4 }
+  }
+  roll -= wSteady
+  if (roll < wCreep) {
+    return { kind: 'sigmoid', a: 1.35 + random() * 0.85, b: 1.4 + random() * 1.1 }
+  }
+  const n1 = random() < 0.5 ? 2 : 3
+  const n2 = n1 + 1
+  const budget = 0.52 + random() * 0.16
+  const split = 0.55 + random() * 0.25
+  return {
+    kind: 'stick-slip',
+    power: 1.15 + random() * 0.65,
+    n1,
+    amp1: (budget * split) / (2 * Math.PI * n1),
+    phase1: random() * Math.PI * 2,
+    n2,
+    amp2: (budget * (1 - split)) / (2 * Math.PI * n2),
+    phase2: random() * Math.PI * 2,
+  }
+}
+
+function computeArcLengths(points: Point[]): { cumLengths: Float64Array; totalLength: number; midArcRatio: number } {
+  const cumLengths = new Float64Array(points.length)
+  let total = 0
+  cumLengths[0] = 0
+  for (let i = 1; i < points.length; i++) {
+    total += Math.hypot(points[i].x - points[i - 1].x, points[i].y - points[i - 1].y)
+    cumLengths[i] = total
+  }
+  const totalLength = Math.max(1e-3, total)
+  const midIdx = Math.floor((points.length - 1) / 2)
+  const midArcRatio = clamp(cumLengths[midIdx] / totalLength, 0.05, 0.95)
+  return { cumLengths, totalLength, midArcRatio }
+}
+
+function arcRatioToIndexT(cumLengths: Float64Array, totalLength: number, s: number): number {
+  if (s <= 0) return 0
+  if (s >= 1) return 1
+  const lastIdx = cumLengths.length - 1
+  if (lastIdx <= 0) return s
+  const target = s * totalLength
+  let lo = 0
+  let hi = lastIdx
+  while (hi - lo > 1) {
+    const mid = (lo + hi) >> 1
+    if (cumLengths[mid] < target) lo = mid
+    else hi = mid
+  }
+  const segLen = cumLengths[hi] - cumLengths[lo]
+  const frac = segLen > 1e-6 ? clamp((target - cumLengths[lo]) / segLen, 0, 1) : 0
+  return (lo + frac) / lastIdx
 }
 
 function shuffleSlots(slots: number[], random: () => number): number[] {
@@ -154,11 +293,25 @@ function fracture(start: Point, end: Point, amplitude: number, random: () => num
   return points
 }
 
-function createVeins(seed: number): RockVein[] {
+function createVeins(seed: number): { veins: RockVein[]; totalDurationMs: number } {
   const random = createRandom(seed + 341)
+  const speedRand = createRandom(seed + 6151)
   const veins: RockVein[] = []
   const mirrored = random() < 0.5
   const flip = (point: Point): Point => ({ x: mirrored ? ROCK_WIDTH - point.x : point.x, y: point.y })
+
+  // 每次打开抽样一次整体节奏基调（疾裂 / 衡裂 / 漫渗），避免 24 条裂纹独立均值回归。
+  const paceRoll = speedRand()
+  const sessionPace =
+    paceRoll < 0.3 ? 1.65 + speedRand() * 0.65 : paceRoll < 0.7 ? 0.95 + speedRand() * 0.45 : 0.45 + speedRand() * 0.35
+
+  const paceDelayDiv = sessionPace ** 0.6
+  const rankStarts = [0, 0, 0, 0]
+  rankStarts[1] = (40 + speedRand() * 140) / paceDelayDiv
+  rankStarts[2] = rankStarts[1] + (60 + speedRand() * 160) / paceDelayDiv
+  rankStarts[3] = rankStarts[2] + (50 + speedRand() * 150) / paceDelayDiv
+  const mainRankOrder = shuffleSlots([0, 1, 2, 3], speedRand)
+
   const configurations: [Point, Point, number, number][] = [
     [
       { x: 40 + random() * 170, y: -80 },
@@ -180,26 +333,55 @@ function createVeins(seed: number): RockVein[] {
     ],
   ]
 
-  // 主裂纹按交错起裂窗口展开，分支与末梢严格等父裂纹尖端经过分叉点后再裂开。
-  const mainTimings: [number, number][] = [
-    [0, 0.72],
-    [0.09, 0.7],
-    [0.16, 0.6],
+  const mainSpecs: readonly {
+    baseSpeed: number
+    minBias: number
+    maxBias: number
+    minMult: number
+    maxMult: number
+    weights: CurveWeights
+  }[] = [
+    { baseSpeed: 1150, minBias: 0.65, maxBias: 1.5, minMult: 0.42, maxMult: 3, weights: [0.45, 0, 0.2, 0.35] },
+    { baseSpeed: 1100, minBias: 0.65, maxBias: 1.55, minMult: 0.42, maxMult: 3, weights: [0.4, 0.3, 0, 0.3] },
+    { baseSpeed: 780, minBias: 0.58, maxBias: 1.68, minMult: 0.4, maxMult: 3, weights: [0.35, 0.35, 0.3, 0] },
   ]
 
+  let m0Bias = 1
+  let mainPhaseEndMs = 0
+
   configurations.forEach(([start, end, amplitude, width], index) => {
-    const [mainStart, mainDuration] = mainTimings[index]
+    const spec = mainSpecs[index]
+    let localBias = logUniform(speedRand, spec.minBias, spec.maxBias)
+    if (index === 0) m0Bias = localBias
+    else if (index === 1) localBias = divergeBias(localBias, m0Bias, spec.minBias, spec.maxBias)
+
     const points = fracture(flip(start), flip(end), amplitude, random)
+    const { cumLengths, totalLength, midArcRatio } = computeArcLengths(points)
+    const effectiveMult = clamp(sessionPace * localBias, spec.minMult, spec.maxMult)
+    const mainStartMs = rankStarts[mainRankOrder[index]]
+    const mainDurationMs = (totalLength / (spec.baseSpeed * effectiveMult)) * 1000
+    const mainCurve = pickCurveProfile(speedRand, spec.weights)
+    mainPhaseEndMs = Math.max(mainPhaseEndMs, mainStartMs + mainDurationMs)
+
     veins.push({
       points,
+      cumLengths,
+      totalLength,
+      midArcRatio,
       width,
       kind: 'main',
       phase: random() * 9,
-      startAt: mainStart,
-      duration: mainDuration,
+      startMs: mainStartMs,
+      durationMs: mainDurationMs,
+      leftDurationMs: mainDurationMs,
+      rightDurationMs: mainDurationMs,
+      curve: mainCurve,
+      leftCurve: mainCurve,
       growMode: 'forward',
     })
+
     const count = index === 2 ? 2 : 3
+    let firstBranchBias = 1
     for (let j = 0; j < count; j++) {
       const at = Math.floor((0.15 + random() * 0.65) * (points.length - 1))
       const branchStart = points[at]
@@ -207,82 +389,205 @@ function createVeins(seed: number): RockVein[] {
       const length = 70 + random() * 190
       const branchEnd = { x: branchStart.x + direction * length, y: branchStart.y + 40 + random() * 150 }
       const branch = fracture(branchStart, branchEnd, length * 0.4, random)
-      const branchStartAt = mainStart + mainDuration * invertEaseCrack(at / (points.length - 1))
-      const branchDuration = 0.3 + ((j + index) % 3) * 0.03
+      const branchGeom = computeArcLengths(branch)
+      const forkArcRatio = cumLengths[at] / totalLength
+      const forkU = invertCrackCurve(forkArcRatio, mainCurve)
+      const branchDelayMs = speedRand() < 0.65 ? 0 : 15 + speedRand() * 30
+      const branchStartMs = mainStartMs + mainDurationMs * forkU + branchDelayMs
+
+      let branchBias: number
+      if (j === 1) {
+        branchBias = logUniform(speedRand, 0.65, 1.5)
+      } else {
+        branchBias = speedRand() < 0.45 ? logUniform(speedRand, 1.15, 1.65) : logUniform(speedRand, 0.52, 0.98)
+        if (j === 0) firstBranchBias = branchBias
+        else branchBias = divergeBias(branchBias, firstBranchBias, 0.52, 1.65, 1.2)
+      }
+
+      const branchDurationMs = clamp((branchGeom.totalLength / (620 * branchBias * sessionPace)) * 1000, 140, 1350)
+      const branchCurve = pickCurveProfile(speedRand, j === 1 ? [0.45, 0.35, 0.2, 0] : [0.5, 0.25, 0.25, 0])
+
       veins.push({
         points: branch,
+        cumLengths: branchGeom.cumLengths,
+        totalLength: branchGeom.totalLength,
+        midArcRatio: branchGeom.midArcRatio,
         width: width * (0.25 + random() * 0.25),
         kind: 'branch',
         phase: random() * 9,
-        startAt: branchStartAt,
-        duration: branchDuration,
+        startMs: branchStartMs,
+        durationMs: branchDurationMs,
+        leftDurationMs: branchDurationMs,
+        rightDurationMs: branchDurationMs,
+        curve: branchCurve,
+        leftCurve: branchCurve,
         growMode: 'forward',
       })
+
       if (j === 1) {
-        const twigStart = branch[110]
-        const twigStartAt = branchStartAt + branchDuration * invertEaseCrack(110 / (branch.length - 1))
+        const twigIdx = Math.min(110, branch.length - 1)
+        const twigStart = branch[twigIdx]
+        const twigPoints = fracture(twigStart, { x: twigStart.x - direction * 55, y: twigStart.y + 85 }, 32, random)
+        const twigGeom = computeArcLengths(twigPoints)
+        const twigForkArcRatio = branchGeom.cumLengths[twigIdx] / branchGeom.totalLength
+        const twigForkU = invertCrackCurve(twigForkArcRatio, branchCurve)
+        const twigDelayMs = speedRand() < 0.6 ? 0 : 10 + speedRand() * 25
+        const twigStartMs = branchStartMs + branchDurationMs * twigForkU + twigDelayMs
+        const twigBias = logUniform(speedRand, 0.55, 1.75)
+        const twigDurationMs = clamp((twigGeom.totalLength / (420 * twigBias * sessionPace)) * 1000, 130, 750)
+        const twigCurve = pickCurveProfile(speedRand, [0.65, 0.35, 0, 0])
+
         veins.push({
-          points: fracture(twigStart, { x: twigStart.x - direction * 55, y: twigStart.y + 85 }, 32, random),
+          points: twigPoints,
+          cumLengths: twigGeom.cumLengths,
+          totalLength: twigGeom.totalLength,
+          midArcRatio: twigGeom.midArcRatio,
           width: 0.23,
           kind: 'branch',
           phase: random() * 9,
-          startAt: twigStartAt,
-          duration: 0.24,
+          startMs: twigStartMs,
+          durationMs: twigDurationMs,
+          leftDurationMs: twigDurationMs,
+          rightDurationMs: twigDurationMs,
+          curve: twigCurve,
+          leftCurve: twigCurve,
           growMode: 'forward',
         })
       }
     }
   })
 
+  // 第 4 条主裂纹（中路细脉）
+  const m3Points = fracture(
+    flip({ x: 420 + (random() - 0.5) * 60, y: -60 }),
+    flip({ x: 690 + (random() - 0.5) * 60, y: 960 }),
+    65 + random() * 30,
+    random,
+  )
+  const m3Geom = computeArcLengths(m3Points)
+  const m3Bias = logUniform(speedRand, 0.52, 1.6)
+  const m3Mult = clamp(sessionPace * m3Bias, 0.38, 2.8)
+  const m3StartMs = rankStarts[mainRankOrder[3]]
+  const m3DurationMs = (m3Geom.totalLength / (880 * m3Mult)) * 1000
+  const m3Curve = pickCurveProfile(speedRand, [0, 0.25, 0.45, 0.3])
+  mainPhaseEndMs = Math.max(mainPhaseEndMs, m3StartMs + m3DurationMs)
+
   veins.push({
-    points: fracture(
-      flip({ x: 420 + (random() - 0.5) * 60, y: -60 }),
-      flip({ x: 690 + (random() - 0.5) * 60, y: 960 }),
-      65 + random() * 30,
-      random,
-    ),
+    points: m3Points,
+    cumLengths: m3Geom.cumLengths,
+    totalLength: m3Geom.totalLength,
+    midArcRatio: m3Geom.midArcRatio,
     width: 0.35 + random() * 0.2,
     kind: 'main',
     phase: random() * 9,
-    startAt: 0.06,
-    duration: 0.72,
+    startMs: m3StartMs,
+    durationMs: m3DurationMs,
+    leftDurationMs: m3DurationMs,
+    rightDurationMs: m3DurationMs,
+    curve: m3Curve,
+    leftCurve: m3Curve,
     growMode: 'forward',
   })
 
+  // 9 条短裂纹：拉丁方格错开早/中/尾波次，各条独立抽速并附带两翼微非对称速度。
   const extra = createRandom(seed + 7919)
-  const timingRandom = createRandom(seed + 4242)
-  const columnStarts = [
-    shuffleSlots([0.18, 0.36, 0.54], timingRandom),
-    shuffleSlots([0.22, 0.42, 0.58], timingRandom),
-    shuffleSlots([0.26, 0.46, 0.62], timingRandom),
+  const rowPerm = shuffleSlots([0, 1, 2], speedRand)
+  const colPerm = shuffleSlots([0, 1, 2], speedRand)
+  const waveRanges: readonly [number, number][] = [
+    [0.12, 0.32],
+    [0.32, 0.56],
+    [0.52, 0.74],
   ]
+  const shortCellSpecs: Record<
+    'center' | 'midCol' | 'midRow' | 'corner',
+    { baseSpeed: number; minBias: number; maxBias: number; weights: CurveWeights }
+  > = {
+    center: { baseSpeed: 265, minBias: 0.45, maxBias: 1.75, weights: [0, 0.25, 0.5, 0.25] },
+    midCol: { baseSpeed: 275, minBias: 0.48, maxBias: 1.8, weights: [0.2, 0.35, 0.45, 0] },
+    midRow: { baseSpeed: 300, minBias: 0.48, maxBias: 1.95, weights: [0.35, 0.35, 0.3, 0] },
+    corner: { baseSpeed: 315, minBias: 0.48, maxBias: 1.95, weights: [0.45, 0.35, 0.2, 0] },
+  }
 
   for (let i = 0; i < 9; i++) {
-    const cx = 120 + (i % 3) * 400 + extra() * 160
-    const cy = 95 + Math.floor(i / 3) * 280 + extra() * 100
+    const col = i % 3
+    const row = Math.floor(i / 3)
+    const cx = 120 + col * 400 + extra() * 160
+    const cy = 95 + row * 280 + extra() * 100
     const angle = 0.35 + extra() * 2.45
     const length = 135 + extra() * 145
     const dx = Math.cos(angle) * length * 0.5
     const dy = Math.sin(angle) * length * 0.5
-    const startAt = columnStarts[i % 3][Math.floor(i / 3)]
-    const duration = Math.min(0.34 + timingRandom() * 0.06, 1 - startAt)
+    const shortPoints = fracture({ x: cx - dx, y: cy - dy }, { x: cx + dx, y: cy + dy }, 45 + extra() * 55, extra)
+    const shortGeom = computeArcLengths(shortPoints)
+
+    const wave = (rowPerm[row] + colPerm[col]) % 3
+    const [wMin, wMax] = waveRanges[wave]
+    const startMs = (wMin + speedRand() * (wMax - wMin)) * mainPhaseEndMs
+
+    const cellKey = col === 1 && row === 1 ? 'center' : col === 1 ? 'midCol' : row === 1 ? 'midRow' : 'corner'
+    const cellSpec = shortCellSpecs[cellKey]
+    const localBias = logUniform(speedRand, cellSpec.minBias, cellSpec.maxBias)
+    const shortCurve = pickCurveProfile(speedRand, cellSpec.weights)
+    const leftCurve = pickCurveProfile(speedRand, cellSpec.weights)
+
+    const leftWingBias = 0.82 + speedRand() * 0.36
+    const rightWingBias = 0.82 + speedRand() * 0.36
+    const baseTipSpeed = cellSpec.baseSpeed * localBias * sessionPace
+    const leftArcLen = shortGeom.totalLength * shortGeom.midArcRatio
+    const rightArcLen = shortGeom.totalLength * (1 - shortGeom.midArcRatio)
+    const rawLeftMs = (leftArcLen / (baseTipSpeed * leftWingBias)) * 1000
+    const rawRightMs = (rightArcLen / (baseTipSpeed * rightWingBias)) * 1000
+    const rawMaxMs = Math.max(rawLeftMs, rawRightMs)
+    const durationMs = clamp(rawMaxMs, 150, 1250)
+    const ratioScale = rawMaxMs > 0 ? durationMs / rawMaxMs : 1
+
     veins.push({
-      points: fracture({ x: cx - dx, y: cy - dy }, { x: cx + dx, y: cy + dy }, 45 + extra() * 55, extra),
+      points: shortPoints,
+      cumLengths: shortGeom.cumLengths,
+      totalLength: shortGeom.totalLength,
+      midArcRatio: shortGeom.midArcRatio,
       width: 0.65 + extra() * 0.5,
       kind: 'short',
       phase: extra() * 9,
-      startAt,
-      duration,
+      startMs,
+      durationMs,
+      leftDurationMs: Math.max(1, rawLeftMs * ratioScale),
+      rightDurationMs: Math.max(1, rawRightMs * ratioScale),
+      curve: shortCurve,
+      leftCurve,
       growMode: 'center',
     })
   }
-  return veins
+
+  let rawTotalMs = 0
+  for (const vein of veins) {
+    rawTotalMs = Math.max(rawTotalMs, vein.startMs + vein.durationMs)
+  }
+  const totalDurationMs = clamp(rawTotalMs, MIN_SCENE_DURATION_MS, MAX_SCENE_DURATION_MS)
+  if (rawTotalMs > 0 && rawTotalMs !== totalDurationMs) {
+    const timeScale = totalDurationMs / rawTotalMs
+    for (const vein of veins) {
+      vein.startMs *= timeScale
+      vein.durationMs *= timeScale
+      vein.leftDurationMs *= timeScale
+      vein.rightDurationMs *= timeScale
+    }
+  }
+
+  return { veins, totalDurationMs }
 }
 
-function getVeinProgress(vein: RockVein, globalProgress: number): number {
-  if (globalProgress >= 1) return 1
-  if (globalProgress <= vein.startAt) return 0
-  return easeCrack((globalProgress - vein.startAt) / vein.duration)
+function getVeinArcProgress(vein: RockVein, elapsedMs: number): { left: number; right: number } {
+  const dt = elapsedMs - vein.startMs
+  if (dt <= 0) return { left: 0, right: 0 }
+  if (vein.growMode === 'center') {
+    return {
+      left: dt >= vein.leftDurationMs ? 1 : evalCrackCurve(dt / vein.leftDurationMs, vein.leftCurve),
+      right: dt >= vein.rightDurationMs ? 1 : evalCrackCurve(dt / vein.rightDurationMs, vein.curve),
+    }
+  }
+  const right = dt >= vein.durationMs ? 1 : evalCrackCurve(dt / vein.durationMs, vein.curve)
+  return { left: 1, right }
 }
 
 function sampleSubPath(points: Point[], startT: number, endT: number): number {
@@ -343,11 +648,28 @@ function sampleSubPath(points: Point[], startT: number, endT: number): number {
   return count
 }
 
+function computeTipGrowthScale(
+  progress: number,
+  distFromTip: number,
+  maxTipSpan: number,
+  tipRate: number,
+  openSpan: number,
+): number {
+  if (progress >= 1) return 1
+  const tipSpan = Math.min(maxTipSpan, progress * tipRate)
+  const settleBlend = progress <= 0.78 ? 0 : (progress - 0.78) / 0.22
+  const rawTip = tipSpan > 0 ? Math.min(1, (distFromTip / tipSpan) ** 0.55) : 1
+  const rawOpen = 0.55 + 0.45 * Math.min(1, distFromTip / openSpan)
+  const rawScale = rawTip * rawOpen
+  return rawScale + (1 - rawScale) * settleBlend
+}
+
 function fillVeinPass(
   ctx: CanvasRenderingContext2D,
   vein: RockVein,
   count: number,
-  veinProgress: number,
+  leftProgress: number,
+  rightProgress: number,
   startT: number,
   endT: number,
   multiplier: number,
@@ -355,10 +677,7 @@ function fillVeinPass(
   color: string,
   alpha: number,
 ) {
-  const settling = veinProgress < 1
-  const settleBlend = veinProgress <= 0.78 ? 0 : (veinProgress - 0.78) / 0.22
-  const tipSpan = vein.growMode === 'center' ? Math.min(0.08, veinProgress * 0.22) : Math.min(0.1, veinProgress * 0.35)
-  const openSpan = vein.growMode === 'center' ? 0.16 : 0.18
+  const settling = vein.growMode === 'center' ? leftProgress < 1 || rightProgress < 1 : rightProgress < 1
   const spanDx = sampleBufX[count - 1] - sampleBufX[0]
   const spanDy = sampleBufY[count - 1] - sampleBufY[0]
   const spanLen = Math.hypot(spanDx, spanDy)
@@ -387,12 +706,13 @@ function fillVeinPass(
 
       let growthScale = 1
       if (settling) {
-        const distFromTip =
-          vein.growMode === 'center' ? Math.max(0, Math.min(t - startT, endT - t)) : Math.max(0, endT - t)
-        const rawTip = tipSpan > 0 ? Math.min(1, (distFromTip / tipSpan) ** 0.55) : 1
-        const rawOpen = 0.55 + 0.45 * Math.min(1, distFromTip / openSpan)
-        const rawScale = rawTip * rawOpen
-        growthScale = rawScale + (1 - rawScale) * settleBlend
+        if (vein.growMode === 'center') {
+          const leftScale = computeTipGrowthScale(leftProgress, Math.max(0, t - startT), 0.08, 0.22, 0.16)
+          const rightScale = computeTipGrowthScale(rightProgress, Math.max(0, endT - t), 0.08, 0.22, 0.16)
+          growthScale = Math.min(leftScale, rightScale)
+        } else {
+          growthScale = computeTipGrowthScale(rightProgress, Math.max(0, endT - t), 0.1, 0.35, 0.18)
+        }
       }
 
       const width = vein.width * taper * variation * growthScale * multiplier
@@ -427,26 +747,40 @@ function samplePointAt(points: Point[], t: number): { x: number; y: number; nx: 
   }
 }
 
-function createVeinEmitters(veins: RockVein[], seed: number, initialProgress: number): VeinEmitter[] {
+function createVeinEmitters(
+  veins: RockVein[],
+  seed: number,
+  initialProgress: number,
+  totalDurationMs: number,
+): VeinEmitter[] {
+  const initialElapsedMs = initialProgress * totalDurationMs
   return veins.map((vein, veinIndex) => {
     const rand = createRandom(seed + 9103 + veinIndex * 97)
     const count =
       vein.kind === 'main' ? (vein.width > 0.6 ? 34 : 20) : vein.kind === 'branch' ? (vein.width > 0.3 ? 7 : 4) : 5
     const minP = vein.kind === 'short' ? 0.06 : 0.02
     const maxP = vein.kind === 'short' ? 0.9 : vein.kind === 'branch' ? 0.85 : 0.98
-    const checkpoints: number[] = []
+    const leftCheckpoints: number[] = []
+    const rightCheckpoints: number[] = []
     for (let i = 0; i < count; i++) {
       const base = minP + ((i + 0.25 + rand() * 0.5) / count) * (maxP - minP)
-      checkpoints.push(Math.min(maxP, Math.max(minP, base)))
+      const cp = Math.min(maxP, Math.max(minP, base))
+      if (vein.growMode === 'center' && rand() < 0.5) leftCheckpoints.push(cp)
+      else rightCheckpoints.push(cp)
     }
-    checkpoints.sort((a, b) => a - b)
+    leftCheckpoints.sort((a, b) => a - b)
+    rightCheckpoints.sort((a, b) => a - b)
 
-    const initialVp = getVeinProgress(vein, initialProgress)
-    let nextIdx = 0
-    while (nextIdx < checkpoints.length && checkpoints[nextIdx] <= initialVp) {
-      nextIdx++
+    const initialState = getVeinArcProgress(vein, initialElapsedMs)
+    let leftNextIdx = 0
+    while (leftNextIdx < leftCheckpoints.length && leftCheckpoints[leftNextIdx] <= initialState.left) {
+      leftNextIdx++
     }
-    return { vein, checkpoints, nextIdx }
+    let rightNextIdx = 0
+    while (rightNextIdx < rightCheckpoints.length && rightCheckpoints[rightNextIdx] <= initialState.right) {
+      rightNextIdx++
+    }
+    return { vein, leftCheckpoints, rightCheckpoints, leftNextIdx, rightNextIdx }
   })
 }
 
@@ -538,6 +872,7 @@ export function createRockScene(
   initialProgress = 0,
 ): RockScene | null {
   if (![width, height, devicePixelRatio].every(Number.isFinite) || width <= 0 || height <= 0) return null
+  const safeSeed = Number.isFinite(seed) ? Math.trunc(seed) : 0
 
   const lightMaterial = document.createElement('canvas')
   const darkMaterial = document.createElement('canvas')
@@ -570,14 +905,14 @@ export function createRockScene(
     const wy = y / resolution / scale + offsetY
     for (let x = 0; x < sampleWidth; x++) {
       const wx = x / resolution / scale + offsetX
-      const warp = noise(wx * 0.003, wy * 0.003, seed + 1) * 75
+      const warp = noise(wx * 0.003, wy * 0.003, safeSeed + 1) * 75
       const u = wx + warp
       const v = wy + warp * 0.36
-      const low = noise(u * 0.006, v * 0.007, seed + 2)
-      const mid = noise(u * 0.023, v * 0.029, seed + 3)
-      const fine = noise(u * 0.095, v * 0.11, seed + 4)
-      const micro = noise(u * 0.32, v * 0.36, seed + 5)
-      const ridge = Math.abs(noise((u + v * 0.24) * 0.011, v * 0.04, seed + 6) - 0.5)
+      const low = noise(u * 0.006, v * 0.007, safeSeed + 2)
+      const mid = noise(u * 0.023, v * 0.029, safeSeed + 3)
+      const fine = noise(u * 0.095, v * 0.11, safeSeed + 4)
+      const micro = noise(u * 0.32, v * 0.36, safeSeed + 5)
+      const ridge = Math.abs(noise((u + v * 0.24) * 0.011, v * 0.04, safeSeed + 6) - 0.5)
       const index = y * sampleWidth + x
       clouds[index] = low * 0.65 + mid * 0.25 + ridge * 0.1
       heights[index] = low * 11 + mid * 3.9 + fine * 1.4 + micro * 0.48
@@ -595,8 +930,8 @@ export function createRockScene(
       const down = heights[Math.min(sampleHeight - 1, y + 1) * sampleWidth + x]
       const light = ((left - right) * 0.8 + (up - down) * 0.6) * 15 * resolution
       const cloud = (clouds[index] - 0.5) * 16
-      const grain = (hash(x, y, seed + 19) - 0.5) * 2
-      const pore = hash(x, y, seed + 22) > 0.997 ? -3 * RELIEF : 0
+      const grain = (hash(x, y, safeSeed + 19) - 0.5) * 2
+      const pore = hash(x, y, safeSeed + 22) > 0.997 ? -3 * RELIEF : 0
       const edge = 1 - Math.min(1, Math.abs(x / sampleWidth - 0.48) * 1.6)
       const value = ((light + cloud + grain) * RELIEF + pore) * (1 - edge * 0.23)
       const channel = value >= 0 ? 255 : 0
@@ -613,7 +948,7 @@ export function createRockScene(
   lightMatCtx.putImageData(lightPixels, 0, 0)
   darkMatCtx.putImageData(darkPixels, 0, 0)
 
-  const veins = createVeins(seed)
+  const { veins, totalDurationMs } = createVeins(safeSeed)
   // 窄屏竖屏下主裂纹会落入居中裁剪区外，按可见宽度向左右边缘收拢，保持线宽与桌面一致。
   const visibleWidth = width / scale
   const visibleHeight = height / scale
@@ -628,8 +963,8 @@ export function createRockScene(
   }
 
   const safeInitialProgress = Number.isFinite(initialProgress) ? Math.max(0, Math.min(1, initialProgress)) : 0
-  const emitters = createVeinEmitters(veins, seed, safeInitialProgress)
-  const particleRand = createRandom(seed + 13107)
+  const emitters = createVeinEmitters(veins, safeSeed, safeInitialProgress, totalDurationMs)
+  const particleRand = createRandom(safeSeed + 13107)
   const particles: RockParticle[] = []
   const lightMistSprites = LIGHT_PARTICLE_RGB.map((rgb) => createDustSprite(rgb, true))
   const lightGrainSprites = LIGHT_PARTICLE_RGB.map((rgb) => createDustSprite(rgb, false))
@@ -648,6 +983,7 @@ export function createRockScene(
   }
 
   return {
+    totalDurationMs,
     stepParticles(dtSeconds: number, progress: number) {
       if (disposed) return false
       const safeDt = Number.isFinite(dtSeconds) && dtSeconds > 0 ? Math.min(0.1, dtSeconds) : 0
@@ -675,26 +1011,46 @@ export function createRockScene(
       }
 
       if (safeProgress > 0) {
+        const elapsedMs = safeProgress * totalDurationMs
         for (const emitter of emitters) {
-          const { vein, checkpoints } = emitter
-          const vp = getVeinProgress(vein, safeProgress)
-          while (emitter.nextIdx < checkpoints.length && checkpoints[emitter.nextIdx] <= vp) {
-            const cp = checkpoints[emitter.nextIdx]
-            emitter.nextIdx++
+          const { vein, leftCheckpoints, rightCheckpoints } = emitter
+          const state = safeProgress >= 1 ? { left: 1, right: 1 } : getVeinArcProgress(vein, elapsedMs)
+
+          while (emitter.leftNextIdx < leftCheckpoints.length && leftCheckpoints[emitter.leftNextIdx] <= state.left) {
+            const cp = leftCheckpoints[emitter.leftNextIdx]
+            emitter.leftNextIdx++
+            const t = arcRatioToIndexT(vein.cumLengths, vein.totalLength, vein.midArcRatio * (1 - cp))
+            pushParticleAt(vein.points, t, 'grain')
+            if (particleRand() < 0.28) {
+              pushParticleAt(vein.points, t, 'mist')
+            }
+          }
+
+          while (
+            emitter.rightNextIdx < rightCheckpoints.length &&
+            rightCheckpoints[emitter.rightNextIdx] <= state.right
+          ) {
+            const cp = rightCheckpoints[emitter.rightNextIdx]
+            emitter.rightNextIdx++
             if (vein.growMode === 'center') {
-              const t = particleRand() < 0.5 ? 0.5 - 0.5 * cp : 0.5 + 0.5 * cp
+              const t = arcRatioToIndexT(
+                vein.cumLengths,
+                vein.totalLength,
+                vein.midArcRatio + (1 - vein.midArcRatio) * cp,
+              )
               pushParticleAt(vein.points, t, 'grain')
               if (particleRand() < 0.28) {
                 pushParticleAt(vein.points, t, 'mist')
               }
             } else {
+              const t = arcRatioToIndexT(vein.cumLengths, vein.totalLength, cp)
               const isThickMain = vein.kind === 'main' && vein.width > 0.6
-              pushParticleAt(vein.points, cp, 'grain')
+              pushParticleAt(vein.points, t, 'grain')
               if (particleRand() < (isThickMain ? 0.6 : 0.3)) {
-                pushParticleAt(vein.points, cp, 'mist')
+                pushParticleAt(vein.points, t, 'mist')
               }
               if (isThickMain && particleRand() < 0.35) {
-                pushParticleAt(vein.points, cp, 'grain')
+                pushParticleAt(vein.points, t, 'grain')
               }
             }
           }
@@ -718,7 +1074,8 @@ export function createRockScene(
 
       const safeProgress = Number.isFinite(progress) ? progress : 0
       const globalProgress = Math.max(0, Math.min(1, safeProgress))
-      const surfaceAlpha = globalProgress >= 1 ? 1 : 0.35 + 0.65 * Math.min(1, globalProgress / 0.14)
+      const elapsedMs = globalProgress * totalDurationMs
+      const surfaceAlpha = globalProgress >= 1 ? 1 : 0.35 + 0.65 * Math.min(1, elapsedMs / SURFACE_FADE_MS)
 
       ctx.setTransform(1, 0, 0, 1, 0, 0)
       ctx.globalCompositeOperation = 'source-over'
@@ -736,16 +1093,49 @@ export function createRockScene(
       const creviceAlpha = dark ? 0.4 : 0.6175
 
       for (const vein of veins) {
-        const veinProgress = getVeinProgress(vein, globalProgress)
-        if (veinProgress <= 0) continue
+        const state = globalProgress >= 1 ? { left: 1, right: 1 } : getVeinArcProgress(vein, elapsedMs)
+        if (vein.growMode === 'center' ? state.left <= 0 && state.right <= 0 : state.right <= 0) continue
 
-        const startT = veinProgress >= 1 ? 0 : vein.growMode === 'center' ? 0.5 - 0.5 * veinProgress : 0
-        const endT = veinProgress >= 1 ? 1 : vein.growMode === 'center' ? 0.5 + 0.5 * veinProgress : veinProgress
+        let startT: number
+        let endT: number
+        if (globalProgress >= 1 || (state.left >= 1 && state.right >= 1)) {
+          startT = 0
+          endT = 1
+        } else if (vein.growMode === 'center') {
+          startT =
+            state.left >= 1
+              ? 0
+              : arcRatioToIndexT(vein.cumLengths, vein.totalLength, vein.midArcRatio * (1 - state.left))
+          endT =
+            state.right >= 1
+              ? 1
+              : arcRatioToIndexT(
+                  vein.cumLengths,
+                  vein.totalLength,
+                  vein.midArcRatio + (1 - vein.midArcRatio) * state.right,
+                )
+        } else {
+          startT = 0
+          endT = state.right >= 1 ? 1 : arcRatioToIndexT(vein.cumLengths, vein.totalLength, state.right)
+        }
+
         const count = sampleSubPath(vein.points, startT, endT)
         if (count < 2) continue
 
-        fillVeinPass(ctx, vein, count, veinProgress, startT, endT, 0.82, 0.34, highlightColor, highlightAlpha)
-        fillVeinPass(ctx, vein, count, veinProgress, startT, endT, 0.62, 0, creviceColor, creviceAlpha)
+        fillVeinPass(
+          ctx,
+          vein,
+          count,
+          state.left,
+          state.right,
+          startT,
+          endT,
+          0.82,
+          0.34,
+          highlightColor,
+          highlightAlpha,
+        )
+        fillVeinPass(ctx, vein, count, state.left, state.right, startT, endT, 0.62, 0, creviceColor, creviceAlpha)
       }
 
       if (particles.length > 0 && globalProgress > 0) {

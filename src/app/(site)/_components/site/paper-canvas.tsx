@@ -6,7 +6,6 @@ import { createRockScene, paintRockTexture } from './rock-texture'
 
 export const SITE_FX_STORAGE_KEY = 'site-backdrop-fx'
 export const SITE_FX_CHANGE_EVENT = 'site-fx-change'
-const CRACK_DURATION_MS = 1400
 
 /** 读取背景开关；存储不可用时默认显示，沿用根布局的防闪烁约定。 */
 export function readBackdropFxEnabled(): boolean {
@@ -154,7 +153,8 @@ export function PaperCanvas() {
         if (!ensureScene() || !scene) return
         const dtMs = lastFrameTime > 0 ? Math.min(100, Math.max(0, now - lastFrameTime)) : 0
         lastFrameTime = now
-        animProgress = Math.min(1, animProgress + dtMs / CRACK_DURATION_MS)
+        const durationMs = scene.totalDurationMs > 0 ? scene.totalDurationMs : 1400
+        animProgress = Math.min(1, animProgress + dtMs / durationMs)
         const hasActiveParticles = scene.stepParticles(dtMs / 1000, animProgress)
 
         if (animProgress >= 1 && !hasActiveParticles) {
