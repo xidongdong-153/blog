@@ -385,8 +385,129 @@ html[data-backdrop-fx='off'] #site-film-backdrop {
   opacity: 0 !important;
 }
 
+html[data-backdrop-fx='off'] #global-ambient-backdrop .ambient-mist-layer {
+  animation-play-state: paused;
+  will-change: auto;
+}
+
 html:has([data-reader-focus='true'], [data-writer-focus='true']) #global-ambient-backdrop {
   opacity: 0.16;
+}
+
+html:has([data-reader-focus='true'], [data-writer-focus='true']) #global-ambient-backdrop .ambient-mist-layer {
+  animation-play-state: paused;
+  will-change: auto;
+}
+
+@keyframes ambient-mist-wash {
+  0%,
+  100% {
+    opacity: 0.72;
+  }
+  46% {
+    opacity: 1;
+  }
+  56% {
+    opacity: 0.94;
+  }
+}
+
+@keyframes ambient-mist-plume-a {
+  0%,
+  100% {
+    opacity: 0.56;
+    transform: translate3d(-2.6%, -1.6%, 0) scale(0.96, 0.97) rotate(-1.4deg);
+  }
+  42% {
+    opacity: 1;
+    transform: translate3d(3.2%, 2%, 0) scale(1.05, 1.04) rotate(1.3deg);
+  }
+  52% {
+    opacity: 0.96;
+    transform: translate3d(2.8%, 1.7%, 0) scale(1.04, 1.03) rotate(1.1deg);
+  }
+}
+
+@keyframes ambient-mist-plume-b {
+  0%,
+  100% {
+    opacity: 0.96;
+    transform: translate3d(2.8%, 1.4%, 0) scale(1.04, 0.97) rotate(1.3deg);
+  }
+  45% {
+    opacity: 0.5;
+    transform: translate3d(-3.2%, -1.8%, 0) scale(0.95, 1.04) rotate(-1.4deg);
+  }
+  55% {
+    opacity: 0.54;
+    transform: translate3d(-2.8%, -1.4%, 0) scale(0.96, 1.03) rotate(-1.1deg);
+  }
+}
+
+@keyframes ambient-mist-ribbon {
+  0%,
+  100% {
+    opacity: 0.4;
+    transform: translate3d(-3.2%, -1.2%, 0) scale(0.95, 0.96) rotate(-1.8deg);
+  }
+  40% {
+    opacity: 0.94;
+    transform: translate3d(3.4%, 1.8%, 0) scale(1.06, 1.03) rotate(1.2deg);
+  }
+  50% {
+    opacity: 0.9;
+    transform: translate3d(2.9%, 1.5%, 0) scale(1.05, 1.02) rotate(0.9deg);
+  }
+}
+
+@keyframes ambient-mist-drift {
+  0%,
+  100% {
+    opacity: 0.38;
+    transform: translate3d(-2%, 1.8%, 0) scale(0.94, 0.97) rotate(1.2deg);
+  }
+  48% {
+    opacity: 0.9;
+    transform: translate3d(2.6%, -2%, 0) scale(1.05, 1.03) rotate(-1.2deg);
+  }
+  58% {
+    opacity: 0.85;
+    transform: translate3d(2.2%, -1.6%, 0) scale(1.04, 1.02) rotate(-1deg);
+  }
+}
+
+.ambient-mist-layer {
+  will-change: transform, opacity;
+}
+
+.ambient-mist-wash {
+  will-change: opacity;
+  animation: ambient-mist-wash 18s cubic-bezier(0.37, 0, 0.63, 1) -5s infinite;
+}
+
+.ambient-mist-plume-a {
+  animation: ambient-mist-plume-a 15s cubic-bezier(0.37, 0, 0.63, 1) -4s infinite;
+}
+
+.ambient-mist-plume-b {
+  animation: ambient-mist-plume-b 19s cubic-bezier(0.37, 0, 0.63, 1) -11s infinite;
+}
+
+.ambient-mist-ribbon {
+  animation: ambient-mist-ribbon 13s cubic-bezier(0.37, 0, 0.63, 1) -2.5s infinite;
+}
+
+.ambient-mist-drift {
+  animation: ambient-mist-drift 23s cubic-bezier(0.37, 0, 0.63, 1) -14s infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ambient-mist-layer {
+    animation: none !important;
+    transform: none !important;
+    opacity: 0.85 !important;
+    will-change: auto !important;
+  }
 }
 
 html:has([data-reader-focus='true'], [data-writer-focus='true']) #site-film-backdrop {

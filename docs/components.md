@@ -18,6 +18,7 @@ paths:
 
 现状：项目中的公开/通用 client 组件包括：
 
+- `src/app/(site)/_components/site/ambient-backdrop.tsx`（随机 fBm 不规则雾岚顶光生成、`site-backdrop-fx` 监听与跨标签同步）
 - `src/app/(site)/_components/site/paper-canvas.tsx`（双主题岩石细纹、入场裂纹延展动效、`site-backdrop-fx` 与跨标签 `storage` 同步）
 - `src/app/(site)/_components/site/fx-toggle.tsx`（页脚背景效果开关及同/跨标签状态同步）
 - `src/app/(site)/_components/site/theme-toggle.tsx`（主题三态切换、圆形 View Transition 扩散与媒体监听）
@@ -35,7 +36,7 @@ paths:
 
 MDX 渲染走异步 RSC（`mdx-content.tsx` 的 `compileMDX`），不需要 client。高频滚动联动场景（如 TOC 进度条）使用 `requestAnimationFrame` 直接更新 DOM 样式，避免高频触发 React 整树重渲染。`SiteHeader` 通过滚动偏移死区避免方向震荡，借助 `data-scrolled` 与 `data-visible` 驱动 `backdrop-blur-md` 边框与纯 GPU 平移/透明度过渡，不使用会引发重排的动态 margin。
 
-判断标准：组件要 `useState` / `useEffect` / 浏览器 API 才转 client；只展示数据、拼接 className 的都留在 server（如 `AmbientBackdrop`、`PaperSurface`、`PageHeader`、`SiteFooter`、`PostCard`、`NoteCard`）。client 边界收得越小越好，不要为了方便把整棵子树标成 client。
+判断标准：组件要 `useState` / `useEffect` / 浏览器 API 才转 client；只展示数据、拼接 className 的都留在 server（如 `PaperSurface`、`PageHeader`、`SiteFooter`、`PostCard`、`NoteCard`）。client 边界收得越小越好，不要为了方便把整棵子树标成 client。
 
 ## 导出方式
 
@@ -67,7 +68,7 @@ MDX 渲染走异步 RSC（`mdx-content.tsx` 的 `compileMDX`），不需要 clie
 
 - **全站背景底座（`AmbientBackdrop` + `PaperCanvas` + `PaperSurface`）**：
   - `SiteLayout`（`src/app/(site)/layout.tsx`）先挂载 `AmbientBackdrop`（`-z-20`），再挂载 `PaperCanvas`（`-z-10`），纹理画布保持透明，让底色和文章氛围光透出。
-  - `AmbientBackdrop` 接收可选 `color` 或读取 `--page-highlight`，通过 `src/lib/utils.ts` 的 `sanitizeCssColor` 与 `globals.css` 的 `@property` `<color>` 校验双层兜底；文章页与预览页注入 `post.heroColor` 时同样经 `sanitizeCssColor` 过滤。
+  - `AmbientBackdrop` 接收可选 `color` 或读取 `--page-highlight`，通过 `src/lib/utils.ts` 的 `sanitizeCssColor` 与 `globals.css` 的 `@property` `<color>` 校验双层兜底；文章页与预览页注入 `post.heroColor` 时同样经 `sanitizeCssColor` 过滤。组件在客户端挂载时通过 `mist-texture.ts`（复用 `backdrop-noise.ts` 的随机种子与分形噪声）按随机种子生成四层域扭曲 fBm 不规则雾岚 Alpha 遮罩（`data:image/png`），使用完即释放离屏画布，容器仅在宽高比变化达 20% 以上时防抖重算；四层雾岚与顶部洗墨底光由 CSS `mask-image` 结合 `globals.css` 互质周期关键帧驱动 GPU 合成层呼吸与慢漂，在 `data-backdrop-fx="off"`、专注模式（`data-reader-focus="true"` / `data-writer-focus="true"`）或 `prefers-reduced-motion: reduce` 下自动暂停或定格。
   - `PaperCanvas` 使用 `rock-texture.ts` 绘制双主题岩石细纹：每次挂载生成随机种子，站内跳转、主题切换与尺寸变化保持同一种子；入场或重新开启背景特效时通过 `createRockScene` 预计算矿物纹理并按种子派生的随机节奏（整场包络约 0.75 至 3.6 秒，24 条裂纹按物理弧长各自随机速度、起裂次序与断裂曲线，分支按父裂纹分叉点二分求逆同步起裂）逐帧绘制，生长沿途随裂尖散出柔和粉尘微雾与细粒并缓慢受重力下沉消隐（开启 `prefers-reduced-motion: reduce` 时跳过过程直接定格），全部落定后渲染双主题静态画布并调用 `dispose` 释放离屏材质；背景关闭或页面隐藏时暂停，恢复后从当前进度继续或按需补绘，定格后的防抖 `resize` 直接重绘终态。单画布最多 300 万像素且边长不超过 4096，材质采样最多 80 万像素，绘制失败时保留站点底色；`FxToggle` 与 `PaperCanvas` 共同通过 `readBackdropFxEnabled`、`site-fx-change` 自定义事件及 `storage`（含 `key === null`）保持同标签与跨标签状态一致，配合 `src/app/layout.tsx` 隔离 `try/catch` 的防闪烁脚本同步 `html.dataset.backdropFx`。
   - `PaperSurface` 仅用于需要明确层叠区隔的浮层与弹出面板（`bg-popover`、工位 HUD、移动菜单抽屉等）；公开正文列表、页脚与信息区块不再套用卡片外框。
 - **一级页面标题 `PageHeader`**（`src/app/(site)/_components/site/page-header.tsx`）：接收 `title`、`description`（可选保留 `eyebrow` 参数但不再渲染英文眉标），输出衬线 H1、说明和分隔线，保持 Server Component。

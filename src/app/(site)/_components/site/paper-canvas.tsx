@@ -2,6 +2,7 @@
 
 import type { RockScene } from './rock-texture'
 import { useEffect, useRef } from 'react'
+import { createBackdropSeed } from './backdrop-noise'
 import { createRockScene, paintRockTexture } from './rock-texture'
 
 export const SITE_FX_STORAGE_KEY = 'site-backdrop-fx'
@@ -18,14 +19,6 @@ export function readBackdropFxEnabled(): boolean {
 
 function syncBackdropFxAttr() {
   document.documentElement.dataset.backdropFx = readBackdropFxEnabled() ? 'on' : 'off'
-}
-
-function createRockSeed(): number {
-  try {
-    return window.crypto.getRandomValues(new Uint32Array(1))[0]
-  } catch {
-    return Math.floor(Math.random() * 4294967296)
-  }
 }
 
 /**
@@ -45,7 +38,7 @@ export function PaperCanvas() {
     const lightCanvas = lightRef.current
     const darkCanvas = darkRef.current
     if (!node || !lightCanvas || !darkCanvas) return
-    seedRef.current ??= createRockSeed()
+    seedRef.current ??= createBackdropSeed()
     const seed = seedRef.current
 
     const reducedMotionQuery = window.matchMedia('(prefers-reduced-motion: reduce)')

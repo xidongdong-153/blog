@@ -1,3 +1,5 @@
+import { clamp, createRandom, hash2d as hash, noise2d as noise } from './backdrop-noise'
+
 interface Point {
   x: number
   y: number
@@ -105,10 +107,6 @@ function ensureSampleCapacity(needed: number) {
   sampleBufX = new Float64Array(nextSize)
   sampleBufY = new Float64Array(nextSize)
   sampleBufT = new Float64Array(nextSize)
-}
-
-function clamp(value: number, min: number, max: number): number {
-  return Math.min(max, Math.max(min, value))
 }
 
 function logUniform(random: () => number, min: number, max: number): number {
@@ -238,36 +236,6 @@ function shuffleSlots(slots: number[], random: () => number): number[] {
     ;[copy[i], copy[j]] = [copy[j], copy[i]]
   }
   return copy
-}
-
-function createRandom(seed: number): () => number {
-  let state = seed >>> 0
-  return () => {
-    state = (state + 0x6d2b79f5) >>> 0
-    let t = Math.imul(state ^ (state >>> 15), 1 | state)
-    t ^= t + Math.imul(t ^ (t >>> 7), 61 | t)
-    return ((t ^ (t >>> 14)) >>> 0) / 4294967296
-  }
-}
-
-function hash(x: number, y: number, seed: number): number {
-  let h = Math.imul(x, 374761393) ^ Math.imul(y, 668265263) ^ Math.imul(seed, 144269)
-  h = Math.imul(h ^ (h >>> 13), 1274126177)
-  return ((h ^ (h >>> 16)) >>> 0) / 4294967295
-}
-
-function noise(x: number, y: number, seed: number): number {
-  const ix = Math.floor(x)
-  const iy = Math.floor(y)
-  let fx = x - ix
-  let fy = y - iy
-  fx = fx * fx * (3 - 2 * fx)
-  fy = fy * fy * (3 - 2 * fy)
-  const a = hash(ix, iy, seed)
-  const b = hash(ix + 1, iy, seed)
-  const c = hash(ix, iy + 1, seed)
-  const d = hash(ix + 1, iy + 1, seed)
-  return a + (b - a) * fx + (c - a) * fy + (a - b - c + d) * fx * fy
 }
 
 function fracture(start: Point, end: Point, amplitude: number, random: () => number): Point[] {
