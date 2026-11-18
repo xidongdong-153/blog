@@ -29,7 +29,7 @@ paths:
 - `src/app/(site)/_components/home/yearly-timeline.tsx`（首页年度双轨季度刻度与节点浮卡交互）
 - `src/app/(site)/_components/blog/blog-search.tsx`（站内文章搜索、内存索引过滤与结果渲染）
 - `src/app/(site)/_components/blog/article-reader-shell.tsx`（专注阅读模式切换与 `data-reader-focus` 驱动）
-- `src/app/(site)/_components/blog/toc.tsx`（TOC 展开折叠、点击互斥锁、侧栏自滚动与 RAF 进度更新）
+- `src/app/(site)/_components/blog/toc.tsx`（TOC 多级视口高亮、溢出渐隐、专注模式顶部折叠、点击互斥锁与 RAF 进度更新）
 - `src/app/(site)/_components/blog/floating-action-group.tsx` / `series-chapter-sidebar.tsx`（移动端抽屉与专栏大纲导航）
 - `src/app/(site)/_components/comment/comment-section.tsx`（社交登录、评论树读取、平铺回复与前台管理）
 - `src/app/(site)/_components/links/friends-constellation.tsx` / `friend-apply-modal.tsx`（友邻拓扑星图与友链申请弹窗）
@@ -62,7 +62,7 @@ MDX 渲染走异步 RSC（`mdx-content.tsx` 的 `compileMDX`），不需要 clie
 - 颜色、字号、间距、圆角与页面宽度以[设计规范](../DESIGN.md)为准。
 - 提示框与卡片避免使用 `border-l-4` 等单侧粗边框，采用完整发丝线 `border-hair`（或配合 `PaperSurface`）与语义背景色。
 - 公开一级页面外框统一 `max-w-5xl`；狭幅阅读区在外框内左对齐。文章列表有标签时 `lg` 起双栏，无标签时单列；搜索前后列宽一致。首页与五个一级页面共用 `max-w-5xl` 主外框，详情页保留各自阅读宽度，不在共享 `<main>` 上硬编码限宽。
-- 样式走 Tailwind 工具类与 `data-*` 变体（如 `data-[scrolled=true]:`、`data-[reader-focus=true]:`、`theme-system:` 等）；`src/app/globals.css` 存放 `@property` 注册、设计 token、prose / `.field-note-prose` 排版映射、keyframes、视图过渡规则、浏览器选区与光标主题（`::selection` / `caret-color`）以及共享交互动效与触控工具类（`entrance`、`ink-link`、`ink-line`、`ink-row`、`ink-glide`、`hit-expand`）。
+- 样式走 Tailwind 工具类与 `data-*` 变体（如 `data-[scrolled=true]:`、`data-[reader-focus=true]:`、`theme-system:` 等）；`src/app/globals.css` 存放 `@property` 注册、设计 token、prose / `.field-note-prose` 排版映射、keyframes、视图过渡规则、浏览器选区与光标主题（`::selection` / `caret-color`）以及共享交互动效、滚动与触控工具类（`entrance`、`ink-link`、`ink-line`、`ink-row`、`ink-glide`、`hit-expand`、`no-scrollbar`）。`src/app/layout.tsx` 在根节点统一启用 `[scrollbar-gutter:stable]` 与 `data-[scroll-locked]:mr-0!`，配合 `header-auth.tsx` 固定 `size-8` 占位避免加载与浮层锁滚时的水平抖动。
 
 ## 通用模式与组件
 
@@ -74,7 +74,7 @@ MDX 渲染走异步 RSC（`mdx-content.tsx` 的 `compileMDX`），不需要 clie
 - **一级页面标题 `PageHeader`**（`src/app/(site)/_components/site/page-header.tsx`）：接收 `title`、`description`（可选保留 `eyebrow` 参数但不再渲染英文眉标），输出衬线 H1、说明和分隔线，保持 Server Component。
 - **文章搜索 `BlogSearch`**：接收 RSC 的 `sourceSwitch`、`toolbar`、`sidebar` 和列表 `children`；不把整个页面改成 client，详情见[站内搜索](search.md)。
 - **文章卡片 `PostCard`**（`src/app/(site)/_components/blog/post-card.tsx`）：采用无框发丝线排版（`.ink-row` 悬停竖线与轻右移），标题配备 SVG 动态箭头，分类与标签悬停生长墨线。可选 `hit` prop 接收搜索命中区间，标题按区间高亮，正文命中片段替换摘要位；组件自身不感知搜索状态。
-- **目录导轨 `TableOfContents`**（`src/app/(site)/_components/blog/toc.tsx`）：采用贯穿式 `1px` 细线垂直导轨与章节刻度锚点，当前视口对应章节高亮并带平滑缩放与明度反馈。
+- **目录导轨 `TableOfContents`**（`src/app/(site)/_components/blog/toc.tsx`）：采用贯穿式 `1px` 细线垂直导轨与章节刻度锚点，主激活章节实亮全高刻度，同屏次级可见章节柔亮提示；桌面端使用 `no-scrollbar` 隐藏原生滚动条并在溢出端施加 `18px` 渐隐遮罩，开启 `showRailTools` 时附带渐变发丝线、SVG 环形阅读进度、滚动超 4% 淡入的回到顶部及专注阅读/复制链接/评论跳转快捷栏。开启专注阅读时目录通过 CSS Grid `0fr` 与交错位移淡出折叠（附 `inert`），进度与快捷栏过渡到顶部并降为 75% 透明度；退出后重新展开并刷新滚动边缘与当前章节居中定位。移动端 `FloatingActionGroup` 抽屉（`z-[80]`）传入 `inDrawer` 复用目录列表。
 - **笔记档案条目 `NoteCard`**（`src/app/(site)/_components/notes/note-card.tsx`）：左侧展示编号（`NOTE #001`）、日期与语义状态，右侧展示标题、正文摘要与 `#标签` 文本，无外层卡片框线。
 - 列表渲染 key 用稳定业务键（`post.slug`、`tag`、`note.slug`），不用数组下标。
 - 日期显示统一 `<time dateTime={post.date}>{formatDate(post.date)}</time>`，见 `post-card.tsx` 和详情页。
