@@ -6,11 +6,10 @@ import { ThemeToggle } from './theme-toggle'
 
 /**
  * 站点页脚（无卡片外壳的发丝线排印区）。
- * 直接落于宣纸背景之上，顶部分隔以 1px 发丝线，保持四栏清晰导航、实时在线与版式控制。
+ * 直接落于宣纸背景之上，顶部分隔以 1px 发丝线，放页头导航之外的入口、实时在线与版式控制。
  */
 export function SiteFooter() {
   const year = new Date().getFullYear()
-  const hostLabel = siteConfig.url.replace(/^https?:\/\//, '').toUpperCase()
 
   return (
     <footer id="site-footer" className="relative z-10 mt-20 px-6 pb-12 pt-4 text-xs text-muted-foreground sm:mt-24">
@@ -21,9 +20,6 @@ export function SiteFooter() {
             <Link href="/" className="ink-link font-serif text-xl font-medium tracking-wide text-foreground">
               {siteConfig.title}
             </Link>
-            <span className="font-mono text-[11px] tracking-wider text-muted-foreground">
-              TypeScript · Full-stack · AI Agents
-            </span>
           </div>
 
           <VisitorStats align="right" />
@@ -31,47 +27,11 @@ export function SiteFooter() {
 
         <div className="my-6 border-t border-hair" />
 
-        {/* 四栏编目索引 */}
-        <div className="grid grid-cols-2 gap-x-6 gap-y-7 sm:grid-cols-4">
-          <div>
-            <div className="mb-3 font-mono text-[11px] tracking-wider text-muted-foreground">更多</div>
-            <ul className="space-y-2 text-[13px] text-foreground/85">
-              <li>
-                <Link href="/about" className="ink-link inline-block py-0.5">
-                  关于
-                </Link>
-              </li>
-              <li>
-                <Link href="/projects" className="ink-link inline-block py-0.5">
-                  项目
-                </Link>
-              </li>
-              <li>
-                <Link href="/links" className="ink-link inline-block py-0.5">
-                  友链
-                </Link>
-              </li>
-              <li>
-                <Link href="/status" className="ink-link inline-block py-0.5">
-                  状态
-                </Link>
-              </li>
-            </ul>
-          </div>
-
+        {/* 三栏编目索引：只放页头导航之外的入口 */}
+        <div className="grid grid-cols-2 gap-x-6 gap-y-7 sm:grid-cols-3">
           <div>
             <div className="mb-3 font-mono text-[11px] tracking-wider text-muted-foreground">目录</div>
             <ul className="space-y-2 text-[13px] text-foreground/85">
-              <li>
-                <Link href="/blog" className="ink-link inline-block py-0.5">
-                  文章
-                </Link>
-              </li>
-              <li>
-                <Link href="/notes" className="ink-link inline-block py-0.5">
-                  笔记
-                </Link>
-              </li>
               <li>
                 <Link href="/blog/archives" className="ink-link inline-block py-0.5">
                   归档
@@ -80,6 +40,11 @@ export function SiteFooter() {
               <li>
                 <Link href="/blog/tags" className="ink-link inline-block py-0.5">
                   标签
+                </Link>
+              </li>
+              <li>
+                <Link href="/status" className="ink-link inline-block py-0.5">
+                  状态
                 </Link>
               </li>
             </ul>
@@ -140,15 +105,8 @@ export function SiteFooter() {
         </div>
 
         {/* 底部版本铭牌 */}
-        <div className="mt-8 flex flex-wrap items-center justify-between gap-2 border-t border-hair pt-5 font-mono text-[11px] tracking-wider text-muted-foreground">
-          <div className="flex flex-wrap items-center gap-2">
-            <span>{hostLabel}</span>
-            <span>·</span>
-            <span>
-              © {year} {siteConfig.author}
-            </span>
-          </div>
-          <span>上海</span>
+        <div className="mt-8 border-t border-hair pt-5 font-mono text-[11px] tracking-wider text-muted-foreground">
+          © {year} {siteConfig.author}
         </div>
       </div>
     </footer>

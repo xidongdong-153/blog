@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react'
 import type { Profile } from '@/profile.config'
-import { Activity, Archive, Compass, Mail, Rss } from 'lucide-react'
+import { Mail, Rss } from 'lucide-react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { siteConfig } from '@/site.config'
@@ -57,24 +57,6 @@ export function Hero({ profile, stats }: HeroProps) {
       label: '联系',
       href: '/contact',
       icon: <Mail className="size-4" strokeWidth={1.75} />,
-    },
-    {
-      key: 'archives',
-      label: '归档',
-      href: '/blog/archives',
-      icon: <Archive className="size-4" strokeWidth={1.75} />,
-    },
-    {
-      key: 'links',
-      label: '友链',
-      href: '/links',
-      icon: <Compass className="size-4" strokeWidth={1.75} />,
-    },
-    {
-      key: 'status',
-      label: '状态',
-      href: '/status',
-      icon: <Activity className="size-4" strokeWidth={1.75} />,
     },
   ]
 
@@ -179,7 +161,6 @@ export function Hero({ profile, stats }: HeroProps) {
               <div className="font-serif text-lg font-medium text-foreground">{siteConfig.author}</div>
               <div className="truncate font-mono text-[11px] text-muted-foreground">
                 {siteConfig.url.replace(/^https?:\/\//, '')}
-                {profile.location ? ` · ${profile.location}` : ''}
               </div>
             </div>
           </div>
