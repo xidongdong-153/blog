@@ -8,6 +8,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { BLOG_CATEGORY_LABELS } from '@/lib/blog-meta'
 import { formatDate } from '@/lib/date'
+import { lockOverlayScroll } from './overlay-scroll-lock'
 import { useSearchMotion } from './use-search-motion'
 
 export interface HeaderPostItem {
@@ -61,11 +62,7 @@ export function CommandSearchModal({ isOpen, onClose, posts, triggerRef }: Comma
       setActiveIndex(0)
       return
     }
-    const prevOverflow = document.body.style.overflow
-    document.body.style.overflow = 'hidden'
-    return () => {
-      document.body.style.overflow = prevOverflow
-    }
+    return lockOverlayScroll()
   }, [present])
 
   useEffect(() => {

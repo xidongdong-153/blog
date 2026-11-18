@@ -36,6 +36,7 @@ export function AdminUiProvider({ children }: { children: ReactNode }) {
             fontFamily: 'inherit',
           },
           classNames: {
+            toast: 'admin-toast-motion',
             actionButton: '!bg-primary !text-primary-foreground',
             closeButton: '!border-border !bg-popover !text-popover-foreground',
           },

@@ -5,6 +5,7 @@ import type { SummaryProtocol } from '@/server/modules/ai/ai.types'
 import * as Form from '@radix-ui/react-form'
 import { Badge, Box, Callout, Code, Flex, Grid, Heading, Text } from '@radix-ui/themes'
 import { AlertCircle, KeyRound, RefreshCw, Trash2 } from 'lucide-react'
+import { useRef } from 'react'
 import {
   AlertDialog,
   AlertDialogCancel,
@@ -27,6 +28,7 @@ const PROTOCOLS: { value: SummaryProtocol; label: string }[] = [
 /** 维护 Agent、摘要与初稿共用的默认模型，卡片占满工作区全宽，保留凭据的显式清除确认。 */
 export function AiSummarySettingsForm({ state, running }: { state: ModelSettingsState; running: boolean }) {
   const busy = Boolean(state.operation) || running
+  const clearTriggerRef = useRef<HTMLButtonElement | null>(null)
   return (
     <Box className="w-full min-w-0 py-3">
       <Box className="w-full rounded-xl border border-hair bg-card/88 p-5 shadow-[var(--surface-shadow)] sm:p-6">
@@ -234,6 +236,7 @@ export function AiSummarySettingsForm({ state, running }: { state: ModelSettings
                           size="icon"
                           disabled={busy}
                           aria-label="清除已保存的 API Key"
+                          ref={clearTriggerRef}
                           onClick={() => state.setClearOpen(true)}
                         >
                           <Trash2 aria-hidden="true" />
@@ -267,6 +270,7 @@ export function AiSummarySettingsForm({ state, running }: { state: ModelSettings
       </Box>
 
       <AlertDialog
+        triggerRef={clearTriggerRef}
         open={state.clearOpen}
         onOpenChange={(open) => {
           if (!state.operation) state.setClearOpen(open)

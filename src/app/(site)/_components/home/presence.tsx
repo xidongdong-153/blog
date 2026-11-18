@@ -9,6 +9,7 @@ import { createOfflinePresence, parsePublicPresence } from '@/lib/presence'
 import { profileConfig } from '@/profile.config'
 import { siteConfig } from '@/site.config'
 import { PaperSurface } from '../site/paper-surface'
+import { useOverlayMotion } from '../site/use-overlay-motion'
 
 const PRESENCE_REQUEST_TIMEOUT_MS = 6_000
 export const PRESENCE_UPDATE_EVENT = 'xdd-presence-update'
@@ -74,6 +75,13 @@ export function PresenceStatus() {
   const [expanded, setExpanded] = useState(false)
   const [idleMessage, setIdleMessage] = useState<string>(IDLE_MESSAGES[0])
   const containerRef = useRef<HTMLDivElement>(null)
+  const triggerRef = useRef<HTMLAnchorElement>(null)
+  const { present, anchorRef, surfaceRef } = useOverlayMotion({
+    open: expanded,
+    triggerRef,
+    duration: 240,
+    exitDuration: 180,
+  })
   const requestRef = useRef<AbortController | null>(null)
   const inFlightRef = useRef(false)
 
@@ -184,6 +192,7 @@ export function PresenceStatus() {
       }}
     >
       <Link
+        ref={triggerRef}
         href="/"
         aria-label={`${siteConfig.title}首页，实时工位：${summaryText}`}
         className="ink-glide group relative flex items-center gap-2.5 rounded-lg active:scale-95 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-ring"
@@ -217,69 +226,77 @@ export function PresenceStatus() {
       </Link>
 
       {/* 悬停展开的纸片感工位 HUD */}
-      {expanded && (
+      {present && (
         <div
-          role="dialog"
-          aria-label="实时工位状态"
-          className="isolate absolute left-0 top-[calc(100%+0.65rem)] z-50 w-64 overflow-hidden rounded-lg p-3.5 text-left before:absolute before:-top-3 before:inset-x-0 before:h-3 before:content-[''] animate-[modal-scale-in_180ms_var(--ease-spring)_both] motion-reduce:animate-none"
+          ref={anchorRef}
+          className={`absolute left-0 top-[calc(100%+0.65rem)] z-50 w-64 before:absolute before:-top-3 before:inset-x-0 before:h-3 before:content-[''] ${!expanded ? 'pointer-events-none' : ''}`}
         >
-          <PaperSurface className="bg-popover" />
-          <div className="flex items-center justify-between border-b border-hair pb-2">
-            <span className="font-mono text-[10px] tracking-[0.2em] text-muted-foreground">工位</span>
-            <span
-              className={`inline-flex items-center gap-1 font-mono text-[10px] font-medium ${
-                active ? 'text-primary' : 'text-muted-foreground'
-              }`}
-            >
-              <Terminal className="size-3" aria-hidden="true" strokeWidth={1.75} />
-              <span>{active ? '在线' : '待机'}</span>
-            </span>
-          </div>
+          <div
+            ref={surfaceRef}
+            role="dialog"
+            aria-label="实时工位状态"
+            aria-hidden={!expanded}
+            inert={!expanded}
+            className="isolate origin-top-left overflow-hidden rounded-lg p-3.5 text-left"
+          >
+            <PaperSurface className="bg-popover" />
+            <div className="flex items-center justify-between border-b border-hair pb-2">
+              <span className="font-mono text-[10px] tracking-[0.2em] text-muted-foreground">工位</span>
+              <span
+                className={`inline-flex items-center gap-1 font-mono text-[10px] font-medium ${
+                  active ? 'text-primary' : 'text-muted-foreground'
+                }`}
+              >
+                <Terminal className="size-3" aria-hidden="true" strokeWidth={1.75} />
+                <span>{active ? '在线' : '待机'}</span>
+              </span>
+            </div>
 
-          <div className="pt-2.5">
-            {active && foregroundTool ? (
-              <div className="flex items-center gap-2.5 py-0.5">
-                {desktopApp && <ActivityIcon activity={desktopApp} />}
-                <div className="min-w-0">
-                  <p className="truncate font-mono text-xs font-semibold text-foreground">
-                    &gt;_ {getToolLabel(foregroundTool)}
-                  </p>
-                  {desktopApp && (
-                    <p className="truncate font-mono text-[11px] text-muted-foreground">{desktopApp.label}</p>
-                  )}
+            <div className="pt-2.5">
+              {active && foregroundTool ? (
+                <div className="flex items-center gap-2.5 py-0.5">
+                  {desktopApp && <ActivityIcon activity={desktopApp} />}
+                  <div className="min-w-0">
+                    <p className="truncate font-mono text-xs font-semibold text-foreground">
+                      &gt;_ {getToolLabel(foregroundTool)}
+                    </p>
+                    {desktopApp && (
+                      <p className="truncate font-mono text-[11px] text-muted-foreground">{desktopApp.label}</p>
+                    )}
+                  </div>
                 </div>
-              </div>
-            ) : active && desktopApp ? (
-              <div className="flex items-center gap-2.5 py-0.5">
-                <ActivityIcon activity={desktopApp} />
-                <p className="truncate font-mono text-xs font-medium text-foreground">{desktopApp.label}</p>
-              </div>
-            ) : (
-              <p className="py-1 text-xs leading-relaxed text-muted-foreground">
-                {active ? '在看别的内容，没在写代码' : idleMessage}
-              </p>
-            )}
+              ) : active && desktopApp ? (
+                <div className="flex items-center gap-2.5 py-0.5">
+                  <ActivityIcon activity={desktopApp} />
+                  <p className="truncate font-mono text-xs font-medium text-foreground">{desktopApp.label}</p>
+                </div>
+              ) : (
+                <p className="py-1 text-xs leading-relaxed text-muted-foreground">
+                  {active ? '在看别的内容，没在写代码' : idleMessage}
+                </p>
+              )}
 
-            {backgroundTools.length > 0 && (
-              <div className="mt-2 flex flex-wrap items-center gap-x-2.5 gap-y-1 border-t border-hair pt-2">
-                {backgroundTools.map((activity) => {
-                  const icon = activity.icon ?? TOOL_ICON_MAP[activity.id]
-                  return (
-                    <span
-                      key={activity.id}
-                      className="inline-flex items-center gap-1 font-mono text-[11px] text-muted-foreground"
-                    >
-                      {icon ? (
-                        <Image src={icon} alt="" width={12} height={12} className="size-3 rounded-xs object-cover" />
-                      ) : (
-                        <span>&gt;_</span>
-                      )}
-                      <span>{getToolLabel(activity)}</span>
-                    </span>
-                  )
-                })}
-              </div>
-            )}
+              {backgroundTools.length > 0 && (
+                <div className="mt-2 flex flex-wrap items-center gap-x-2.5 gap-y-1 border-t border-hair pt-2">
+                  {backgroundTools.map((activity) => {
+                    const icon = activity.icon ?? TOOL_ICON_MAP[activity.id]
+                    return (
+                      <span
+                        key={activity.id}
+                        className="inline-flex items-center gap-1 font-mono text-[11px] text-muted-foreground"
+                      >
+                        {icon ? (
+                          <Image src={icon} alt="" width={12} height={12} className="size-3 rounded-xs object-cover" />
+                        ) : (
+                          <span>&gt;_</span>
+                        )}
+                        <span>{getToolLabel(activity)}</span>
+                      </span>
+                    )
+                  })}
+                </div>
+              )}
+            </div>
           </div>
         </div>
       )}

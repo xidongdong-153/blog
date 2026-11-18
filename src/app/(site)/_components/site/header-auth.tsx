@@ -7,6 +7,7 @@ import { useEffect, useRef, useState } from 'react'
 import { signOut, useSession } from '@/lib/auth-client'
 import { AuthModal } from './auth-modal'
 import { PaperSurface } from './paper-surface'
+import { useOverlayMotion } from './use-overlay-motion'
 
 /**
  * 顶栏右侧轻量认证入口与用户菜单。
@@ -20,6 +21,13 @@ export function HeaderAuth() {
   const [isOwner, setIsOwner] = useState(false)
   const [signingOut, setSigningOut] = useState(false)
   const containerRef = useRef<HTMLDivElement>(null)
+  const authButtonRef = useRef<HTMLButtonElement>(null)
+  const { present, anchorRef, surfaceRef } = useOverlayMotion({
+    open: menuOpen && Boolean(session?.user),
+    triggerRef: authButtonRef,
+    duration: 240,
+    exitDuration: 180,
+  })
 
   useEffect(() => {
     setMenuOpen(false)
@@ -102,6 +110,7 @@ export function HeaderAuth() {
     return (
       <div ref={containerRef} className="relative size-8 shrink-0">
         <button
+          ref={authButtonRef}
           type="button"
           onClick={() => setModalOpen(true)}
           aria-label="登录"
@@ -115,7 +124,7 @@ export function HeaderAuth() {
           />
         </button>
 
-        <AuthModal isOpen={modalOpen} onClose={() => setModalOpen(false)} />
+        <AuthModal isOpen={modalOpen} onClose={() => setModalOpen(false)} triggerRef={authButtonRef} />
       </div>
     )
   }
@@ -126,6 +135,7 @@ export function HeaderAuth() {
   return (
     <div ref={containerRef} className="relative size-8 shrink-0">
       <button
+        ref={authButtonRef}
         type="button"
         onClick={() => setMenuOpen((prev) => !prev)}
         aria-label="账号"
@@ -147,55 +157,65 @@ export function HeaderAuth() {
         </span>
       </button>
 
-      {menuOpen && (
-        <div className="isolate absolute right-0 top-[calc(100%+0.6rem)] z-[80] w-52 rounded-lg p-2.5 animate-[modal-scale-in_180ms_var(--ease-spring)_both] motion-reduce:animate-none">
-          <PaperSurface className="bg-popover" />
-          <div className="flex items-center gap-2 border-b border-hair pb-2">
-            <div className="flex size-7 shrink-0 items-center justify-center overflow-hidden rounded-[7px] bg-muted text-xs font-medium text-foreground">
-              {user.image ? (
-                // eslint-disable-next-line next/no-img-element
-                <img src={user.image} alt={user.name || '头像'} className="size-full object-cover" />
-              ) : (
-                <span>{fallbackLetter}</span>
-              )}
-            </div>
-            <div className="min-w-0 flex-1">
-              <div className="flex items-center gap-1.5">
-                <span className="truncate text-xs font-medium text-foreground">{user.name || '未命名'}</span>
-                {isOwner && (
-                  <span className="rounded bg-primary/12 px-1 py-0.5 font-mono text-[9px] font-medium text-primary">
-                    作者
-                  </span>
+      {present && (
+        <div
+          ref={anchorRef}
+          className={`absolute right-0 top-[calc(100%+0.6rem)] z-[80] w-52 ${!menuOpen ? 'pointer-events-none' : ''}`}
+        >
+          <div
+            ref={surfaceRef}
+            inert={!menuOpen}
+            aria-hidden={!menuOpen}
+            className="isolate origin-top-left rounded-lg p-2.5"
+          >
+            <PaperSurface className="bg-popover" />
+            <div className="flex items-center gap-2 border-b border-hair pb-2">
+              <div className="flex size-7 shrink-0 items-center justify-center overflow-hidden rounded-[7px] bg-muted text-xs font-medium text-foreground">
+                {user.image ? (
+                  // eslint-disable-next-line next/no-img-element
+                  <img src={user.image} alt={user.name || '头像'} className="size-full object-cover" />
+                ) : (
+                  <span>{fallbackLetter}</span>
                 )}
               </div>
-              {user.email && <p className="truncate font-mono text-[10px] text-muted-foreground">{user.email}</p>}
+              <div className="min-w-0 flex-1">
+                <div className="flex items-center gap-1.5">
+                  <span className="truncate text-xs font-medium text-foreground">{user.name || '未命名'}</span>
+                  {isOwner && (
+                    <span className="rounded bg-primary/12 px-1 py-0.5 font-mono text-[9px] font-medium text-primary">
+                      作者
+                    </span>
+                  )}
+                </div>
+                {user.email && <p className="truncate font-mono text-[10px] text-muted-foreground">{user.email}</p>}
+              </div>
             </div>
-          </div>
 
-          <div className="flex flex-col gap-0.5 pt-1.5">
-            {isOwner && (
-              <>
-                <Link
-                  href="/admin"
-                  onClick={() => setMenuOpen(false)}
-                  className="flex items-center gap-2 rounded-md px-2 py-1.5 text-xs text-foreground transition-colors hover:bg-muted/70 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
-                >
-                  <LayoutDashboard className="size-3.5 text-muted-foreground" />
-                  <span>控制台</span>
-                </Link>
-                <div className="my-1 border-t border-hair" />
-              </>
-            )}
+            <div className="flex flex-col gap-0.5 pt-1.5">
+              {isOwner && (
+                <>
+                  <Link
+                    href="/admin"
+                    onClick={() => setMenuOpen(false)}
+                    className="flex items-center gap-2 rounded-md px-2 py-1.5 text-xs text-foreground transition-colors hover:bg-muted/70 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                  >
+                    <LayoutDashboard className="size-3.5 text-muted-foreground" />
+                    <span>控制台</span>
+                  </Link>
+                  <div className="my-1 border-t border-hair" />
+                </>
+              )}
 
-            <button
-              type="button"
-              onClick={handleSignOut}
-              disabled={signingOut}
-              className="flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-left text-xs text-muted-foreground transition-colors hover:bg-muted/70 hover:text-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:opacity-50"
-            >
-              <LogOut className="size-3.5 text-muted-foreground" />
-              <span>{signingOut ? '正在退出...' : '退出登录'}</span>
-            </button>
+              <button
+                type="button"
+                onClick={handleSignOut}
+                disabled={signingOut}
+                className="flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-left text-xs text-muted-foreground transition-colors hover:bg-muted/70 hover:text-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:opacity-50"
+              >
+                <LogOut className="size-3.5 text-muted-foreground" />
+                <span>{signingOut ? '正在退出...' : '退出登录'}</span>
+              </button>
+            </div>
           </div>
         </div>
       )}

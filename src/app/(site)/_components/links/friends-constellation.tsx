@@ -1,8 +1,9 @@
 'use client'
 
 import { RefreshCw, Search } from 'lucide-react'
-import { useMemo, useState } from 'react'
+import { useMemo, useRef, useState } from 'react'
 import { siteConfig } from '@/site.config'
+import { useOverlayMotion } from '../site/use-overlay-motion'
 
 export interface ConstellationFriend {
   name: string
@@ -31,6 +32,21 @@ export function FriendsConstellation({ friends }: { friends: ConstellationFriend
   const [seedOffset, setSeedOffset] = useState(1)
   const [filter, setFilter] = useState('')
   const [activeFriend, setActiveFriend] = useState<ConstellationFriend | null>(null)
+  const [lastFriend, setLastFriend] = useState<ConstellationFriend | null>(null)
+  const triggerRef = useRef<HTMLAnchorElement | null>(null)
+  const { present, anchorRef, surfaceRef } = useOverlayMotion({
+    open: Boolean(activeFriend),
+    triggerRef,
+    duration: 240,
+    exitDuration: 180,
+  })
+
+  const activate = (friend: ConstellationFriend, trigger: HTMLAnchorElement) => {
+    triggerRef.current = trigger
+    setLastFriend(friend)
+    setActiveFriend(friend)
+  }
+  const shownFriend = activeFriend ?? lastFriend
 
   const normalizedQuery = filter.trim().toLowerCase()
 
@@ -136,8 +152,14 @@ export function FriendsConstellation({ friends }: { friends: ConstellationFriend
                 href={friend.url}
                 target="_blank"
                 rel="noopener noreferrer"
-                onMouseEnter={() => setActiveFriend(friend)}
-                onFocus={() => setActiveFriend(friend)}
+                onMouseEnter={(event) => activate(friend, event.currentTarget)}
+                onMouseLeave={(event) => {
+                  if (document.activeElement !== event.currentTarget) setActiveFriend(null)
+                }}
+                onFocus={(event) => activate(friend, event.currentTarget)}
+                onBlur={(event) => {
+                  if (!event.currentTarget.matches(':hover')) setActiveFriend(null)
+                }}
                 aria-label={`${friend.name}：${friend.description}`}
                 style={{ left: `${x}%`, top: `${y}%` }}
                 className={`group absolute -translate-x-1/2 -translate-y-1/2 rounded-xl transition-all duration-500 ease-[var(--ease-spring)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${
@@ -162,15 +184,25 @@ export function FriendsConstellation({ friends }: { friends: ConstellationFriend
         )}
 
         {/* 悬停节点详情浮卡 */}
-        {activeFriend && (
-          <div className="pointer-events-none absolute bottom-3 left-1/2 z-30 w-[min(90%,340px)] -translate-x-1/2 rounded-lg border border-hair bg-popover/95 px-3.5 py-2.5 text-center shadow-md backdrop-blur-sm animate-[modal-scale-in_160ms_var(--ease-spring)_both]">
-            <div className="flex min-w-0 items-center justify-center gap-1.5 text-xs font-medium text-foreground">
-              <span className="truncate">{activeFriend.name}</span>
-              <span className="shrink-0 text-primary">↗</span>
+        {present && shownFriend && (
+          <div
+            ref={anchorRef}
+            className="pointer-events-none absolute inset-x-0 bottom-3 z-30 mx-auto w-[min(90%,340px)]"
+          >
+            <div
+              ref={surfaceRef}
+              aria-hidden="true"
+              inert
+              className="origin-top-left rounded-lg border border-hair bg-popover/95 px-3.5 py-2.5 text-center shadow-md backdrop-blur-sm"
+            >
+              <div className="flex min-w-0 items-center justify-center gap-1.5 text-xs font-medium text-foreground">
+                <span className="truncate">{shownFriend.name}</span>
+                <span className="shrink-0 text-primary">↗</span>
+              </div>
+              <p className="mt-0.5 line-clamp-2 text-[11px] leading-relaxed text-muted-foreground">
+                {shownFriend.description}
+              </p>
             </div>
-            <p className="mt-0.5 line-clamp-2 text-[11px] leading-relaxed text-muted-foreground">
-              {activeFriend.description}
-            </p>
           </div>
         )}
       </div>

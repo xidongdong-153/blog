@@ -2,7 +2,21 @@
 
 import { CircleHelp, Eye } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
+import { useOverlayMotion } from '../site/use-overlay-motion'
 import { useVisitorPresence } from './visitor-presence-provider'
+
+function positionHelp(dialog: HTMLDivElement) {
+  dialog.style.left = '0px'
+  const rect = dialog.getBoundingClientRect()
+  const padding = 16
+  const shift =
+    rect.right > window.innerWidth - padding
+      ? window.innerWidth - padding - rect.right
+      : rect.left < padding
+        ? padding - rect.left
+        : 0
+  dialog.style.left = `${shift}px`
+}
 
 interface ArticleViewerCountProps {
   slug: string
@@ -28,6 +42,14 @@ export function ArticleViewerCount({
 
   const [isHelpOpen, setIsHelpOpen] = useState(false)
   const helpRef = useRef<HTMLSpanElement>(null)
+  const helpButtonRef = useRef<HTMLButtonElement>(null)
+  const { present, anchorRef, surfaceRef } = useOverlayMotion({
+    open: isHelpOpen,
+    triggerRef: helpButtonRef,
+    duration: 240,
+    exitDuration: 180,
+    prepareLayout: positionHelp,
+  })
 
   useEffect(() => {
     if (!isHelpOpen) return
@@ -42,18 +64,9 @@ export function ArticleViewerCount({
     }
 
     const adjustPosition = () => {
-      const dialog = helpRef.current?.querySelector('[role="dialog"]') as HTMLElement | null
+      const dialog = anchorRef.current
       if (!dialog) return
-      dialog.style.transform = ''
-      const rect = dialog.getBoundingClientRect()
-      const padding = 16
-      if (rect.right > window.innerWidth - padding) {
-        const overflow = rect.right - (window.innerWidth - padding)
-        dialog.style.transform = `translateX(-${overflow}px)`
-      } else if (rect.left < padding) {
-        const overflow = padding - rect.left
-        dialog.style.transform = `translateX(${overflow}px)`
-      }
+      positionHelp(dialog)
     }
 
     adjustPosition()
@@ -65,7 +78,7 @@ export function ArticleViewerCount({
       document.removeEventListener('keydown', handleKeyDown)
       document.removeEventListener('mousedown', handleClickOutside)
     }
-  }, [isHelpOpen])
+  }, [isHelpOpen, anchorRef])
 
   // 紧凑模式：未连接或人数为 0 时保持安静，不渲染空指示
   if (mode === 'compact') {
@@ -123,6 +136,7 @@ export function ArticleViewerCount({
       {/* 帮助按钮 */}
       <span ref={helpRef} className="relative inline-flex items-center">
         <button
+          ref={helpButtonRef}
           type="button"
           onClick={() => setIsHelpOpen(!isHelpOpen)}
           className="rounded p-0.5 text-muted-foreground/60 transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary"
@@ -133,17 +147,25 @@ export function ArticleViewerCount({
           <CircleHelp className="size-3.5" />
         </button>
 
-        {isHelpOpen && (
+        {present && (
           <div
-            role="dialog"
-            aria-label="文章阅读人数说明"
-            className="absolute bottom-full left-0 z-50 mb-2 w-64 max-w-[calc(100vw-2rem)] rounded-lg border border-border/70 bg-popover p-3 text-left font-sans text-xs leading-relaxed text-popover-foreground shadow-lg backdrop-blur-sm sm:w-72"
+            ref={anchorRef}
+            className={`absolute bottom-full left-0 z-50 mb-2 w-64 max-w-[calc(100vw-2rem)] sm:w-72 ${!isHelpOpen ? 'pointer-events-none' : ''}`}
           >
-            <div className="font-medium text-foreground">实时阅读状态</div>
-            <p className="mt-1.5 text-muted-foreground">
-              统计当前正在打开此页面的匿名访客数量，同一匿名访客的多标签页仅计 1 人。
-            </p>
-            <p className="mt-1.5 text-muted-foreground">离开页面或切换标签页后，状态将通过 WebSocket 自动释放。</p>
+            <div
+              ref={surfaceRef}
+              role="dialog"
+              aria-label="文章阅读人数说明"
+              aria-hidden={!isHelpOpen}
+              inert={!isHelpOpen}
+              className="origin-top-left rounded-lg border border-border/70 bg-popover p-3 text-left font-sans text-xs leading-relaxed text-popover-foreground shadow-lg backdrop-blur-sm"
+            >
+              <div className="font-medium text-foreground">实时阅读状态</div>
+              <p className="mt-1.5 text-muted-foreground">
+                统计当前正在打开此页面的匿名访客数量，同一匿名访客的多标签页仅计 1 人。
+              </p>
+              <p className="mt-1.5 text-muted-foreground">离开页面或切换标签页后，状态将通过 WebSocket 自动释放。</p>
+            </div>
           </div>
         )}
       </span>

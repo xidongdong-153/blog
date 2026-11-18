@@ -4,7 +4,21 @@ import { CircleHelp, Radio } from 'lucide-react'
 import { usePathname } from 'next/navigation'
 import { useEffect, useRef, useState } from 'react'
 import { PaperSurface } from '../site/paper-surface'
+import { useOverlayMotion } from '../site/use-overlay-motion'
 import { useVisitorPresence } from './visitor-presence-provider'
+
+function positionHelp(dialog: HTMLDivElement) {
+  dialog.style.right = '0px'
+  const rect = dialog.getBoundingClientRect()
+  const padding = 16
+  const shift =
+    rect.right > window.innerWidth - padding
+      ? window.innerWidth - padding - rect.right
+      : rect.left < padding
+        ? padding - rect.left
+        : 0
+  dialog.style.right = `${-shift}px`
+}
 
 interface VisitorStatsProps {
   className?: string
@@ -25,6 +39,14 @@ function PublicVisitorStats({ className = '', align = 'left' }: VisitorStatsProp
   const { connectionState, uniqueVisitorCount, onlineVisitorCount } = useVisitorPresence()
   const [isHelpOpen, setIsHelpOpen] = useState(false)
   const helpContainerRef = useRef<HTMLSpanElement>(null)
+  const helpButtonRef = useRef<HTMLButtonElement>(null)
+  const { present, anchorRef, surfaceRef } = useOverlayMotion({
+    open: isHelpOpen,
+    triggerRef: helpButtonRef,
+    duration: 240,
+    exitDuration: 180,
+    prepareLayout: positionHelp,
+  })
 
   useEffect(() => {
     if (!isHelpOpen) return
@@ -42,18 +64,9 @@ function PublicVisitorStats({ className = '', align = 'left' }: VisitorStatsProp
     }
 
     const adjustPosition = () => {
-      const dialog = helpContainerRef.current?.querySelector('[role="dialog"]') as HTMLElement | null
+      const dialog = anchorRef.current
       if (!dialog) return
-      dialog.style.transform = ''
-      const rect = dialog.getBoundingClientRect()
-      const padding = 16
-      if (rect.right > window.innerWidth - padding) {
-        const overflow = rect.right - (window.innerWidth - padding)
-        dialog.style.transform = `translateX(-${overflow}px)`
-      } else if (rect.left < padding) {
-        const overflow = padding - rect.left
-        dialog.style.transform = `translateX(${overflow}px)`
-      }
+      positionHelp(dialog)
     }
 
     adjustPosition()
@@ -65,7 +78,7 @@ function PublicVisitorStats({ className = '', align = 'left' }: VisitorStatsProp
       document.removeEventListener('keydown', handleKeyDown)
       document.removeEventListener('mousedown', handleClickOutside)
     }
-  }, [isHelpOpen])
+  }, [isHelpOpen, anchorRef])
 
   const isConnected = connectionState === 'connected'
   const isReady = typeof uniqueVisitorCount === 'number'
@@ -113,6 +126,7 @@ function PublicVisitorStats({ className = '', align = 'left' }: VisitorStatsProp
 
         <span ref={helpContainerRef} className="relative inline-flex items-center">
           <button
+            ref={helpButtonRef}
             type="button"
             onClick={() => setIsHelpOpen(!isHelpOpen)}
             className="rounded p-0.5 text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary"
@@ -123,20 +137,28 @@ function PublicVisitorStats({ className = '', align = 'left' }: VisitorStatsProp
             <CircleHelp className="size-3" />
           </button>
 
-          {isHelpOpen && (
+          {present && (
             <div
-              role="dialog"
-              aria-label="实时统计说明"
-              className="isolate absolute bottom-full right-0 z-50 mb-2 w-64 max-w-[calc(100vw-2rem)] rounded-lg p-3 text-left font-sans text-xs leading-relaxed text-popover-foreground sm:w-72"
+              ref={anchorRef}
+              className={`absolute bottom-full right-0 z-50 mb-2 w-64 max-w-[calc(100vw-2rem)] sm:w-72 ${!isHelpOpen ? 'pointer-events-none' : ''}`}
             >
-              <PaperSurface className="bg-popover" />
-              <div className="font-medium text-foreground">关于访客与在线统计</div>
-              <p className="mt-1.5 text-muted-foreground">
-                本站使用匿名浏览器标识长期去重，同一浏览器只计 1 位访客，不记录 IP 地址与浏览历史。
-              </p>
-              <p className="mt-1.5 text-muted-foreground">
-                实时在线人数基于 WebSocket 会话计算；页面关闭或隐藏后将在约定租约内自动移除。
-              </p>
+              <div
+                ref={surfaceRef}
+                role="dialog"
+                aria-label="实时统计说明"
+                aria-hidden={!isHelpOpen}
+                inert={!isHelpOpen}
+                className="isolate origin-top-left rounded-lg p-3 text-left font-sans text-xs leading-relaxed text-popover-foreground"
+              >
+                <PaperSurface className="bg-popover" />
+                <div className="font-medium text-foreground">关于访客与在线统计</div>
+                <p className="mt-1.5 text-muted-foreground">
+                  本站使用匿名浏览器标识长期去重，同一浏览器只计 1 位访客，不记录 IP 地址与浏览历史。
+                </p>
+                <p className="mt-1.5 text-muted-foreground">
+                  实时在线人数基于 WebSocket 会话计算；页面关闭或隐藏后将在约定租约内自动移除。
+                </p>
+              </div>
             </div>
           )}
         </span>

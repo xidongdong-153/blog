@@ -20,6 +20,7 @@ export function PostConfirmDialog({
   busy,
   variant = 'default',
   returnFocusRef,
+  originRectRef,
   onConfirm,
   onClose,
 }: {
@@ -30,11 +31,14 @@ export function PostConfirmDialog({
   busy: boolean
   variant?: 'default' | 'destructive'
   returnFocusRef?: RefObject<HTMLElement | null>
+  originRectRef?: RefObject<DOMRect | null>
   onConfirm: () => void
   onClose: () => void
 }) {
   return (
     <AlertDialog
+      triggerRef={returnFocusRef}
+      originRectRef={originRectRef}
       open={open}
       onOpenChange={(next) => {
         if (!next && !busy) onClose()

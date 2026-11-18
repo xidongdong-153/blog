@@ -125,7 +125,7 @@ export function Hero({ profile, stats }: HeroProps) {
                     aria-hidden="true"
                     className="pointer-events-none absolute -bottom-5 left-1/2 hidden -translate-x-1/2 sm:block"
                   >
-                    <span className="ink-glide block translate-y-1 whitespace-nowrap font-mono text-[10px] text-primary opacity-0 group-hover/icon:translate-y-0 group-hover/icon:opacity-100 group-focus-visible/icon:translate-y-0 group-focus-visible/icon:opacity-100">
+                    <span className="block origin-[50%_-25px] scale-0 whitespace-nowrap font-mono text-[10px] text-primary opacity-0 transition-[transform,scale,opacity] duration-180 ease-[var(--ease-spring)] group-hover/icon:scale-100 group-hover/icon:opacity-100 group-hover/icon:duration-240 group-focus-visible/icon:scale-100 group-focus-visible/icon:opacity-100 group-focus-visible/icon:duration-240 motion-reduce:transform-none motion-reduce:scale-100 motion-reduce:transition-none">
                       {item.label}
                     </span>
                   </span>

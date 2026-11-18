@@ -85,6 +85,8 @@ export function AiWorkspace({
   const [notice, setNotice] = useState('')
   const [session, setSession] = useState(0)
   const [clearOpen, setClearOpen] = useState(false)
+  const clearTriggerRef = useRef<HTMLButtonElement | null>(null)
+  const prefillTriggerRef = useRef<HTMLButtonElement | null>(null)
   const [clearing, setClearing] = useState(false)
   const [pendingPrefill, setPendingPrefill] = useState<string | null>(null)
   const [saves, setSaves] = useState<Record<string, DraftSaveState>>({})
@@ -303,7 +305,8 @@ export function AiWorkspace({
     setPendingPrefill(null)
   }
 
-  function useTool(tool: AiToolDto) {
+  function useTool(tool: AiToolDto, trigger: HTMLButtonElement) {
+    prefillTriggerRef.current = trigger
     const text =
       tool.id === 'post-draft'
         ? '请调用文章初稿 Tool，根据以下概述生成文章初稿：\n\n'
@@ -483,7 +486,10 @@ export function AiWorkspace({
                   onInputChange={setInput}
                   onSend={() => void send()}
                   onStop={() => void stop()}
-                  onClear={() => setClearOpen(true)}
+                  onClear={(trigger) => {
+                    clearTriggerRef.current = trigger
+                    setClearOpen(true)
+                  }}
                   onOpenModels={() => selectTab('models')}
                   onUseTool={useTool}
                   modelId={modelConfig?.modelId}
@@ -716,7 +722,7 @@ export function AiWorkspace({
                           variant="outline"
                           size="sm"
                           disabled={running || !isEnabled}
-                          onClick={() => useTool(tool)}
+                          onClick={(event) => useTool(tool, event.currentTarget)}
                         >
                           在写作 Agent 中使用
                           <ArrowRight aria-hidden="true" />
@@ -738,6 +744,7 @@ export function AiWorkspace({
       </Tabs>
 
       <AlertDialog
+        triggerRef={clearTriggerRef}
         open={clearOpen}
         onOpenChange={(open) => {
           if (!clearing) setClearOpen(open)
@@ -765,12 +772,25 @@ export function AiWorkspace({
       </AlertDialog>
 
       <AlertDialog
+        triggerRef={prefillTriggerRef}
         open={pendingPrefill !== null}
         onOpenChange={(open) => {
           if (!open) setPendingPrefill(null)
         }}
       >
-        <AlertDialogContent>
+        <AlertDialogContent
+          onCloseAutoFocus={(event) => {
+            const trigger = prefillTriggerRef.current
+            if (trigger?.isConnected && trigger.getClientRects().length) return
+            const target =
+              document.getElementById('ai-writer-message') ??
+              document.querySelector<HTMLElement>('[role="tab"][data-state="active"]')
+            if (target?.isConnected && target.getClientRects().length) {
+              event.preventDefault()
+              target.focus({ preventScroll: true })
+            }
+          }}
+        >
           <AlertDialogHeader>
             <AlertDialogTitle>替换未发送的消息？</AlertDialogTitle>
             <AlertDialogDescription>Tool 提示将替换输入框中的内容，确认后仍需手动发送。</AlertDialogDescription>

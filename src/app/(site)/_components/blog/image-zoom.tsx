@@ -3,15 +3,24 @@
 
 import type { ComponentProps } from 'react'
 import { X } from 'lucide-react'
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
+import { lockOverlayScroll } from '../site/overlay-scroll-lock'
+import { useOverlayMotion } from '../site/use-overlay-motion'
 
 /**
  * 正文图片灯箱缩放组件。
  * 点击正文图片平滑唤起和纸柔雾全屏预览，通过 Portal 挂载避免破坏段落 DOM 结构，支持 ESC 与点击背景关闭。
  */
-export function ImageZoom({ src, alt = '', className = '', ...props }: ComponentProps<'img'>) {
+export function ImageZoom({ src, alt = '', className = '', onClick, onKeyDown, ...props }: ComponentProps<'img'>) {
   const [isOpen, setIsOpen] = useState(false)
+  const imageRef = useRef<HTMLElement | null>(null)
+  const closeRef = useRef<HTMLButtonElement>(null)
+  const { present, anchorRef, surfaceRef, backdropRef } = useOverlayMotion({
+    open: isOpen,
+    triggerRef: imageRef,
+    hideTrigger: true,
+  })
 
   useEffect(() => {
     if (!isOpen) return
@@ -24,13 +33,21 @@ export function ImageZoom({ src, alt = '', className = '', ...props }: Component
       }
     }
 
-    const prevOverflow = document.body.style.overflow
-    document.body.style.overflow = 'hidden'
+    const frame = window.requestAnimationFrame(() => closeRef.current?.focus({ preventScroll: true }))
     window.addEventListener('keydown', handleKeyDown, true)
     return () => {
-      document.body.style.overflow = prevOverflow
+      window.cancelAnimationFrame(frame)
       window.removeEventListener('keydown', handleKeyDown, true)
     }
+  }, [isOpen])
+
+  useEffect(() => {
+    if (!present) return
+    return lockOverlayScroll()
+  }, [present])
+
+  useEffect(() => {
+    if (!isOpen && imageRef.current?.isConnected) imageRef.current.focus({ preventScroll: true })
   }, [isOpen])
 
   if (!src) return null
@@ -38,23 +55,43 @@ export function ImageZoom({ src, alt = '', className = '', ...props }: Component
   return (
     <>
       <img
+        {...props}
         src={src}
         alt={alt}
-        onClick={() => setIsOpen(true)}
+        role="button"
+        tabIndex={props.tabIndex ?? 0}
+        aria-label={alt ? `放大图片：${alt}` : '放大图片'}
+        onClick={(event) => {
+          onClick?.(event)
+          if (event.defaultPrevented) return
+          imageRef.current = event.currentTarget
+          setIsOpen(true)
+        }}
+        onKeyDown={(event) => {
+          onKeyDown?.(event)
+          if (!event.defaultPrevented && (event.key === 'Enter' || event.key === ' ')) {
+            event.preventDefault()
+            imageRef.current = event.currentTarget
+            setIsOpen(true)
+          }
+        }}
         className={`h-auto max-w-full cursor-zoom-in rounded-lg border border-hair transition-opacity hover:opacity-92 ${className}`}
-        loading="lazy"
-        {...props}
+        loading={props.loading ?? 'lazy'}
       />
-      {isOpen &&
+      {present &&
         createPortal(
           <div
             role="dialog"
-            aria-modal="true"
+            aria-modal={isOpen ? true : undefined}
+            aria-hidden={!isOpen}
+            inert={!isOpen}
             aria-label={alt || '图片大图预览'}
             onClick={() => setIsOpen(false)}
-            className="fixed inset-0 z-[100] flex cursor-zoom-out items-center justify-center bg-background/92 p-4 backdrop-blur-md animate-[modal-fade-in_240ms_cubic-bezier(0.32,0.72,0,1)_both] motion-reduce:animate-none"
+            className={`fixed inset-0 z-[100] flex cursor-zoom-out items-center justify-center p-4 ${!isOpen ? 'pointer-events-none' : ''}`}
           >
+            <div ref={backdropRef} aria-hidden="true" className="absolute inset-0 bg-background/92 backdrop-blur-md" />
             <button
+              ref={closeRef}
               type="button"
               onClick={() => setIsOpen(false)}
               aria-label="关闭大图预览"
@@ -63,12 +100,15 @@ export function ImageZoom({ src, alt = '', className = '', ...props }: Component
               <X className="size-4.5" />
             </button>
 
-            <img
-              src={src}
-              alt={alt}
-              onClick={(e) => e.stopPropagation()}
-              className="max-h-[88vh] max-w-[90vw] cursor-default rounded-md object-contain shadow-[0_18px_48px_rgba(20,23,22,0.22)] animate-[modal-scale-in_320ms_cubic-bezier(0.32,0.72,0,1)_both] motion-reduce:animate-none"
-            />
+            <div ref={anchorRef} className="relative w-fit max-w-[90vw]">
+              <div ref={surfaceRef} className="origin-top-left" onClick={(e) => e.stopPropagation()}>
+                <img
+                  src={src}
+                  alt={alt}
+                  className="block max-h-[88dvh] max-w-full cursor-default rounded-md object-contain shadow-[0_18px_48px_rgba(20,23,22,0.22)]"
+                />
+              </div>
+            </div>
           </div>,
           document.body,
         )}

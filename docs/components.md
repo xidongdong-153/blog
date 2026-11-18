@@ -174,6 +174,31 @@ MDX 渲染走异步 RSC（`mdx-content.tsx` 的 `compileMDX`），不需要 clie
   - Hero 下方仅保留单列 `最近更新`（`WritingTimeline`，按 ISO 日期倒序合并文章与笔记后的前 5 条，使用 `${kind}-${slug}` 作 key 与 `divide-y divide-hair` 细线台账，悬停触发 `.ink-row` 左墨线生长与轻右移），移除首页重复的随记栏、技术栈胶囊与底部重复导航条。
   - 主体下方接入无卡片外壳的 `YearlyTimeline` 双轨季度脉络（上轨文章实心节点、下轨笔记空心节点，带 `Q1–Q4` 刻度与当年进度指针）。
 
+## 浮层展开与收回
+
+来源：用户确认搜索按钮展开／收回效果后，要求所有应用内浮层沿用这一交互。浮层从真实触发按钮、链接或图片的位置展开，关闭时收回原入口；无固定触发入口的通知按自身位置展开与收起。
+
+| 类型                                                        | 入口与实现                                                                             |
+| ----------------------------------------------------------- | -------------------------------------------------------------------------------------- |
+| 搜索、登录、友链申请                                        | `site/command-search-modal.tsx`、`site/auth-modal.tsx`、`links/friend-apply-modal.tsx` |
+| 图片灯箱、移动文章目录                                      | `blog/image-zoom.tsx`、`blog/floating-action-group.tsx`；图片以原图为起终点            |
+| 页头文章预览、移动导航、账号菜单                            | `site/site-header.tsx`、`site/header-auth.tsx`                                         |
+| 工位、访客与文章在读说明                                    | `home/presence.tsx`、`visitor/visitor-stats.tsx`、`visitor/article-viewer-count.tsx`   |
+| 友邻节点、年度记录节点、首页图标标签                        | `links/friends-constellation.tsx`、`home/yearly-timeline.tsx`、`home/hero.tsx`         |
+| 后台确认框、下拉及子菜单、日历与快捷键浮窗、Tooltip、Select | `admin/ui/` 共享组件；覆盖文章管理、编辑器和 AI 设置入口                               |
+| 后台文章属性抽屉、通知                                      | `admin/posts/post-editor.tsx`、`admin/admin-ui-provider.tsx`                           |
+
+上表路径均相对 `src/app/(site)/_components/`。正文内的 `details`、章节折叠与浏览器原生选择器不属于浮层。
+
+公开浮层使用 [useOverlayMotion](../src/app/%28site%29/_components/site/use-overlay-motion.ts)：无变换的 `anchorRef` 提供最终布局，`surfaceRef` 执行缩放位移，内容与遮罩可独立淡入淡出。搜索适配器保留原按钮交接效果。普通弹窗默认入场 420ms、退场 300ms，小型提示与菜单缩短时长。
+
+- 打开状态与节点存留状态分开：退出结束前保留布局，关闭后立即禁用浮层交互，不清空正在收回的内容。公开弹窗及属性抽屉通过 `site/overlay-scroll-lock.ts` 共用计数锁，最后一个浮层退场后恢复背景滚动。
+- 快速反向从当前画面继续；动态节点提示收回当前节点，触发节点已移除时使用最后有效位置。需要避让视口边缘的说明框通过 `prepareLayout` 先定位，再测量动画起点。
+- 文章悬停菜单在入口和面板之间保留 8px 连续 hover 区域；离开后延迟 180ms，再检查鼠标及焦点是否都已离开。返回入口或浮层会取消关闭，菜单内切分类不触发收回。
+- 后台 Radix 组件保留其焦点、键盘导航和退出挂载机制；受控确认框由调用点提供触发元素，避免父组件先卸载。菜单项会先卸载时，在选择事件内保存其矩形用于动效，回焦目标可单独指定为管理按钮。
+- 减少动态效果时停止空间运动。Radix 用于保留退出节点的非视觉动画计时保持不变，避免切换系统偏好时漏掉卸载事件；视觉动画立即结束。窗口尺寸变化、后台切换与组件卸载需清理动画，恢复被隐藏的触发元素和背景滚动。
+- 真实验收按入口记录实际覆盖范围；静态检查通过不表示所有登录态或内容场景均已验收。
+
 ## 友链申请弹窗与邮件通知规范
 
 友链页面（`/links`）提供交互式申请弹窗（`src/app/(site)/_components/links/friend-apply-modal.tsx`）与轻量触发按键（`friend-apply-button.tsx`）：

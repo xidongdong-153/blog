@@ -1,7 +1,8 @@
 'use client'
 
 import Link from 'next/link'
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
+import { useOverlayMotion } from '../site/use-overlay-motion'
 
 export interface YearlyTimelineEntry {
   kind: 'article' | 'note'
@@ -44,6 +45,14 @@ function getYearProgress(iso: string, year: number): number {
 export function YearlyTimeline({ entries, totalYearCount, yearLabel }: YearlyTimelineProps) {
   const [hoveredKey, setHoveredKey] = useState<string | null>(null)
   const [todayPct, setTodayPct] = useState<number | null>(null)
+  const triggerRef = useRef<HTMLAnchorElement | null>(null)
+  const [lastNode, setLastNode] = useState<{ entry: YearlyTimelineEntry; leftPct: number } | null>(null)
+  const { present, anchorRef, surfaceRef } = useOverlayMotion({
+    open: Boolean(hoveredKey),
+    triggerRef,
+    duration: 240,
+    exitDuration: 180,
+  })
 
   const targetYear = useMemo(() => {
     const parsed = Number.parseInt(yearLabel, 10)
@@ -77,6 +86,11 @@ export function YearlyTimeline({ entries, totalYearCount, yearLabel }: YearlyTim
       const leftPct = getYearProgress(entry.date, targetYear)
       const isHovered = hoveredKey === nodeKey
       const href = entry.kind === 'article' ? `/blog/${entry.slug}` : `/notes/${entry.slug}`
+      const activate = (trigger: HTMLAnchorElement) => {
+        triggerRef.current = trigger
+        setLastNode({ entry, leftPct })
+        setHoveredKey(nodeKey)
+      }
 
       return (
         <div
@@ -87,10 +101,14 @@ export function YearlyTimeline({ entries, totalYearCount, yearLabel }: YearlyTim
           <Link
             href={href}
             aria-label={`${kind === 'article' ? '文章' : '笔记'}：${entry.title}（${formatMonthDay(entry.date)}）`}
-            onMouseEnter={() => setHoveredKey(nodeKey)}
-            onMouseLeave={() => setHoveredKey(null)}
-            onFocus={() => setHoveredKey(nodeKey)}
-            onBlur={() => setHoveredKey(null)}
+            onMouseEnter={(event) => activate(event.currentTarget)}
+            onMouseLeave={(event) => {
+              if (document.activeElement !== event.currentTarget) setHoveredKey(null)
+            }}
+            onFocus={(event) => activate(event.currentTarget)}
+            onBlur={(event) => {
+              if (!event.currentTarget.matches(':hover')) setHoveredKey(null)
+            }}
             className="hit-expand group relative flex size-9 items-center justify-center rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
           >
             {kind === 'article' ? (
@@ -147,24 +165,35 @@ export function YearlyTimeline({ entries, totalYearCount, yearLabel }: YearlyTim
       <div className="relative px-1 sm:px-2">
         <div className="relative flex flex-col gap-6 py-2">
           {/* 按比例自适应左/右贴边的悬停提示卡，保证任意视口不裁切 */}
-          {hoveredNode && (
-            <div
-              role="tooltip"
-              style={{
-                left: `${hoveredNode.leftPct}%`,
-                transform: `translateX(-${hoveredNode.leftPct}%)`,
-              }}
-              className="pointer-events-none absolute bottom-[calc(100%+6px)] z-30 flex max-w-[min(230px,calc(100%-0.5rem))] items-center gap-2 whitespace-nowrap rounded-md border border-hair bg-popover px-3 py-1.5 text-xs text-popover-foreground shadow-md"
-            >
-              <span className="shrink-0 font-mono text-[10px] font-medium text-primary">
-                {hoveredNode.entry.kind === 'article' ? '文章' : '笔记'}
-              </span>
-              <span className="truncate font-serif text-foreground">{hoveredNode.entry.title}</span>
-              <span className="shrink-0 font-mono text-[10px] tabular-nums text-muted-foreground">
-                {formatMonthDay(hoveredNode.entry.date)}
-              </span>
-            </div>
-          )}
+          {present &&
+            (hoveredNode ?? lastNode) &&
+            (() => {
+              const node = (hoveredNode ?? lastNode)!
+              return (
+                <div
+                  style={{ left: `${node.leftPct}%`, transform: `translateX(-${node.leftPct}%)` }}
+                  className="pointer-events-none absolute bottom-[calc(100%+6px)] z-30 max-w-[min(230px,calc(100%-0.5rem))]"
+                >
+                  <div ref={anchorRef}>
+                    <div
+                      ref={surfaceRef}
+                      role="tooltip"
+                      aria-hidden={!hoveredKey}
+                      inert={!hoveredKey}
+                      className="flex origin-top-left items-center gap-2 whitespace-nowrap rounded-md border border-hair bg-popover px-3 py-1.5 text-xs text-popover-foreground shadow-md"
+                    >
+                      <span className="shrink-0 font-mono text-[10px] font-medium text-primary">
+                        {node.entry.kind === 'article' ? '文章' : '笔记'}
+                      </span>
+                      <span className="truncate font-serif text-foreground">{node.entry.title}</span>
+                      <span className="shrink-0 font-mono text-[10px] tabular-nums text-muted-foreground">
+                        {formatMonthDay(node.entry.date)}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              )
+            })()}
 
           {QUARTER_TICKS.slice(1, 4).map((tick) => (
             <span

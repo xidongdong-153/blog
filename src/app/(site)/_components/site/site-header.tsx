@@ -12,6 +12,7 @@ import { PresenceStatus } from '../home/presence'
 import { CommandSearchModal } from './command-search-modal'
 import { HeaderAuth } from './header-auth'
 import { PaperSurface } from './paper-surface'
+import { useOverlayMotion } from './use-overlay-motion'
 
 export interface HeaderCategoryStat {
   category: BlogCategory
@@ -63,8 +64,17 @@ export function SiteHeader({ posts = [], categories = [] }: SiteHeaderProps) {
   const searchButtonRef = useRef<HTMLButtonElement>(null)
   const blogMenuItemRef = useRef<HTMLLIElement>(null)
   const blogLinkRef = useRef<HTMLAnchorElement>(null)
+  const blogMotion = useOverlayMotion({ open: blogMenuOpen, triggerRef: blogLinkRef, duration: 260, exitDuration: 180 })
+  const menuMotion = useOverlayMotion({ open: expanded, triggerRef: menuButtonRef, duration: 320, exitDuration: 240 })
   const skipFocusOpenRef = useRef(false)
   const closeMenuTimerRef = useRef<number | null>(null)
+  const cancelCloseBlogMenu = useCallback(() => {
+    if (closeMenuTimerRef.current !== null) {
+      window.clearTimeout(closeMenuTimerRef.current)
+      closeMenuTimerRef.current = null
+    }
+  }, [])
+  useEffect(() => cancelCloseBlogMenu, [cancelCloseBlogMenu])
   const handleCloseSearch = useCallback(() => setSearchOpen(false), [])
   const lastScrollY = useRef(0)
   const lastVisibleRef = useRef(true)
@@ -128,6 +138,14 @@ export function SiteHeader({ posts = [], categories = [] }: SiteHeaderProps) {
           setVisible(true)
         }
         lastScrollY.current = currentScrollY
+        rafIdRef.current = null
+        return
+      }
+
+      const blogMenu = blogMenuItemRef.current
+      if (blogMenu?.matches(':hover') || blogMenu?.contains(document.activeElement)) {
+        lastScrollY.current = currentScrollY
+        scrollDeltaRef.current = 0
         rafIdRef.current = null
         return
       }
@@ -234,9 +252,10 @@ export function SiteHeader({ posts = [], categories = [] }: SiteHeaderProps) {
   }, [expanded])
 
   useEffect(() => {
+    cancelCloseBlogMenu()
     setExpanded(false)
     setBlogMenuOpen(false)
-  }, [pathname])
+  }, [pathname, cancelCloseBlogMenu])
 
   // 桌面端「文章」悬停/聚焦浮层按 Escape 关闭并回焦点到触发链
   useEffect(() => {
@@ -247,6 +266,7 @@ export function SiteHeader({ posts = [], categories = [] }: SiteHeaderProps) {
         document.activeElement instanceof Node &&
         document.activeElement !== blogLinkRef.current &&
         Boolean(blogMenuItemRef.current?.contains(document.activeElement))
+      cancelCloseBlogMenu()
       setBlogMenuOpen(false)
       if (focusInsidePopover) {
         skipFocusOpenRef.current = true
@@ -255,26 +275,23 @@ export function SiteHeader({ posts = [], categories = [] }: SiteHeaderProps) {
     }
     document.addEventListener('keydown', handleEscape)
     return () => document.removeEventListener('keydown', handleEscape)
-  }, [blogMenuOpen])
+  }, [blogMenuOpen, cancelCloseBlogMenu])
 
   const openBlogMenu = () => {
-    if (closeMenuTimerRef.current !== null) {
-      window.clearTimeout(closeMenuTimerRef.current)
-      closeMenuTimerRef.current = null
-    }
+    cancelCloseBlogMenu()
     if (posts.length > 0) {
       setBlogMenuOpen(true)
     }
   }
 
   const scheduleCloseBlogMenu = () => {
-    if (closeMenuTimerRef.current !== null) {
-      window.clearTimeout(closeMenuTimerRef.current)
-    }
+    cancelCloseBlogMenu()
     closeMenuTimerRef.current = window.setTimeout(() => {
-      setBlogMenuOpen(false)
       closeMenuTimerRef.current = null
-    }, 150)
+      const container = blogMenuItemRef.current
+      if (container?.matches(':hover') || container?.contains(document.activeElement)) return
+      setBlogMenuOpen(false)
+    }, 180)
   }
 
   const resolvedCategories = useMemo<HeaderCategoryStat[]>(() => {
@@ -296,7 +313,7 @@ export function SiteHeader({ posts = [], categories = [] }: SiteHeaderProps) {
       <header
         id="site-header"
         ref={headerRef}
-        data-visible={visible || expanded || searchOpen}
+        data-visible={visible || menuMotion.present || blogMotion.present || searchOpen}
         data-scrolled={scrolled}
         data-search-open={searchOpen}
         className="sticky top-0 z-[70] h-[4.5rem] w-full transition-[transform,translate,opacity,background-color,border-color] duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-opacity data-[search-open=true]:transition-none data-[scrolled=false]:border-b data-[scrolled=false]:border-transparent data-[scrolled=true]:border-b data-[scrolled=true]:border-hair data-[scrolled=true]:bg-background/85 data-[scrolled=true]:backdrop-blur-md data-[visible=false]:pointer-events-none data-[visible=false]:motion-safe:-translate-y-1.5 data-[visible=false]:opacity-0 data-[visible=true]:pointer-events-auto data-[visible=true]:translate-y-0 data-[visible=true]:opacity-100"
@@ -323,7 +340,7 @@ export function SiteHeader({ posts = [], categories = [] }: SiteHeaderProps) {
                         onBlur={(event) => {
                           const relatedTarget = event.relatedTarget
                           if (!(relatedTarget instanceof Node) || !event.currentTarget.contains(relatedTarget)) {
-                            setBlogMenuOpen(false)
+                            scheduleCloseBlogMenu()
                           }
                         }}
                       >
@@ -354,93 +371,102 @@ export function SiteHeader({ posts = [], categories = [] }: SiteHeaderProps) {
                         </Link>
 
                         {/* 悬停文章分类预览纸卡 */}
-                        {blogMenuOpen && posts.length > 0 && (
+                        {blogMotion.present && posts.length > 0 && (
                           <div
+                            ref={blogMotion.anchorRef}
                             onMouseEnter={openBlogMenu}
-                            onMouseLeave={scheduleCloseBlogMenu}
-                            className="isolate absolute left-1/2 top-[calc(100%+0.45rem)] z-[80] w-[490px] -translate-x-1/2 rounded-xl border border-hair bg-popover px-[18px] pb-3.5 pt-[18px] text-left shadow-xl"
+                            inert={!blogMenuOpen}
+                            aria-hidden={!blogMenuOpen}
+                            className={`absolute left-1/2 top-[calc(100%+0.45rem)] z-[80] w-[490px] -translate-x-1/2 before:absolute before:inset-x-0 before:-top-2 before:h-2 before:content-[''] ${!blogMenuOpen ? 'pointer-events-none' : ''}`}
                           >
-                            <div className="grid grid-cols-[140px_minmax(0,1fr)]">
-                              {/* 左侧分类列 */}
-                              <div className="min-w-0 border-r border-hair pr-3.5">
-                                <div className="mb-2 px-3 font-mono text-[10px] tracking-[0.28em] text-muted-foreground uppercase">
-                                  分类
+                            <div
+                              ref={blogMotion.surfaceRef}
+                              className="isolate origin-top-left rounded-xl border border-hair bg-popover px-[18px] pb-3.5 pt-[18px] text-left shadow-xl"
+                            >
+                              <div ref={blogMotion.contentRef}>
+                                <div className="grid grid-cols-[140px_minmax(0,1fr)]">
+                                  {/* 左侧分类列 */}
+                                  <div className="min-w-0 border-r border-hair pr-3.5">
+                                    <div className="mb-2 px-3 font-mono text-[10px] tracking-[0.28em] text-muted-foreground uppercase">
+                                      分类
+                                    </div>
+                                    <div className="flex flex-col gap-0.5">
+                                      {resolvedCategories.map((cat) => {
+                                        const selected = hoveredCategory === cat.category
+                                        return (
+                                          <Link
+                                            key={cat.category}
+                                            href={buildBlogListUrl({ category: cat.category })}
+                                            onMouseEnter={() => setHoveredCategory(cat.category)}
+                                            onFocus={() => setHoveredCategory(cat.category)}
+                                            onClick={() => setBlogMenuOpen(false)}
+                                            className={`group/row relative flex h-8 items-center justify-between px-3 text-[13px] transition-colors ${
+                                              selected
+                                                ? 'text-foreground font-medium'
+                                                : 'text-muted-foreground hover:text-foreground'
+                                            }`}
+                                          >
+                                            {selected && (
+                                              <span
+                                                aria-hidden="true"
+                                                className="pointer-events-none absolute left-0.5 top-1/2 h-3.5 w-[2px] -translate-y-1/2 rounded-xs bg-primary"
+                                              />
+                                            )}
+                                            <span className="truncate">{cat.label}</span>
+                                            <span
+                                              className={`font-mono text-xs tabular-nums transition-colors ${
+                                                selected ? 'text-primary' : 'text-muted-foreground'
+                                              }`}
+                                            >
+                                              {cat.count}
+                                            </span>
+                                          </Link>
+                                        )
+                                      })}
+                                    </div>
+                                  </div>
+
+                                  {/* 右侧当前分类近期文章 */}
+                                  <div className="min-w-0 pl-4">
+                                    <div className="mb-2 px-2 font-mono text-[10px] tracking-[0.16em] text-muted-foreground">
+                                      {BLOG_CATEGORY_LABELS[hoveredCategory]} · 最新
+                                    </div>
+                                    <div className="flex flex-col gap-0.5">
+                                      {categoryPosts.length > 0 ? (
+                                        categoryPosts.map((post) => (
+                                          <Link
+                                            key={post.slug}
+                                            href={`/blog/${post.slug}`}
+                                            onClick={() => setBlogMenuOpen(false)}
+                                            className="ink-glide flex h-8 items-center gap-2.5 px-2 text-[13px] text-foreground/85 hover:translate-x-1 hover:text-primary"
+                                          >
+                                            <span className="shrink-0 font-mono text-[11px] tabular-nums text-muted-foreground">
+                                              {formatShortDate(post.date)}
+                                            </span>
+                                            <span className="truncate">{post.title}</span>
+                                          </Link>
+                                        ))
+                                      ) : (
+                                        <div className="px-2 py-4 text-xs text-muted-foreground">暂无该分类文章</div>
+                                      )}
+                                    </div>
+                                  </div>
                                 </div>
-                                <div className="flex flex-col gap-0.5">
-                                  {resolvedCategories.map((cat) => {
-                                    const selected = hoveredCategory === cat.category
-                                    return (
-                                      <Link
-                                        key={cat.category}
-                                        href={buildBlogListUrl({ category: cat.category })}
-                                        onMouseEnter={() => setHoveredCategory(cat.category)}
-                                        onFocus={() => setHoveredCategory(cat.category)}
-                                        onClick={() => setBlogMenuOpen(false)}
-                                        className={`group/row relative flex h-8 items-center justify-between px-3 text-[13px] transition-colors ${
-                                          selected
-                                            ? 'text-foreground font-medium'
-                                            : 'text-muted-foreground hover:text-foreground'
-                                        }`}
-                                      >
-                                        {selected && (
-                                          <span
-                                            aria-hidden="true"
-                                            className="pointer-events-none absolute left-0.5 top-1/2 h-3.5 w-[2px] -translate-y-1/2 rounded-xs bg-primary"
-                                          />
-                                        )}
-                                        <span className="truncate">{cat.label}</span>
-                                        <span
-                                          className={`font-mono text-xs tabular-nums transition-colors ${
-                                            selected ? 'text-primary' : 'text-muted-foreground'
-                                          }`}
-                                        >
-                                          {cat.count}
-                                        </span>
-                                      </Link>
-                                    )
-                                  })}
+
+                                <div className="mt-3 flex items-center justify-between border-t border-hair pt-2.5 px-1 text-xs text-muted-foreground">
+                                  <Link
+                                    href="/blog"
+                                    onClick={() => setBlogMenuOpen(false)}
+                                    className="group/ink inline-flex items-center gap-1 transition-colors hover:text-primary"
+                                  >
+                                    <span className="ink-line">查看全部文章</span>
+                                    <span aria-hidden="true" className="ink-glide group-hover/ink:translate-x-1">
+                                      →
+                                    </span>
+                                  </Link>
+                                  <span className="font-mono text-[11px] tabular-nums">{posts.length} 篇文章</span>
                                 </div>
                               </div>
-
-                              {/* 右侧当前分类近期文章 */}
-                              <div className="min-w-0 pl-4">
-                                <div className="mb-2 px-2 font-mono text-[10px] tracking-[0.16em] text-muted-foreground">
-                                  {BLOG_CATEGORY_LABELS[hoveredCategory]} · 最新
-                                </div>
-                                <div className="flex flex-col gap-0.5">
-                                  {categoryPosts.length > 0 ? (
-                                    categoryPosts.map((post) => (
-                                      <Link
-                                        key={post.slug}
-                                        href={`/blog/${post.slug}`}
-                                        onClick={() => setBlogMenuOpen(false)}
-                                        className="ink-glide flex h-8 items-center gap-2.5 px-2 text-[13px] text-foreground/85 hover:translate-x-1 hover:text-primary"
-                                      >
-                                        <span className="shrink-0 font-mono text-[11px] tabular-nums text-muted-foreground">
-                                          {formatShortDate(post.date)}
-                                        </span>
-                                        <span className="truncate">{post.title}</span>
-                                      </Link>
-                                    ))
-                                  ) : (
-                                    <div className="px-2 py-4 text-xs text-muted-foreground">暂无该分类文章</div>
-                                  )}
-                                </div>
-                              </div>
-                            </div>
-
-                            <div className="mt-3 flex items-center justify-between border-t border-hair pt-2.5 px-1 text-xs text-muted-foreground">
-                              <Link
-                                href="/blog"
-                                onClick={() => setBlogMenuOpen(false)}
-                                className="group/ink inline-flex items-center gap-1 transition-colors hover:text-primary"
-                              >
-                                <span className="ink-line">查看全部文章</span>
-                                <span aria-hidden="true" className="ink-glide group-hover/ink:translate-x-1">
-                                  →
-                                </span>
-                              </Link>
-                              <span className="font-mono text-[11px] tabular-nums">{posts.length} 篇文章</span>
                             </div>
                           </div>
                         )}
@@ -538,28 +564,33 @@ export function SiteHeader({ posts = [], categories = [] }: SiteHeaderProps) {
 
         {/* 移动端折叠菜单（完全不透明背景，避免底层文字穿透重影） */}
         <div
+          ref={menuMotion.anchorRef}
           id="mobile-nav"
+          hidden={!menuMotion.present}
           data-expanded={expanded}
           inert={!expanded}
-          className="isolate absolute left-4 right-4 top-[calc(100%+0.35rem)] grid rounded-xl bg-popover transition-[grid-template-rows,opacity] duration-300 ease-[var(--ease-spring)] data-[expanded=false]:pointer-events-none data-[expanded=false]:grid-rows-[0fr] data-[expanded=false]:opacity-0 data-[expanded=true]:pointer-events-auto data-[expanded=true]:grid-rows-[1fr] data-[expanded=true]:opacity-100 sm:hidden"
+          aria-hidden={!expanded}
+          className="absolute left-4 right-4 top-[calc(100%+0.35rem)] data-[expanded=false]:pointer-events-none sm:hidden"
         >
-          <PaperSurface className="bg-popover" />
-          <div className="overflow-hidden p-2">
-            <nav aria-label="移动端主导航" className="flex flex-col gap-0.5 text-sm">
-              {siteConfig.nav.map((item) => (
-                <Link
-                  key={item.href}
-                  href={item.href}
-                  aria-current={isActive(item.href) ? 'page' : undefined}
-                  className={`flex min-h-11 items-center justify-between px-3 py-2 font-medium transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring ${
-                    isActive(item.href) ? 'text-primary font-semibold' : 'text-muted-foreground hover:text-foreground'
-                  }`}
-                >
-                  <span>{item.name}</span>
-                  {isActive(item.href) && <span aria-hidden="true" className="h-3.5 w-[2px] rounded-xs bg-primary" />}
-                </Link>
-              ))}
-            </nav>
+          <div ref={menuMotion.surfaceRef} className="isolate relative origin-top-left rounded-xl bg-popover">
+            <PaperSurface className="bg-popover" />
+            <div ref={menuMotion.contentRef} className="max-h-[calc(100dvh-6rem)] overflow-y-auto p-2">
+              <nav aria-label="移动端主导航" className="flex flex-col gap-0.5 text-sm">
+                {siteConfig.nav.map((item) => (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    aria-current={isActive(item.href) ? 'page' : undefined}
+                    className={`flex min-h-11 items-center justify-between px-3 py-2 font-medium transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring ${
+                      isActive(item.href) ? 'text-primary font-semibold' : 'text-muted-foreground hover:text-foreground'
+                    }`}
+                  >
+                    <span>{item.name}</span>
+                    {isActive(item.href) && <span aria-hidden="true" className="h-3.5 w-[2px] rounded-xs bg-primary" />}
+                  </Link>
+                ))}
+              </nav>
+            </div>
           </div>
         </div>
       </header>

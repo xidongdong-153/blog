@@ -47,7 +47,7 @@ function PostActions({
 }: {
   post: ManagedPost
   busy: boolean
-  onAction: (post: ManagedPost, action: PostAction, trigger: HTMLButtonElement | null) => void
+  onAction: (post: ManagedPost, action: PostAction, trigger: HTMLButtonElement | null, origin?: DOMRect) => void
 }) {
   const trigger = useRef<HTMLButtonElement>(null)
   return (
@@ -101,7 +101,14 @@ function PostActions({
         )}
         <DropdownMenuSeparator />
         {post.published && (
-          <DropdownMenuItem disabled={busy} onSelect={() => onAction(post, 'withdraw', trigger.current)}>
+          <DropdownMenuItem
+            disabled={busy}
+            onSelect={(event) => {
+              const origin =
+                event.currentTarget instanceof HTMLElement ? event.currentTarget.getBoundingClientRect() : undefined
+              onAction(post, 'withdraw', trigger.current, origin)
+            }}
+          >
             <Undo2 />
             撤回
           </DropdownMenuItem>
@@ -109,7 +116,11 @@ function PostActions({
         <DropdownMenuItem
           variant="destructive"
           disabled={busy}
-          onSelect={() => onAction(post, 'delete', trigger.current)}
+          onSelect={(event) => {
+            const origin =
+              event.currentTarget instanceof HTMLElement ? event.currentTarget.getBoundingClientRect() : undefined
+            onAction(post, 'delete', trigger.current, origin)
+          }}
         >
           <Trash2 />
           删除
@@ -128,6 +139,7 @@ export function PostList({ data, query, status }: { data: ManagedPostList; query
   const [filtering, startFilter] = useTransition()
   const [error, setError] = useState('')
   const actionTrigger = useRef<HTMLButtonElement | null>(null)
+  const originRectRef = useRef<DOMRect | null>(null)
   const busyRef = useRef(false)
 
   async function run(post: ManagedPost, action: PostAction) {
@@ -388,12 +400,13 @@ export function PostList({ data, query, status }: { data: ManagedPostList; query
                     <PostActions
                       post={post}
                       busy={busy || filtering}
-                      onAction={(selected, action, trigger) => {
+                      onAction={(selected, action, trigger, origin) => {
                         if (action === 'summary') {
                           void run(selected, action)
                           return
                         }
                         actionTrigger.current = trigger
+                        originRectRef.current = origin ?? null
                         setPending({ post: selected, action })
                         setConfirmOpen(true)
                       }}
@@ -428,6 +441,7 @@ export function PostList({ data, query, status }: { data: ManagedPostList; query
         <PostConfirmDialog
           open={confirmOpen}
           returnFocusRef={actionTrigger}
+          originRectRef={originRectRef}
           variant={pending.action === 'delete' ? 'destructive' : 'default'}
           title={pending.action === 'delete' ? '删除文章' : '撤回文章'}
           message={

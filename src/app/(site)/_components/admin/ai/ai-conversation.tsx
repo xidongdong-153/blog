@@ -43,9 +43,9 @@ export function AiConversation({
   onInputChange: (value: string) => void
   onSend: () => void
   onStop: () => void
-  onClear: () => void
+  onClear: (trigger: HTMLButtonElement) => void
   onOpenModels: () => void
-  onUseTool: (tool: AiToolDto) => void
+  onUseTool: (tool: AiToolDto, trigger: HTMLButtonElement) => void
   modelId?: string
   modelReady: boolean
   configurationBusy: boolean
@@ -81,9 +81,9 @@ export function AiConversation({
     setShowLatest(false)
   }
 
-  function handleSelectTool(tool: AiToolDto) {
+  function handleSelectTool(tool: AiToolDto, trigger: HTMLButtonElement) {
     const willImmediateFill = !input.trim()
-    onUseTool(tool)
+    onUseTool(tool, trigger)
     if (willImmediateFill) {
       requestAnimationFrame(() => {
         messageInputRef.current?.focus()
@@ -125,7 +125,7 @@ export function AiConversation({
           variant="ghost"
           size="sm"
           disabled={chat.messages.length === 0 && !input}
-          onClick={onClear}
+          onClick={(event) => onClear(event.currentTarget)}
           className="h-8 px-2.5 text-xs text-muted-foreground"
         >
           <Trash2 aria-hidden="true" className="size-3.5" />
@@ -179,7 +179,7 @@ export function AiConversation({
                       <Button
                         variant="ghost"
                         disabled={running}
-                        onClick={() => handleSelectTool(tool)}
+                        onClick={(event) => handleSelectTool(tool, event.currentTarget)}
                         className="h-auto min-h-20 w-full flex-col items-start justify-between gap-2 bg-background/80 p-3.5 text-left whitespace-normal hover:border-primary/50 hover:bg-background"
                       >
                         <Flex align="center" justify="between" gap="2" className="w-full min-w-0">
@@ -410,7 +410,7 @@ export function AiConversation({
                       variant="outline"
                       size="sm"
                       disabled={running}
-                      onClick={() => handleSelectTool(tool)}
+                      onClick={(event) => handleSelectTool(tool, event.currentTarget)}
                       className="h-8 gap-1.5 px-2.5 text-xs"
                     >
                       {tool.id === 'post-draft' ? (

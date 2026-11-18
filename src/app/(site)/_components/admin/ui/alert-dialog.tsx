@@ -5,13 +5,26 @@ import * as React from 'react'
 import { Button } from '@/app/(site)/_components/admin/ui/button'
 
 import { cn } from '@/lib/utils'
+import { OverlayMotionRoot, useOverlayContent, useOverlayReturnFocus, useOverlayTrigger } from './overlay-motion'
 
-function AlertDialog({ ...props }: React.ComponentProps<typeof AlertDialogPrimitive.Root>) {
-  return <AlertDialogPrimitive.Root data-slot="alert-dialog" {...props} />
+function AlertDialog({
+  triggerRef,
+  originRectRef,
+  ...props
+}: React.ComponentProps<typeof AlertDialogPrimitive.Root> & {
+  triggerRef?: React.RefObject<HTMLElement | null>
+  originRectRef?: React.RefObject<DOMRect | null>
+}) {
+  return (
+    <OverlayMotionRoot triggerRef={triggerRef} originRectRef={originRectRef}>
+      <AlertDialogPrimitive.Root data-slot="alert-dialog" {...props} />
+    </OverlayMotionRoot>
+  )
 }
 
-function AlertDialogTrigger({ ...props }: React.ComponentProps<typeof AlertDialogPrimitive.Trigger>) {
-  return <AlertDialogPrimitive.Trigger data-slot="alert-dialog-trigger" {...props} />
+function AlertDialogTrigger({ ref, ...props }: React.ComponentProps<typeof AlertDialogPrimitive.Trigger>) {
+  const motionRef = useOverlayTrigger(ref)
+  return <AlertDialogPrimitive.Trigger ref={motionRef} data-slot="alert-dialog-trigger" {...props} />
 }
 
 function AlertDialogPortal({ ...props }: React.ComponentProps<typeof AlertDialogPrimitive.Portal>) {
@@ -22,10 +35,7 @@ function AlertDialogOverlay({ className, ...props }: React.ComponentProps<typeof
   return (
     <AlertDialogPrimitive.Overlay
       data-slot="alert-dialog-overlay"
-      className={cn(
-        'fixed inset-0 z-[80] duration-(--ui-duration) ease-(--ui-ease) bg-black/50 motion-reduce:animate-none data-[state=closed]:animate-out data-[state=closed]:fade-out-0 motion-reduce:animate-none data-[state=open]:animate-in data-[state=open]:fade-in-0',
-        className,
-      )}
+      className={cn('admin-overlay-backdrop fixed inset-0 z-[80] bg-black/50', className)}
       {...props}
     />
   )
@@ -34,18 +44,24 @@ function AlertDialogOverlay({ className, ...props }: React.ComponentProps<typeof
 function AlertDialogContent({
   className,
   size = 'default',
+  ref,
+  onCloseAutoFocus,
   ...props
 }: React.ComponentProps<typeof AlertDialogPrimitive.Content> & {
   size?: 'default' | 'sm'
 }) {
+  const motionRef = useOverlayContent(ref)
+  const returnFocus = useOverlayReturnFocus(onCloseAutoFocus)
   return (
     <AlertDialogPortal>
       <AlertDialogOverlay />
       <AlertDialogPrimitive.Content
         data-slot="alert-dialog-content"
+        ref={motionRef}
+        onCloseAutoFocus={returnFocus}
         data-size={size}
         className={cn(
-          'group/alert-dialog-content fixed top-[50%] left-[50%] z-[80] grid w-full max-w-[calc(100%-2rem)] translate-x-[-50%] translate-y-[-50%] gap-4 rounded-lg border border-border bg-background p-6 shadow-lg duration-(--ui-duration) ease-(--ui-ease) data-[size=sm]:max-w-xs motion-reduce:animate-none data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:zoom-out-95 motion-reduce:animate-none data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=open]:zoom-in-95 data-[size=default]:sm:max-w-lg',
+          'admin-overlay-motion group/alert-dialog-content fixed top-[50%] left-[50%] z-[80] grid w-full max-w-[calc(100%-2rem)] translate-x-[-50%] translate-y-[-50%] gap-4 rounded-lg border border-border bg-background p-6 shadow-lg data-[size=sm]:max-w-xs data-[size=default]:sm:max-w-lg',
           className,
         )}
         {...props}

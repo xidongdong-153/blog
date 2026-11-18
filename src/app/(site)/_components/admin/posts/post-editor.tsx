@@ -25,7 +25,9 @@ import { BLOG_CATEGORY_LABELS, calculateReadingTime, getArticleWordCounts } from
 import { formatDate } from '@/lib/date'
 import { generatedPostDraftSchema } from '@/lib/post-draft'
 import { createEmptyPost } from '@/lib/posts'
+import { lockOverlayScroll } from '../../site/overlay-scroll-lock'
 import { PaperSurface } from '../../site/paper-surface'
+import { useOverlayMotion } from '../../site/use-overlay-motion'
 import { Button } from '../ui/button'
 import { Tabs, TabsList, TabsTrigger } from '../ui/tabs'
 import { LiveMdxPreview } from './live-mdx-preview'
@@ -90,6 +92,8 @@ export function PostEditor({ initial }: { initial?: ManagedPost }) {
   const [operation, setOperation] = useState<'save' | 'preview' | 'publish' | 'generate' | null>(null)
   const [generateOpen, setGenerateOpen] = useState(false)
   const generateButtonRef = useRef<HTMLButtonElement>(null)
+  const publishButtonRef = useRef<HTMLButtonElement>(null)
+  const leaveTriggerRef = useRef<HTMLElement | null>(null)
   const busy = operation !== null
   const [error, setError] = useState('')
   const [mode, setMode] = useState<EditorMode>('split')
@@ -112,10 +116,12 @@ export function PostEditor({ initial }: { initial?: ManagedPost }) {
   modeRef.current = mode
   const descriptionRef = useRef<HTMLTextAreaElement | null>(null)
   const inspectorButtonRef = useRef<HTMLButtonElement | null>(null)
+  const inspectorTriggerRef = useRef<HTMLElement | null>(null)
   const sheetDialogRef = useRef<HTMLDivElement | null>(null)
   const pendingFocusTargetRef = useRef<string | null>(null)
   const isXl = useSyncExternalStore(subscribeXlMedia, getXlSnapshot, getXlServerSnapshot)
   const showSheet = !isXl && !writerFocus && sheetInspectorOpen
+  const sheetMotion = useOverlayMotion({ open: showSheet, triggerRef: inspectorTriggerRef })
   const dirty = JSON.stringify(input) !== savedInput
 
   const setDocument = useCallback(<K extends keyof PostDocument>(field: K, value: PostDocument[K]) => {
@@ -129,7 +135,8 @@ export function PostEditor({ initial }: { initial?: ManagedPost }) {
     })
   }, [])
 
-  function openInspectorAndFocus(targetId: string) {
+  function openInspectorAndFocus(targetId: string, trigger?: HTMLElement) {
+    inspectorTriggerRef.current = trigger ?? inspectorButtonRef.current
     if (writerFocus) setWriterFocus(false)
     pendingFocusTargetRef.current = targetId
     if (window.matchMedia(XL_MEDIA_QUERY).matches) {
@@ -151,6 +158,7 @@ export function PostEditor({ initial }: { initial?: ManagedPost }) {
     if (window.matchMedia(XL_MEDIA_QUERY).matches) {
       setDesktopInspectorOpen((current) => !current)
     } else {
+      inspectorTriggerRef.current = inspectorButtonRef.current
       setSheetInspectorOpen((current) => !current)
     }
   }
@@ -259,12 +267,14 @@ export function PostEditor({ initial }: { initial?: ManagedPost }) {
     return () => media.removeEventListener('change', onResize)
   }, [])
 
-  // 窄屏属性抽屉焦点进入、Tab 焦点捕获与背景滚动锁定
+  useEffect(() => {
+    if (!sheetMotion.present) return
+    return lockOverlayScroll()
+  }, [sheetMotion.present])
+
+  // 窄屏属性抽屉焦点进入、Tab 焦点捕获
   useEffect(() => {
     if (!showSheet) return
-    const prevOverflow = document.body.style.overflow
-    document.body.style.overflow = 'hidden'
-
     const focusTimer = window.requestAnimationFrame(() => {
       const pendingId = pendingFocusTargetRef.current
       if (pendingId) {
@@ -314,7 +324,6 @@ export function PostEditor({ initial }: { initial?: ManagedPost }) {
     return () => {
       window.cancelAnimationFrame(focusTimer)
       document.removeEventListener('keydown', onKeyDown, true)
-      document.body.style.overflow = prevOverflow
     }
   }, [showSheet])
 
@@ -453,6 +462,7 @@ export function PostEditor({ initial }: { initial?: ManagedPost }) {
       if (navigationApproved.current) return
       event.preventDefault()
       event.stopPropagation()
+      leaveTriggerRef.current = target
       setPendingNavigation(url.href)
       setLeaveOpen(true)
     }
@@ -609,6 +619,7 @@ export function PostEditor({ initial }: { initial?: ManagedPost }) {
             size="sm"
             disabled={busy}
             pending={operation === 'publish'}
+            ref={publishButtonRef}
             onClick={() => setConfirmPublish(true)}
             className="min-h-11 sm:min-h-9"
           >
@@ -642,7 +653,7 @@ export function PostEditor({ initial }: { initial?: ManagedPost }) {
               <span aria-hidden="true">·</span>
               <button
                 type="button"
-                onClick={() => openInspectorAndFocus('post-slug')}
+                onClick={(event) => openInspectorAndFocus('post-slug', event.currentTarget)}
                 className={`cursor-pointer rounded-sm text-left underline-offset-4 transition-colors hover:text-primary hover:underline focus-visible:outline-2 focus-visible:outline-ring ${
                   slugMissing ? 'text-amber-700 dark:text-amber-400' : ''
                 }`}
@@ -817,38 +828,44 @@ export function PostEditor({ initial }: { initial?: ManagedPost }) {
       </div>
 
       {/* 窄屏属性检查器抽屉（Portal 挂载于 body 顶层，z-75 高于页头 z-70 且低于弹层 z-80，带焦点捕获） */}
-      {showSheet &&
+      {sheetMotion.present &&
         createPortal(
-          <div className="xl:hidden">
+          <div className="xl:hidden" aria-hidden={!showSheet} inert={!showSheet}>
             <div
+              ref={sheetMotion.backdropRef}
               aria-hidden="true"
               onClick={closeSheet}
               className="fixed inset-0 z-[74] bg-black/45 backdrop-blur-[1px]"
             />
-            <div
-              ref={sheetDialogRef}
-              role="dialog"
-              aria-modal="true"
-              aria-label="文章属性"
-              className="fixed inset-y-0 right-0 z-[75] w-[min(100vw,22rem)] overflow-y-auto border-l border-hair bg-background/96 p-4 shadow-xl backdrop-blur-md"
-            >
-              {propertiesPanel}
+            <div ref={sheetMotion.anchorRef} className="fixed inset-y-0 right-0 z-[75] w-[min(100vw,22rem)]">
+              <div
+                ref={(node) => {
+                  sheetDialogRef.current = node
+                  sheetMotion.surfaceRef.current = node
+                }}
+                role="dialog"
+                aria-modal={showSheet ? true : undefined}
+                aria-label="文章属性"
+                className="absolute inset-0 origin-top-left overflow-y-auto border-l border-hair bg-background/96 p-4 shadow-xl backdrop-blur-md"
+              >
+                <div ref={sheetMotion.contentRef}>{propertiesPanel}</div>
+              </div>
             </div>
           </div>,
           document.body,
         )}
 
-      {generateOpen && (
-        <PostGenerateDialog
-          hasExistingContent={Boolean(record) || dirty}
-          returnFocusRef={generateButtonRef}
-          onGenerate={generateDraft}
-          onClose={() => setGenerateOpen(false)}
-        />
-      )}
+      <PostGenerateDialog
+        open={generateOpen}
+        hasExistingContent={Boolean(record) || dirty}
+        returnFocusRef={generateButtonRef}
+        onGenerate={generateDraft}
+        onClose={() => setGenerateOpen(false)}
+      />
       {pendingNavigation && (
         <PostConfirmDialog
           open={leaveOpen}
+          returnFocusRef={leaveTriggerRef}
           variant="destructive"
           title="离开编辑器"
           message="有未保存的修改，离开后这些修改将丢失。"
@@ -864,6 +881,7 @@ export function PostEditor({ initial }: { initial?: ManagedPost }) {
       )}
       <PostConfirmDialog
         open={confirmPublish}
+        returnFocusRef={publishButtonRef}
         title={record?.published ? '发布文章更新' : '发布文章'}
         message={`“${doc.title || '未命名文章'}”将保存并公开，访客可以立即访问。`}
         confirmLabel={record?.published ? '发布更新' : '发布'}

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useCallback, useRef, useState } from 'react'
 import { FriendApplyModal } from './friend-apply-modal'
 
 interface FriendApplyButtonProps {
@@ -13,10 +13,13 @@ interface FriendApplyButtonProps {
  */
 export function FriendApplyButton({ className, children }: FriendApplyButtonProps) {
   const [isOpen, setIsOpen] = useState(false)
+  const triggerRef = useRef<HTMLButtonElement>(null)
+  const close = useCallback(() => setIsOpen(false), [])
 
   return (
     <>
       <button
+        ref={triggerRef}
         type="button"
         onClick={() => setIsOpen(true)}
         className={
@@ -37,7 +40,7 @@ export function FriendApplyButton({ className, children }: FriendApplyButtonProp
         )}
       </button>
 
-      <FriendApplyModal isOpen={isOpen} onClose={() => setIsOpen(false)} />
+      <FriendApplyModal isOpen={isOpen} onClose={close} triggerRef={triggerRef} />
     </>
   )
 }

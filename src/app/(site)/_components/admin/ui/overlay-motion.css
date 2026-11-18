@@ -1,0 +1,83 @@
+@keyframes admin-overlay-open {
+  from {
+    --admin-overlay-presence: 0;
+  }
+  to {
+    --admin-overlay-presence: 1;
+  }
+}
+
+@keyframes admin-overlay-close {
+  from {
+    --admin-overlay-presence: 1;
+  }
+  to {
+    --admin-overlay-presence: 0;
+  }
+}
+
+@keyframes admin-overlay-backdrop-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes admin-overlay-backdrop-out {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
+.admin-overlay-motion[data-state='open'],
+.admin-overlay-motion[data-state='delayed-open'],
+.admin-overlay-motion[data-state='instant-open'] {
+  animation: admin-overlay-open 300ms both;
+}
+
+.admin-overlay-motion[data-state='closed'] {
+  animation: admin-overlay-close 220ms both;
+  pointer-events: none;
+}
+
+.admin-overlay-backdrop[data-state='open'] {
+  animation: admin-overlay-backdrop-in 180ms ease-out both;
+}
+
+.admin-overlay-backdrop[data-state='closed'] {
+  animation: admin-overlay-backdrop-out 180ms ease-out both;
+}
+
+[data-sonner-toast].admin-toast-motion {
+  scale: 0.9;
+  transform-origin: bottom right;
+  transition:
+    transform 400ms,
+    opacity 400ms,
+    height 400ms,
+    box-shadow 200ms,
+    scale 300ms;
+}
+
+[data-sonner-toast].admin-toast-motion[data-mounted='true'] {
+  scale: 1;
+}
+[data-sonner-toast].admin-toast-motion[data-removed='true'][data-swipe-out='false'] {
+  scale: 0.9;
+}
+[data-sonner-toast].admin-toast-motion[data-swiping='true'] {
+  transition: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  [data-sonner-toast].admin-toast-motion,
+  [data-sonner-toast].admin-toast-motion[data-removed='true'][data-swipe-out='false'] {
+    scale: 1;
+    transition: none;
+  }
+}

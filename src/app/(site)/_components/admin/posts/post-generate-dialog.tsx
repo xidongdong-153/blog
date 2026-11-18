@@ -26,11 +26,13 @@ import { Textarea } from '../ui/textarea'
 /** 输入概述生成初稿；取消或关闭时丢弃尚未完成的生成结果。 */
 export function PostGenerateDialog({
   hasExistingContent,
+  open,
   returnFocusRef,
   onGenerate,
   onClose,
 }: {
   hasExistingContent: boolean
+  open: boolean
   returnFocusRef: RefObject<HTMLButtonElement | null>
   onGenerate: (overview: string, signal: AbortSignal) => Promise<void>
   onClose: () => void
@@ -43,6 +45,13 @@ export function PostGenerateDialog({
   const overviewRef = useRef<HTMLTextAreaElement>(null)
 
   useEffect(() => () => request.current?.abort(), [])
+
+  useEffect(() => {
+    if (!open) return
+    setOverview('')
+    setReplaceConfirmed(false)
+    setError(null)
+  }, [open])
 
   function close() {
     request.current?.abort()
@@ -75,7 +84,8 @@ export function PostGenerateDialog({
 
   return (
     <AlertDialog
-      open
+      open={open}
+      triggerRef={returnFocusRef}
       onOpenChange={(open) => {
         if (!open) close()
       }}
