@@ -82,11 +82,11 @@ export function Hero({ profile, stats }: HeroProps) {
 
           <div className="flex flex-col gap-3">
             <h1 className="entrance text-balance font-serif text-3xl font-medium leading-[1.18] tracking-tight text-foreground [--entrance-delay:60ms] sm:text-5xl lg:text-[3.15rem]">
-              写全栈应用，也给{' '}
+              搓点自己爱用的小工具，顺手给接班的{' '}
               <span className="italic text-primary underline decoration-primary/30 decoration-1 underline-offset-8">
                 AI Agent
               </span>{' '}
-              搭工作台。
+              留份遗产。
             </h1>
 
             <p className="entrance max-w-xl text-base leading-relaxed text-foreground/85 [--entrance-delay:110ms] sm:text-[17px]">
