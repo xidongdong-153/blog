@@ -6,7 +6,6 @@ import { PanelRightClose, X } from 'lucide-react'
 import { useState } from 'react'
 import { BLOG_CATEGORY_LABELS } from '@/lib/blog-meta'
 import { isMediaUrl } from '@/lib/posts'
-import { REGISTERED_SERIES } from '@/lib/series'
 import { sanitizeCssColor } from '@/lib/utils'
 import { PaperSurface } from '../../site/paper-surface'
 import { Button } from '../ui/button'
@@ -34,7 +33,7 @@ function expandHexColor(value: string | null): string {
   return '#2d6a5c'
 }
 
-/** 文章属性侧边检查器，分四组收纳地址、归类、日期、视觉与专栏配置。 */
+/** 文章属性侧边检查器，分四组收纳地址、归类、日期、视觉与 AI 选项。 */
 export function PostPropertiesPanel({
   slug,
   slugLocked,
@@ -57,7 +56,6 @@ export function PostPropertiesPanel({
   onClose: () => void
 }) {
   const [failedThumb, setFailedThumb] = useState('')
-  const [orderDraft, setOrderDraft] = useState<string | null>(null)
   const trimmedCover = doc.heroImage.trim()
   const canShowCover = Boolean(trimmedCover && isMediaUrl(trimmedCover) && failedThumb !== trimmedCover)
   const safeHex = sanitizeCssColor(doc.heroColor)
@@ -273,66 +271,8 @@ export function PostPropertiesPanel({
           </div>
         </div>
 
-        {/* 4. 专栏与 AI 选项 */}
+        {/* 4. AI 选项 */}
         <div className="flex flex-col gap-3 border-t border-hair pt-4">
-          <div className="flex min-w-0 flex-col gap-1.5 text-xs font-medium text-foreground">
-            <label htmlFor="post-series">专栏</label>
-            <Select
-              value={doc.series?.id ?? 'none'}
-              disabled={busy}
-              onValueChange={(value) =>
-                onDocumentChange('series', value === 'none' ? undefined : { id: value, order: doc.series?.order ?? 1 })
-              }
-            >
-              <SelectTrigger id="post-series" className="w-full">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="none">无</SelectItem>
-                {Object.values(REGISTERED_SERIES).map((series) => (
-                  <SelectItem key={series.id} value={series.id}>
-                    {series.title}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-
-          {doc.series && (
-            <div className="grid grid-cols-2 gap-3">
-              <label htmlFor="post-order" className="flex min-w-0 flex-col gap-1.5 text-xs font-medium text-foreground">
-                专栏排序
-                <Input
-                  id="post-order"
-                  type="number"
-                  min={1}
-                  max={100000}
-                  value={orderDraft ?? String(doc.series.order)}
-                  onChange={(event) => {
-                    const raw = event.target.value
-                    setOrderDraft(raw)
-                    const parsed = Number.parseInt(raw, 10)
-                    if (doc.series && /^\d+$/.test(raw) && parsed >= 1 && parsed <= 100000) {
-                      onDocumentChange('series', { ...doc.series, order: parsed })
-                    }
-                  }}
-                  onBlur={() => setOrderDraft(null)}
-                />
-              </label>
-              <label htmlFor="post-group" className="flex min-w-0 flex-col gap-1.5 text-xs font-medium text-foreground">
-                章节分组
-                <Input
-                  id="post-group"
-                  value={doc.series.group ?? ''}
-                  maxLength={120}
-                  onChange={(event) => {
-                    if (doc.series) onDocumentChange('series', { ...doc.series, group: event.target.value })
-                  }}
-                />
-              </label>
-            </div>
-          )}
-
           <div className="flex flex-col divide-y divide-hair pt-1">
             <label
               htmlFor="post-ai-generated"

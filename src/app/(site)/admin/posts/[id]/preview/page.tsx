@@ -7,7 +7,6 @@ import { MdxContent } from '@/app/(site)/_components/blog/mdx-content'
 import { TableOfContents } from '@/app/(site)/_components/blog/toc'
 import { PaperSurface } from '@/app/(site)/_components/site/paper-surface'
 import { BLOG_CATEGORY_LABELS, calculateReadingTime, extractHeadings, formatDate } from '@/lib/content'
-import { REGISTERED_SERIES } from '@/lib/series'
 import { sanitizeCssColor } from '@/lib/utils'
 import { requirePostAdmin } from '@/server/modules/posts/posts-admin'
 import { validatePostCompilation } from '@/server/modules/posts/posts-compile'
@@ -65,7 +64,6 @@ export default async function PreviewPostPage({
   }
   const headings = extractHeadings(doc.content)
   const safeHeroColor = sanitizeCssColor(doc.heroColor)
-  const seriesInfo = doc.series ? REGISTERED_SERIES[doc.series.id] : null
 
   return (
     <div className="mx-auto w-full max-w-5xl">
@@ -94,12 +92,6 @@ export default async function PreviewPostPage({
               <div className="relative mb-3 aspect-video w-full overflow-hidden rounded-xl border border-hair">
                 <Image src={doc.heroImage} alt={doc.title} fill unoptimized className="object-cover" />
               </div>
-            )}
-
-            {seriesInfo && (
-              <span className="font-mono text-xs text-primary">
-                专栏：{seriesInfo.title} · 第 {doc.series?.order} 讲
-              </span>
             )}
 
             <h1 className="max-w-3xl text-balance font-serif text-3xl font-medium leading-[1.24] tracking-tight text-foreground sm:text-4xl lg:text-[2.5rem]">

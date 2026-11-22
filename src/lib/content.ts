@@ -1,5 +1,4 @@
 import type { BlogCategory, BlogSortOrder, BlogSourceFilter } from './blog-meta'
-import type { SeriesDefinition, SeriesStatus } from './series'
 import fs from 'node:fs'
 import path from 'node:path'
 import GithubSlugger from 'github-slugger'
@@ -7,24 +6,11 @@ import matter from 'gray-matter'
 import { cache } from 'react'
 import { findPublishedPost, listPublishedPosts } from '@/server/modules/posts/posts.service'
 import { BLOG_CATEGORIES, BLOG_CATEGORY_LABELS, filterBlogPostsBySource } from './blog-meta'
-import { REGISTERED_SERIES, SERIES_STATUS_LABELS } from './series'
 
 export const BLOG_SORT_LABELS: Record<BlogSortOrder, string> = {
   newest: '最新',
   oldest: '最早',
   updated: '最近更新',
-}
-
-/**
- * 专栏归属声明，将文章与特定系列和排序绑定。
- */
-export interface BlogPostSeriesRef {
-  /** 所属专栏唯一标识（对应 REGISTERED_SERIES 中的 key） */
-  id: string
-  /** 在专栏中的排序编号（从 1 开始升序） */
-  order: number
-  /** 所属大章节分类（如 '核心架构'、'桌面端开发'） */
-  group?: string
 }
 
 /**
@@ -49,8 +35,6 @@ export interface BlogPost {
   tags: string[]
   /** 严格为 true 时标记为 AI 生成，与主题标签和 AI 摘要设置独立。 */
   aiGenerated: boolean
-  /** 专栏归属信息，未配置时为 undefined */
-  series?: BlogPostSeriesRef
   /** 公开查询恒为 false，草稿由管理模块读取。 */
   draft: boolean
   /** 严格为 true 时不生成也不展示 AI 摘要 */
@@ -297,137 +281,6 @@ export function extractHeadings(content: string): Heading[] {
   return headings
 }
 
-/**
- * 获取所有已注册专栏的概要信息，包含各专栏已发布文章数与最近更新时间。
- */
-export async function getAllSeries(): Promise<Array<SeriesDefinition & { postsCount: number; lastUpdated: string }>> {
-  const posts = (await getAllBlogPosts()).filter((post) => post.series)
-
-  return Object.values(REGISTERED_SERIES).map((series) => {
-    const seriesPosts = posts.filter((p) => p.series?.id === series.id)
-    let lastUpdated = ''
-    for (const post of seriesPosts) {
-      const date = post.updatedDate || post.date
-      if (!lastUpdated || date.localeCompare(lastUpdated) > 0) {
-        lastUpdated = date
-      }
-    }
-
-    return {
-      ...series,
-      postsCount: seriesPosts.length,
-      lastUpdated,
-    }
-  })
-}
-
-/**
- * 获取指定专栏的元数据及所有收录文章（按 order 升序排列）。
- */
-export async function getSeriesDetail(id: string): Promise<{ series: SeriesDefinition; posts: BlogPost[] } | null> {
-  const series = REGISTERED_SERIES[id]
-  if (!series) {
-    return null
-  }
-
-  const posts = (await getAllBlogPosts())
-    .filter((post) => post.series?.id === id)
-    .sort((a, b) => {
-      const orderA = a.series?.order ?? 0
-      const orderB = b.series?.order ?? 0
-      return orderA - orderB || a.date.localeCompare(b.date)
-    })
-
-  return {
-    series,
-    posts,
-  }
-}
-
-/**
- * 为当前文章计算其所属专栏的上下文导轨信息（上一篇、下一篇、总讲数等）。
- */
-export async function getSeriesNav(currentPost: BlogPost): Promise<{
-  series: SeriesDefinition
-  prev?: BlogPost
-  next?: BlogPost
-  currentIndex: number
-  totalCount: number
-} | null> {
-  if (!currentPost.series) {
-    return null
-  }
-
-  const detail = await getSeriesDetail(currentPost.series.id)
-  if (!detail) {
-    return null
-  }
-
-  const postIndex = detail.posts.findIndex((p) => p.slug === currentPost.slug)
-  if (postIndex >= 0) {
-    return {
-      series: detail.series,
-      prev: detail.posts[postIndex - 1],
-      next: detail.posts[postIndex + 1],
-      currentIndex: postIndex + 1,
-      totalCount: detail.posts.length,
-    }
-  }
-
-  return {
-    series: detail.series,
-    prev: undefined,
-    next: undefined,
-    currentIndex: currentPost.series.order,
-    totalCount: detail.posts.length,
-  }
-}
-
-/**
- * 专栏大章节分类分组数据结构。
- */
-export interface SeriesChapterGroup<T = BlogPost> {
-  name: string
-  posts: T[]
-}
-
-/**
- * 将专栏文章按大章节分类分组。
- * 若专栏注册了 groups，优先遵循 groups 顺序；未指定分类的文章归入“正文章节”。
- */
-export function groupSeriesPosts<T extends { series?: { group?: string; order: number } }>(
-  posts: T[],
-  definedGroups?: string[],
-): Array<SeriesChapterGroup<T>> {
-  const groupMap = new Map<string, T[]>()
-
-  // 初始化预设大章节保证展示顺序
-  if (definedGroups) {
-    for (const g of definedGroups) {
-      groupMap.set(g, [])
-    }
-  }
-
-  const defaultGroupName = '正文章节'
-  for (const post of posts) {
-    const groupName = post.series?.group?.trim() || defaultGroupName
-    const list = groupMap.get(groupName) ?? []
-    list.push(post)
-    groupMap.set(groupName, list)
-  }
-
-  const result: Array<SeriesChapterGroup<T>> = []
-  for (const [name, list] of groupMap.entries()) {
-    if (list.length > 0) {
-      result.push({ name, posts: list })
-    }
-  }
-
-  return result
-}
-
-export { REGISTERED_SERIES, SERIES_STATUS_LABELS }
-export type { SeriesDefinition, SeriesStatus }
 export { BLOG_CATEGORIES, BLOG_CATEGORY_LABELS, calculateReadingTime } from './blog-meta'
 export type { BlogCategory, BlogSortOrder } from './blog-meta'
 export { formatDate, formatRelativeTime } from './date'

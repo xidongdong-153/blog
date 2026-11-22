@@ -1,5 +1,5 @@
 import type { BlogPost } from '@/lib/content'
-import type { ManagedPost, ManagedPostList, PostInput } from '@/lib/posts'
+import type { ManagedPost, ManagedPostList, PostDocument, PostInput } from '@/lib/posts'
 import type { AppDatabase } from '@/server/infra/db/client'
 import type { PostRecord } from '@/server/infra/db/schema/posts'
 import { createHash, randomUUID } from 'node:crypto'
@@ -24,17 +24,31 @@ function fingerprint(document: unknown): string {
   return createHash('sha256').update(JSON.stringify(document)).digest('hex')
 }
 
+/**
+ * 专栏功能已移除，旧快照里可能还留着 series 字段。
+ * 读取时先剔除，避免严格的文章 Schema 在保存旧文章时拒绝这个多余字段。
+ */
+function withoutLegacySeries(document: PostDocument): PostDocument {
+  if (!('series' in document)) return document
+  const rest = { ...document }
+  delete (rest as PostDocument & { series?: unknown }).series
+  return rest
+}
+
 function toManagedPost(row: PostRecord): ManagedPost {
+  const document = withoutLegacySeries(row.document)
+  const published = row.published ? withoutLegacySeries(row.published) : null
   return {
     ...row,
-    published: row.published ?? null,
-    hasUnpublishedChanges: !row.published || fingerprint(row.document) !== fingerprint(row.published),
+    document,
+    published,
+    hasUnpublishedChanges: !published || fingerprint(document) !== fingerprint(published),
   }
 }
 
 export function toPublicPost(row: PostRecord): BlogPost | undefined {
   if (!row.published) return undefined
-  return { ...row.published, slug: row.slug, commentKey: row.id, draft: false }
+  return { ...withoutLegacySeries(row.published), slug: row.slug, commentKey: row.id, draft: false }
 }
 
 function parseInput(input: unknown): PostInput {

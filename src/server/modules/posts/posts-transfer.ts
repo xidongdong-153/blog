@@ -153,11 +153,13 @@ export async function preflightImport(
         parts.at(-1)?.replace(/\.mdx?$/i, '') === 'post' && parts.length > 1
           ? parts.at(-2)
           : parts.at(-1)?.replace(/\.mdx?$/i, '')
+      // 旧导出文件可能带已移除的专栏引用，导入时忽略。
       const {
         slug,
         draft: _draft,
         status: _status,
         formatVersion: _version,
+        series: _legacySeries,
         ...fields
       } = meta as Record<string, unknown>
       if (_version !== undefined && _version !== 1) throw new Error('导出文件版本不受支持')

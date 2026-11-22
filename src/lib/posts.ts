@@ -1,5 +1,4 @@
 import { z } from 'zod'
-import { REGISTERED_SERIES } from './series'
 
 export const MAX_POST_BYTES = 1024 * 1024
 export const MAX_IMPORT_POSTS = 100
@@ -58,13 +57,6 @@ export const postDocumentSchema = z
       .default([]),
     aiGenerated: z.boolean().default(false),
     disableAiSummary: z.boolean().default(false),
-    series: z
-      .object({
-        id: z.string().refine((id) => Boolean(REGISTERED_SERIES[id]), '请选择已注册专栏'),
-        order: z.number().int().positive().max(100000),
-        group: z.string().max(120).optional(),
-      })
-      .optional(),
   })
   .strict()
 

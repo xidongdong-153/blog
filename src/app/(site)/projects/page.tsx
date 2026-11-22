@@ -12,7 +12,6 @@ interface Project {
   tags: string[]
   href?: string
   github?: string
-  seriesId?: string
   period: string
   status: 'active' | 'maintained' | 'experimental' | 'archived'
 }
@@ -31,7 +30,6 @@ const PROJECTS: Project[] = [
       '基于 Pi SDK 构建的 AI Agent Desktop 工作台，面向桌面与 Web 编码场景，提供可恢复会话、计划与目标推进、子代理协作、文件与终端面板及插件扩展。',
     tags: ['TypeScript', 'Pi SDK', 'AI Agent', 'Desktop'],
     github: 'https://github.com/xidongdong-153/Pi-meme',
-    seriesId: 'pi-agent-desktop',
     period: '2026',
     status: 'active',
   },
@@ -91,36 +89,22 @@ export default function ProjectsPage() {
                   ))}
                 </div>
 
-                {(project.github || project.seriesId) && (
+                {project.github && (
                   <div className="flex flex-wrap items-center gap-5 font-mono text-xs">
-                    {project.github && (
-                      <a
-                        href={project.github}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="group/ink inline-flex min-h-9 items-center gap-1 rounded-sm text-muted-foreground transition-colors hover:text-primary focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-ring"
+                    <a
+                      href={project.github}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="group/ink inline-flex min-h-9 items-center gap-1 rounded-sm text-muted-foreground transition-colors hover:text-primary focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-ring"
+                    >
+                      <span className="ink-line">源码</span>
+                      <span
+                        aria-hidden="true"
+                        className="ink-glide group-hover/ink:translate-x-0.5 group-hover/ink:-translate-y-0.5"
                       >
-                        <span className="ink-line">源码</span>
-                        <span
-                          aria-hidden="true"
-                          className="ink-glide group-hover/ink:translate-x-0.5 group-hover/ink:-translate-y-0.5"
-                        >
-                          ↗
-                        </span>
-                      </a>
-                    )}
-
-                    {project.seriesId && (
-                      <Link
-                        href={`/blog/series/${project.seriesId}`}
-                        className="group/ink inline-flex min-h-9 items-center gap-1 rounded-sm text-primary focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-ring"
-                      >
-                        <span className="ink-line">配套专栏</span>
-                        <span aria-hidden="true" className="ink-glide group-hover/ink:translate-x-1">
-                          →
-                        </span>
-                      </Link>
-                    )}
+                        ↗
+                      </span>
+                    </a>
                   </div>
                 )}
               </div>

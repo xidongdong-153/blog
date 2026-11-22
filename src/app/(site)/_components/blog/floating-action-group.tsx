@@ -1,10 +1,7 @@
 'use client'
 
-import type { SeriesSidebarPost } from './series-chapter-sidebar'
 import type { Heading } from '@/lib/content'
-import type { SeriesDefinition } from '@/lib/series'
 import { BookOpen } from 'lucide-react'
-import Link from 'next/link'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { lockOverlayScroll } from '../site/overlay-scroll-lock'
@@ -14,21 +11,17 @@ import { TableOfContents } from './toc'
 
 interface FloatingActionGroupProps {
   headings: Heading[]
-  series?: SeriesDefinition
-  seriesPosts?: SeriesSidebarPost[]
-  currentSlug?: string
 }
 
 /**
  * 移动端 / 小屏右下角浮动目录与返回顶部操作组。
  * 桌面端由文章右侧导轨承接进度与快速操作。
  */
-export function FloatingActionGroup({ headings, series, seriesPosts, currentSlug }: FloatingActionGroupProps) {
+export function FloatingActionGroup({ headings }: FloatingActionGroupProps) {
   const [mounted, setMounted] = useState(false)
   const [showButton, setShowButton] = useState(false)
   const [scrollPercent, setScrollPercent] = useState(0)
   const [isDrawerOpen, setIsDrawerOpen] = useState(false)
-  const [activeTab, setActiveTab] = useState<'series' | 'toc'>('series')
   const { focusMode, toggleFocusMode } = useReaderFocus()
   const drawerRef = useRef<HTMLElement>(null)
   const closeButtonRef = useRef<HTMLButtonElement>(null)
@@ -51,9 +44,7 @@ export function FloatingActionGroup({ headings, series, seriesPosts, currentSlug
     setMounted(true)
   }, [])
 
-  const hasSeries = Boolean(series && seriesPosts && seriesPosts.length > 0)
   const hasHeadings = headings.length > 0
-  const hasDrawerContent = hasHeadings || hasSeries
 
   useEffect(() => {
     const handleScroll = () => {
@@ -139,9 +130,9 @@ export function FloatingActionGroup({ headings, series, seriesPosts, currentSlug
     <>
       <div
         inert={isDrawerOpen}
-        className={`fixed bottom-6 end-4 z-40 flex flex-col items-center gap-2.5 transition-all duration-300 sm:bottom-8 sm:end-8 ${
-          hasSeries ? 'xl:hidden' : 'lg:hidden'
-        } ${showButton || present ? 'translate-y-0 opacity-100' : 'pointer-events-none translate-y-4 opacity-0'}`}
+        className={`fixed bottom-6 end-4 z-40 flex flex-col items-center gap-2.5 transition-all duration-300 sm:bottom-8 sm:end-8 lg:hidden ${
+          showButton || present ? 'translate-y-0 opacity-100' : 'pointer-events-none translate-y-4 opacity-0'
+        }`}
       >
         <button
           type="button"
@@ -155,11 +146,11 @@ export function FloatingActionGroup({ headings, series, seriesPosts, currentSlug
           <BookOpen className="size-4" />
         </button>
 
-        {hasDrawerContent && (
+        {hasHeadings && (
           <button
             ref={tocButtonRef}
             type="button"
-            aria-label={hasSeries ? '打开专栏与目录' : '打开目录'}
+            aria-label="打开目录"
             aria-expanded={isDrawerOpen}
             onClick={() => setIsDrawerOpen(true)}
             className="flex size-10 items-center justify-center rounded-xl border border-hair bg-card/95 text-muted-foreground shadow-md backdrop-blur-md transition-colors hover:border-primary/45 hover:text-primary"
@@ -205,11 +196,11 @@ export function FloatingActionGroup({ headings, series, seriesPosts, currentSlug
         </button>
       </div>
 
-      {present && hasDrawerContent && (
+      {present && hasHeadings && (
         <div
           aria-hidden={!isDrawerOpen}
           inert={!isDrawerOpen}
-          className={`fixed inset-0 z-[80] ${hasSeries ? 'xl:hidden' : 'lg:hidden'} ${!isDrawerOpen ? 'pointer-events-none' : ''}`}
+          className={`fixed inset-0 z-[80] lg:hidden ${!isDrawerOpen ? 'pointer-events-none' : ''}`}
         >
           <div
             ref={backdropRef}
@@ -224,41 +215,12 @@ export function FloatingActionGroup({ headings, series, seriesPosts, currentSlug
                 ref={drawerRef}
                 role="dialog"
                 aria-modal={isDrawerOpen ? true : undefined}
-                aria-label={hasSeries ? '专栏与目录大纲' : '移动端目录'}
+                aria-label="移动端目录"
                 className="flex h-full flex-col border-s border-hair bg-card p-5 shadow-2xl"
               >
                 <div ref={contentRef} className="flex min-h-0 flex-1 flex-col">
                   <div className="mb-3 flex items-center justify-between border-b border-hair pb-3">
-                    {hasSeries && hasHeadings ? (
-                      <div className="flex items-center gap-1 rounded-md bg-muted/40 p-0.5">
-                        <button
-                          type="button"
-                          onClick={() => setActiveTab('series')}
-                          className={`rounded px-2.5 py-1 font-mono text-xs transition-colors ${
-                            activeTab === 'series'
-                              ? 'bg-background font-medium text-foreground shadow-xs'
-                              : 'text-muted-foreground hover:text-foreground'
-                          }`}
-                        >
-                          专栏大纲 ({seriesPosts?.length})
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => setActiveTab('toc')}
-                          className={`rounded px-2.5 py-1 font-mono text-xs transition-colors ${
-                            activeTab === 'toc'
-                              ? 'bg-background font-medium text-foreground shadow-xs'
-                              : 'text-muted-foreground hover:text-foreground'
-                          }`}
-                        >
-                          本篇目录
-                        </button>
-                      </div>
-                    ) : (
-                      <span className="font-mono text-xs uppercase tracking-wider text-muted-foreground">
-                        {hasSeries ? '专栏大纲' : '目录导航'}
-                      </span>
-                    )}
+                    <span className="font-mono text-xs uppercase tracking-wider text-muted-foreground">目录导航</span>
 
                     <button
                       ref={closeButtonRef}
@@ -284,86 +246,7 @@ export function FloatingActionGroup({ headings, series, seriesPosts, currentSlug
                   </div>
 
                   <div className="flex-1 overflow-y-auto pe-1">
-                    {hasSeries && (!hasHeadings || activeTab === 'series') ? (
-                      <div className="flex flex-col gap-3">
-                        <div className="flex flex-col gap-4">
-                          {(() => {
-                            const groupMap = new Map<string, SeriesSidebarPost[]>()
-                            if (series?.groups) {
-                              for (const g of series.groups) {
-                                groupMap.set(g, [])
-                              }
-                            }
-                            const defaultGroup = '正文章节'
-                            for (const p of seriesPosts ?? []) {
-                              const gName = p.series?.group?.trim() || defaultGroup
-                              const list = groupMap.get(gName) ?? []
-                              list.push(p)
-                              groupMap.set(gName, list)
-                            }
-                            const groups: Array<{ name: string; posts: SeriesSidebarPost[] }> = []
-                            for (const [name, list] of groupMap.entries()) {
-                              if (list.length > 0) groups.push({ name, posts: list })
-                            }
-
-                            return groups.map((group) => (
-                              <div key={group.name} className="flex flex-col gap-1.5">
-                                <div className="flex items-center justify-between px-1 text-xs font-semibold text-foreground/90">
-                                  <span>{group.name}</span>
-                                  <span className="font-mono text-[0.65rem] text-muted-foreground/70">
-                                    {group.posts.length}
-                                  </span>
-                                </div>
-
-                                <ol className="flex flex-col gap-1">
-                                  {group.posts.map((post, index) => {
-                                    const chapterOrder = post.series?.order ?? index + 1
-                                    const isActive = post.slug === currentSlug
-
-                                    if (isActive) {
-                                      return (
-                                        <li key={post.slug}>
-                                          <div
-                                            aria-current="page"
-                                            className="flex items-start gap-2.5 rounded-md border border-primary/35 bg-primary/8 p-2 text-foreground"
-                                          >
-                                            <span className="shrink-0 pt-0.5 font-mono text-xs font-semibold tabular-nums text-primary">
-                                              {chapterOrder}
-                                            </span>
-                                            <span className="line-clamp-2 font-sans text-xs font-medium leading-snug">
-                                              {post.title}
-                                            </span>
-                                          </div>
-                                        </li>
-                                      )
-                                    }
-
-                                    return (
-                                      <li key={post.slug}>
-                                        <Link
-                                          href={`/blog/${post.slug}`}
-                                          onClick={() => closeDrawer(false)}
-                                          className="group flex items-start gap-2.5 rounded-md border border-transparent p-2 text-muted-foreground transition-all hover:border-hair hover:bg-muted/30 hover:text-foreground"
-                                        >
-                                          <span className="shrink-0 pt-0.5 font-mono text-xs tabular-nums text-muted-foreground/70 transition-colors group-hover:text-foreground">
-                                            {chapterOrder}
-                                          </span>
-                                          <span className="line-clamp-2 font-sans text-xs leading-snug transition-colors group-hover:text-foreground">
-                                            {post.title}
-                                          </span>
-                                        </Link>
-                                      </li>
-                                    )
-                                  })}
-                                </ol>
-                              </div>
-                            ))
-                          })()}
-                        </div>
-                      </div>
-                    ) : (
-                      <TableOfContents headings={headings} inDrawer onItemClick={() => closeDrawer(false)} />
-                    )}
+                    <TableOfContents headings={headings} inDrawer onItemClick={() => closeDrawer(false)} />
                   </div>
                 </div>
               </aside>

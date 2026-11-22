@@ -30,7 +30,7 @@ paths:
 - `src/app/(site)/_components/blog/blog-search.tsx`（站内文章搜索、内存索引过滤与结果渲染）
 - `src/app/(site)/_components/blog/article-reader-shell.tsx`（专注阅读模式切换与 `data-reader-focus` 驱动）
 - `src/app/(site)/_components/blog/toc.tsx`（TOC 多级视口高亮、溢出渐隐、专注模式顶部折叠、点击互斥锁与 RAF 进度更新）
-- `src/app/(site)/_components/blog/floating-action-group.tsx` / `series-chapter-sidebar.tsx`（移动端抽屉与专栏大纲导航）
+- `src/app/(site)/_components/blog/floating-action-group.tsx`（移动端目录抽屉）
 - `src/app/(site)/_components/comment/comment-section.tsx`（社交登录、评论树读取、平铺回复与前台管理）
 - `src/app/(site)/_components/links/friends-constellation.tsx` / `friend-apply-modal.tsx`（友邻拓扑星图与友链申请弹窗）
 
@@ -85,7 +85,7 @@ MDX 渲染走异步 RSC（`mdx-content.tsx` 的 `compileMDX`），不需要 clie
 
 参考 `src/app/(site)/blog/[slug]/page.tsx` 的完整结构：
 
-- 文章、标签、专栏及聚合页使用 `dynamic = 'force-dynamic'`，支持数据库运行时新增内容。
+- 文章、标签及聚合页使用 `dynamic = 'force-dynamic'`，支持数据库运行时新增内容。
 - 不在构建时枚举文章或标签；公开数据只来自已发布快照。笔记继续静态生成。
 - `generateMetadata` 读单条数据生成 title / description。
 - Next.js 16 的 `params` 是 Promise，取值要 `await`。

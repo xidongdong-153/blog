@@ -2,14 +2,13 @@ import type { Metadata } from 'next'
 import type { BlogSourceFilter } from '@/lib/blog-meta'
 import type { BlogCategory, BlogSortOrder } from '@/lib/content'
 import { buildBlogListUrl } from '@/lib/blog-meta'
-import { getAllBlogPosts, getAllBlogTags, getAllSeries, getBlogListData } from '@/lib/content'
+import { getAllBlogPosts, getAllBlogTags, getBlogListData } from '@/lib/content'
 import { BlogSearch } from '../_components/blog/blog-search'
 import { BlogSidebar } from '../_components/blog/blog-sidebar'
 import { BlogSourceSwitch } from '../_components/blog/blog-source-switch'
 import { BlogToolbar } from '../_components/blog/blog-toolbar'
 import { Paginator } from '../_components/blog/paginator'
 import { PostCard } from '../_components/blog/post-card'
-import { SeriesBanner } from '../_components/blog/series-banner'
 import { PageHeader } from '../_components/site/page-header'
 
 export const dynamic = 'force-dynamic'
@@ -47,7 +46,6 @@ export default async function BlogPage({ searchParams }: BlogPageProps) {
     page: currentPage,
   })
   const tags = await getAllBlogTags()
-  const featuredSeries = (await getAllSeries()).find((s) => s.postsCount > 0)
 
   function getPageUrl(pageNum: number): string {
     return buildBlogListUrl({ source: activeSource, category: activeCategory, sort: activeSort, page: pageNum })
@@ -74,12 +72,6 @@ export default async function BlogPage({ searchParams }: BlogPageProps) {
       <div className="entrance">
         <PageHeader title="文章" />
       </div>
-
-      {featuredSeries && (
-        <div className="entrance [--entrance-delay:60ms]">
-          <SeriesBanner series={featuredSeries} />
-        </div>
-      )}
 
       <BlogSearch
         posts={sourcePosts}

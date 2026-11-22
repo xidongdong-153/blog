@@ -56,7 +56,7 @@ pnpm db:verify
 
 ## 博文快照
 
-[posts.ts](../src/server/infra/db/schema/posts.ts)以稳定 ID 关联评论，以唯一 slug 提供 URL。document 保存工作稿，published 保存整份公开快照；正文、标签、专栏和元数据不能跨快照拼接。
+[posts.ts](../src/server/infra/db/schema/posts.ts)以稳定 ID 关联评论，以唯一 slug 提供 URL。document 保存工作稿，published 保存整份公开快照；正文、标签和元数据不能跨快照拼接。
 
 保存与发布分离。发布完成 MDX 校验后通过 revision 条件更新，避免覆盖校验期间的编辑；首次发布后锁定 slug。撤回清空公开快照，保留工作稿和评论；删除通过事务清理关联数据。并发冲突返回 409，不把冲突当成功。
 

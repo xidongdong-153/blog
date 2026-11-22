@@ -9,7 +9,6 @@ import { useEffect, useState } from 'react'
 import { BLOG_CATEGORY_LABELS, calculateReadingTime } from '@/lib/blog-meta'
 import { formatDate } from '@/lib/date'
 import { isMediaUrl } from '@/lib/posts'
-import { REGISTERED_SERIES } from '@/lib/series'
 import { sanitizeCssColor } from '@/lib/utils'
 import { AiGeneratedLabel } from '../../blog/ai-generated-label'
 import { mdxComponents, mdxProseClassName } from '../../blog/mdx-components'
@@ -23,7 +22,7 @@ interface PreviewState {
   error: string
 }
 
-/** 文章级实时 MDX 预览，同步标题、摘要、元信息、专栏与 heroColor 顶光效果。 */
+/** 文章级实时 MDX 预览，同步标题、摘要、元信息与 heroColor 顶光效果。 */
 export function LiveMdxPreview({
   source,
   title,
@@ -35,7 +34,6 @@ export function LiveMdxPreview({
   heroImage,
   heroColor,
   aiGenerated,
-  series,
   scrollRef,
   focusMode = false,
   onRendered,
@@ -50,7 +48,6 @@ export function LiveMdxPreview({
   heroImage?: string
   heroColor?: string
   aiGenerated?: boolean
-  series?: PostDocument['series']
   scrollRef?: RefObject<HTMLDivElement | null>
   focusMode?: boolean
   onRendered?: () => void
@@ -69,7 +66,6 @@ export function LiveMdxPreview({
   const safeHeroColor = sanitizeCssColor(heroColor)
   const trimmedHeroImage = heroImage?.trim() ?? ''
   const showHeroImage = Boolean(trimmedHeroImage && isMediaUrl(trimmedHeroImage) && failedImageUrl !== trimmedHeroImage)
-  const seriesInfo = series ? REGISTERED_SERIES[series.id] : null
 
   useEffect(() => {
     if (!source.trim()) return
@@ -178,12 +174,6 @@ export function LiveMdxPreview({
                 </div>
               )}
             </div>
-          )}
-
-          {seriesInfo && series && (
-            <span className="font-mono text-xs text-primary">
-              专栏：{seriesInfo.title} · 第 {series.order} 讲
-            </span>
           )}
 
           <h2 className="font-serif text-2xl font-medium leading-[1.28] tracking-tight text-foreground sm:text-3xl">

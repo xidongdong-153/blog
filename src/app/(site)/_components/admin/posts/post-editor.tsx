@@ -54,8 +54,6 @@ function resolveInspectorErrorTarget(message: string): string | null {
   if (message.includes('日期')) return 'post-date'
   if (message.includes('图片')) return 'post-cover'
   if (message.includes('主题色')) return 'post-color'
-  if (message.includes('排序')) return 'post-order'
-  if (message.includes('专栏')) return 'post-series'
   return null
 }
 
@@ -805,7 +803,6 @@ export function PostEditor({ initial }: { initial?: ManagedPost }) {
                     heroImage={doc.heroImage}
                     heroColor={doc.heroColor}
                     aiGenerated={doc.aiGenerated}
-                    series={doc.series}
                     scrollRef={previewScrollRef}
                     focusMode={writerFocus}
                     onRendered={handlePreviewRendered}
