@@ -45,7 +45,7 @@ export const REGISTERED_SERIES: Record<string, SeriesDefinition> = {
     description:
       '深入剖析 Pi Agent Harness 架构，从 Headless SDK 核心、会话生命周期到跨平台桌面端集成，从零打造可扩展的个人专属 AI 工作台。',
     status: 'in-progress',
-    repositoryUrl: 'https://github.com/xidongdong-153/blog',
+    repositoryUrl: 'https://github.com/xidongdong-153/Pi-meme',
     tags: ['Pi SDK', 'AI Agent', 'TypeScript', 'Desktop'],
     heroColor: '#659EB9',
     groups: ['核心架构', '桌面端开发', '工程实战'],

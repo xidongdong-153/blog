@@ -26,29 +26,23 @@ const STATUS_CONFIG: Record<Project['status'], { label: string; className: strin
 
 const PROJECTS: Project[] = [
   {
-    title: 'Pi Agent Desktop',
-    description: '基于 Pi SDK 做的个人 AI 工作台，用来折腾会话调度和多 Agent 协同。',
+    title: 'Pi meme',
+    description:
+      '基于 Pi SDK 构建的 AI Agent Desktop 工作台，面向桌面与 Web 编码场景，提供可恢复会话、计划与目标推进、子代理协作、文件与终端面板及插件扩展。',
     tags: ['TypeScript', 'Pi SDK', 'AI Agent', 'Desktop'],
-    github: 'https://github.com/xidongdong-153/blog',
+    github: 'https://github.com/xidongdong-153/Pi-meme',
     seriesId: 'pi-agent-desktop',
-    period: '2026',
-    status: 'experimental',
-  },
-  {
-    title: 'Personal Blog',
-    description: '就是你现在看的这个博客，Next.js + Turso，带全站搜索和 AI 摘要。',
-    tags: ['Next.js 16', 'React 19', 'Tailwind CSS 4', 'TypeScript'],
-    github: 'https://github.com/xidongdong-153/blog',
     period: '2026',
     status: 'active',
   },
   {
-    title: 'Starter',
-    description: 'TypeScript 全栈 Monorepo 脚手架，包含 Next.js、Vite、Hono、Better Auth 和 Drizzle ORM。',
-    tags: ['TypeScript', 'Turborepo', 'Next.js', 'Hono', 'Drizzle ORM'],
-    github: 'https://github.com/xidongdong-153/starter',
-    period: '2025',
-    status: 'maintained',
+    title: '个人站点',
+    description:
+      '当前正在浏览的个人博客，基于 Next.js 与 libSQL/Turso 构建，支持 MDX 文章管理、本地笔记、站内搜索、评论友链、AI 摘要与实时活动状态。',
+    tags: ['Next.js 16', 'React 19', 'Tailwind CSS 4', 'Turso'],
+    github: 'https://github.com/xidongdong-153/blog',
+    period: '2026',
+    status: 'active',
   },
 ]
 
