@@ -74,39 +74,80 @@ jobs:
           TURSO_AUTH_TOKEN: ci-local-only-token
         run: pnpm build
 
-  deploy:
-    name: Deploy production
+  publish:
+    name: Publish Docker image
     if: ${{ github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main' && inputs.confirm_deploy == true }}
     needs: quality
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    outputs:
+      image: ${{ steps.image.outputs.repository }}@${{ steps.build.outputs.digest }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Set image repository
+        id: image
+        run: printf 'repository=ghcr.io/%s\n' "${GITHUB_REPOSITORY,,}" >> "$GITHUB_OUTPUT"
+
+      - name: Setup QEMU
+        uses: docker/setup-qemu-action@99012661954931238ded8c8b007157a8430204e1 # v4.4.0
+        with:
+          platforms: arm64
+
+      - name: Setup Docker Buildx
+        uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v4.4.1
+
+      - name: Sign in to GHCR
+        uses: docker/login-action@8aa5831fb8d48d8f76594c7ddde61ae58019f550 # v4.8.0
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ github.token }}
+
+      - name: Build and push Docker image
+        id: build
+        uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7.4.0
+        with:
+          context: .
+          platforms: linux/amd64,linux/arm64
+          push: true
+          tags: ${{ steps.image.outputs.repository }}:${{ github.sha }}
+          labels: |
+            org.opencontainers.image.source=${{ github.server_url }}/${{ github.repository }}
+            org.opencontainers.image.revision=${{ github.sha }}
+
+  deploy:
+    name: Deploy production
+    if: ${{ github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main' && inputs.confirm_deploy == true }}
+    needs: publish
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: read
     environment:
       name: Deployment
     steps:
-      - name: Prepare SSH files
-        env:
-          DEPLOY_SSH_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
-          DEPLOY_KNOWN_HOSTS: ${{ secrets.DEPLOY_KNOWN_HOSTS }}
-        run: |
-          set -euo pipefail
-          ssh_dir="$RUNNER_TEMP/xdd-blog-ssh"
-          install -d -m 700 "$ssh_dir"
-          test -n "$DEPLOY_SSH_KEY"
-          test -n "$DEPLOY_KNOWN_HOSTS"
-          printf '%s\n' "$DEPLOY_SSH_KEY" > "$ssh_dir/id_ed25519"
-          printf '%s\n' "$DEPLOY_KNOWN_HOSTS" > "$ssh_dir/known_hosts"
-          chmod 600 "$ssh_dir/id_ed25519" "$ssh_dir/known_hosts"
-          printf 'SSH_KEY_PATH=%s/id_ed25519\n' "$ssh_dir" >> "$GITHUB_ENV"
-          printf 'KNOWN_HOSTS_PATH=%s/known_hosts\n' "$ssh_dir" >> "$GITHUB_ENV"
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
 
       - name: Deploy over SSH
         env:
           DEPLOY_HOST: ${{ vars.DEPLOY_HOST }}
           DEPLOY_PORT: ${{ vars.DEPLOY_PORT }}
           DEPLOY_USER: ${{ vars.DEPLOY_USER }}
-          TARGET_SHA: ${{ github.sha }}
-          RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
-          FRIEND_APPLY_NOTIFY_EMAIL: ${{ vars.FRIEND_APPLY_NOTIFY_EMAIL || secrets.FRIEND_APPLY_NOTIFY_EMAIL }}
-          RESEND_FROM_EMAIL: ${{ vars.RESEND_FROM_EMAIL || secrets.RESEND_FROM_EMAIL }}
+          DEPLOY_DIR: ${{ vars.DEPLOY_DIR }}
+          DEPLOY_BLOG_PORT: ${{ vars.DEPLOY_BLOG_PORT }}
+          DEPLOY_SSH_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
+          DEPLOY_KNOWN_HOSTS: ${{ secrets.DEPLOY_KNOWN_HOSTS }}
+          DEPLOY_IMAGE: ${{ needs.publish.outputs.image }}
+          GHCR_TOKEN: ${{ github.token }}
           TURSO_DATABASE_URL: ${{ vars.TURSO_DATABASE_URL || secrets.TURSO_DATABASE_URL }}
           TURSO_AUTH_TOKEN: ${{ secrets.TURSO_AUTH_TOKEN }}
           BETTER_AUTH_URL: ${{ vars.BETTER_AUTH_URL || secrets.BETTER_AUTH_URL }}
@@ -116,165 +157,68 @@ jobs:
           OAUTH_GOOGLE_CLIENT_ID: ${{ vars.OAUTH_GOOGLE_CLIENT_ID || secrets.OAUTH_GOOGLE_CLIENT_ID }}
           OAUTH_GOOGLE_CLIENT_SECRET: ${{ secrets.OAUTH_GOOGLE_CLIENT_SECRET }}
           ADMIN_EMAIL: ${{ vars.ADMIN_EMAIL || secrets.ADMIN_EMAIL }}
+          RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
+          RESEND_FROM_EMAIL: ${{ vars.RESEND_FROM_EMAIL || secrets.RESEND_FROM_EMAIL }}
+          FRIEND_APPLY_NOTIFY_EMAIL: ${{ vars.FRIEND_APPLY_NOTIFY_EMAIL || secrets.FRIEND_APPLY_NOTIFY_EMAIL }}
           AI_CREDENTIAL_ENCRYPTION_KEY: ${{ secrets.AI_CREDENTIAL_ENCRYPTION_KEY }}
+          PRESENCE_SOURCE_URL: ${{ vars.PRESENCE_SOURCE_URL || secrets.PRESENCE_SOURCE_URL }}
         run: |
           set -euo pipefail
-          test -n "$DEPLOY_HOST"
-          test -n "$DEPLOY_PORT"
-          test -n "$DEPLOY_USER"
+          : "${DEPLOY_HOST:?}" "${DEPLOY_PORT:?}" "${DEPLOY_USER:?}"
+          : "${DEPLOY_SSH_KEY:?}" "${DEPLOY_KNOWN_HOSTS:?}" "${DEPLOY_IMAGE:?}"
+          required_app_keys=(TURSO_DATABASE_URL TURSO_AUTH_TOKEN BETTER_AUTH_URL BETTER_AUTH_SECRET)
+          for key in "${required_app_keys[@]}"; do
+            if ! [[ "${!key:-}" =~ [^[:space:]] ]]; then
+              printf 'Missing GitHub Deployment value for %s.\n' "$key" >&2
+              exit 1
+            fi
+          done
+
+          app_env=$(
+            for key in "${required_app_keys[@]}" \
+              OAUTH_GITHUB_CLIENT_ID OAUTH_GITHUB_CLIENT_SECRET \
+              OAUTH_GOOGLE_CLIENT_ID OAUTH_GOOGLE_CLIENT_SECRET \
+              ADMIN_EMAIL RESEND_API_KEY RESEND_FROM_EMAIL FRIEND_APPLY_NOTIFY_EMAIL \
+              AI_CREDENTIAL_ENCRYPTION_KEY PRESENCE_SOURCE_URL; do
+              value=${!key:-}
+              if [[ "$value" == *$'\n'* || "$value" == *$'\r'* ]]; then
+                printf 'GitHub Deployment value for %s must be a single line.\n' "$key" >&2
+                exit 1
+              fi
+              if [[ -n "$value" ]]; then
+                printf '%s=%s\n' "$key" "$value"
+              fi
+            done
+          )
+
+          remote_sha=$(git ls-remote --exit-code origin refs/heads/main | cut -f 1)
+          if [[ "$remote_sha" != "$GITHUB_SHA" ]]; then
+            printf 'main has advanced to %s. Run the workflow again for the latest commit.\n' "$remote_sha" >&2
+            exit 1
+          fi
+
+          umask 077
+          ssh_dir=$(mktemp -d "$RUNNER_TEMP/xdd-blog-ssh.XXXXXX")
+          trap 'rm -f -- "$ssh_dir/id_ed25519" "$ssh_dir/known_hosts" && rmdir -- "$ssh_dir"' EXIT
+          printf '%s\n' "$DEPLOY_SSH_KEY" > "$ssh_dir/id_ed25519"
+          printf '%s\n' "$DEPLOY_KNOWN_HOSTS" > "$ssh_dir/known_hosts"
           ssh_args=(
             -o BatchMode=yes
             -o ConnectTimeout=15
             -o IdentitiesOnly=yes
             -o StrictHostKeyChecking=yes
-            -o UserKnownHostsFile="$KNOWN_HOSTS_PATH"
-            -i "$SSH_KEY_PATH"
+            -o UserKnownHostsFile="$ssh_dir/known_hosts"
+            -i "$ssh_dir/id_ed25519"
             -p "$DEPLOY_PORT"
           )
 
-          (
-            printf 'export TARGET_SHA=%q\n' "$TARGET_SHA"
-            node -e '
-              const vars = {
-                RESEND_API_KEY: process.env.RESEND_API_KEY || "",
-                FRIEND_APPLY_NOTIFY_EMAIL: process.env.FRIEND_APPLY_NOTIFY_EMAIL || "",
-                RESEND_FROM_EMAIL: process.env.RESEND_FROM_EMAIL || "",
-                TURSO_DATABASE_URL: process.env.TURSO_DATABASE_URL || "",
-                TURSO_AUTH_TOKEN: process.env.TURSO_AUTH_TOKEN || "",
-                BETTER_AUTH_URL: process.env.BETTER_AUTH_URL || "",
-                BETTER_AUTH_SECRET: process.env.BETTER_AUTH_SECRET || "",
-                OAUTH_GITHUB_CLIENT_ID: process.env.OAUTH_GITHUB_CLIENT_ID || "",
-                OAUTH_GITHUB_CLIENT_SECRET: process.env.OAUTH_GITHUB_CLIENT_SECRET || "",
-                OAUTH_GOOGLE_CLIENT_ID: process.env.OAUTH_GOOGLE_CLIENT_ID || "",
-                OAUTH_GOOGLE_CLIENT_SECRET: process.env.OAUTH_GOOGLE_CLIENT_SECRET || "",
-                ADMIN_EMAIL: process.env.ADMIN_EMAIL || "",
-                AI_CREDENTIAL_ENCRYPTION_KEY: process.env.AI_CREDENTIAL_ENCRYPTION_KEY || ""
-              };
-              process.stdout.write("export ENV_JSON_B64=" + Buffer.from(JSON.stringify(vars)).toString("base64") + "\n");
-            '
-            cat <<'REMOTE'
-          set -euo pipefail
-          target_sha="${TARGET_SHA:?missing target SHA}"
-          app_dir=/home/deploy/code/xdd/blog
-
-          cd "$app_dir"
-          echo "Checking the server worktree"
-          if [[ -f pnpm-workspace.yaml ]] && ! git ls-files --error-unmatch -- pnpm-workspace.yaml >/dev/null 2>&1; then
-            echo "Cleaning up legacy untracked pnpm-workspace.yaml before merge"
-            rm -f pnpm-workspace.yaml
-          fi
-
-          worktree_status="$(git status --porcelain --untracked-files=all)"
-          if [[ -n "$worktree_status" ]]; then
-            echo "The server worktree has unexpected uncommitted or untracked changes; deployment stopped." >&2
-            git status --short --branch >&2
-            exit 1
-          fi
-
-          if [[ ! -f .env.local ]] ||
-            ! git check-ignore -q -- .env.local ||
-            git ls-files --error-unmatch -- .env.local >/dev/null 2>&1; then
-            echo "Missing or tracked $app_dir/.env.local; deployment stopped without restarting the service." >&2
-            exit 1
-          fi
-
-          echo "Fetching origin/main"
-          git switch main
-          git fetch --prune origin main
-          remote_sha="$(git rev-parse origin/main)"
-          if [[ "$remote_sha" != "$target_sha" ]]; then
-            echo "origin/main ($remote_sha) does not match the workflow commit ($target_sha); deployment stopped." >&2
-            exit 1
-          fi
-
-          current_sha="$(git rev-parse HEAD)"
-          if ! git merge-base --is-ancestor "$current_sha" "$remote_sha"; then
-            echo "The server main ($current_sha) is not an ancestor of origin/main ($remote_sha); deployment stopped." >&2
-            exit 1
-          fi
-
-          echo "Fast-forwarding the server worktree"
-          git merge --ff-only origin/main
-
-          source /home/deploy/.nvm/nvm.sh
-          nvm use 26.7.0 >/dev/null
-
-          echo "Syncing optional environment variables into .env.local"
-          node -e '
-            const fs = require("node:fs");
-            const raw = process.env.ENV_JSON_B64 || "";
-            if (!raw) process.exit(0);
-            const payload = JSON.parse(Buffer.from(raw, "base64").toString("utf8"));
-            let content = fs.existsSync(".env.local") ? fs.readFileSync(".env.local", "utf8") : "";
-            const synced = [];
-            for (const [k, v] of Object.entries(payload)) {
-              if (!v) continue;
-              synced.push(k);
-              const reg = new RegExp(`^${k}=.*$`, "m");
-              if (reg.test(content)) {
-                content = content.replace(reg, `${k}=${v}`);
-              } else {
-                content = content.trimEnd() + `\n${k}=${v}\n`;
-              }
-            }
-            fs.writeFileSync(".env.local", content.trim() + "\n", { mode: 0o600 });
-            console.log("Safely synced environment keys:", synced.join(", "));
-          '
-          unset ENV_JSON_B64
-
-          node --version
-          pnpm --version
-          echo "Installing dependencies"
-          pnpm install --frozen-lockfile
-          echo "Migrating the production database"
-          pnpm db:migrate
-          echo "Verifying the production database"
-          pnpm db:verify
-          echo "Syncing AI article summaries"
-          pnpm summary:sync
-          echo "Building the production bundle"
-          pnpm build
-
-          echo "Restarting xdd-blog.service"
-          sudo -n systemctl restart xdd-blog.service
-          if ! systemctl is-active --quiet xdd-blog.service; then
-            echo "xdd-blog.service is not active after restart." >&2
-            systemctl status xdd-blog.service --no-pager --full >&2 || true
-            exit 1
-          fi
-
-          http_code=000
-          for attempt in {1..15}; do
-            http_code="$(curl --silent --output /dev/null --write-out '%{http_code}' --max-time 5 http://127.0.0.1:4400/ || true)"
-            if [[ "$http_code" == "200" ]]; then
-              break
-            fi
-            sleep 1
-          done
-          if [[ "$http_code" != "200" ]]; then
-            echo "The local health check returned HTTP $http_code; deployment failed." >&2
-            exit 1
-          fi
-          echo "Local health check returned HTTP 200"
-
-          echo "Checking visitor API and WebSocket health"
-          visitor_code="$(curl --silent --output /dev/null --write-out '%{http_code}' --max-time 5 http://127.0.0.1:4400/api/visitors/stats || true)"
-          if [[ "$visitor_code" != "200" ]]; then
-            echo "Visitor stats check returned HTTP $visitor_code; deployment failed." >&2
-            exit 1
-          fi
-
-          ws_check_code="$(curl --silent --output /dev/null --write-out '%{http_code}' --max-time 5 \
-            -H "Connection: Upgrade" \
-            -H "Upgrade: websocket" \
-            -H "Host: 127.0.0.1:4400" \
-            -H "Sec-WebSocket-Version: 13" \
-            -H "Sec-WebSocket-Key: dGhlIHNhbXBsZSBub25jZQ==" \
-            http://127.0.0.1:4400/api/visitors/socket || true)"
-          if [[ "$ws_check_code" != "401" ]]; then
-            echo "Visitor WebSocket check returned HTTP $ws_check_code (expected 401 Unauthorized); deployment failed." >&2
-            exit 1
-          fi
-          echo "Visitor API and WebSocket health check passed"
-          REMOTE
-          ) | ssh "${ssh_args[@]}" "$DEPLOY_USER@$DEPLOY_HOST" bash
+          {
+            printf 'DEPLOY_DIR=%q\n' "${DEPLOY_DIR:-/home/deploy/docker/xdd-blog}"
+            printf 'DEPLOY_BLOG_PORT=%q\n' "${DEPLOY_BLOG_PORT:-4400}"
+            printf 'DEPLOY_IMAGE=%q\n' "$DEPLOY_IMAGE"
+            printf 'DEPLOY_COMPOSE=%q\n' "$(<compose.yaml)"
+            printf 'DEPLOY_APP_ENV=%q\n' "$app_env"
+            printf 'GHCR_USER=%q\n' "$GITHUB_ACTOR"
+            printf 'GHCR_TOKEN=%q\n' "$GHCR_TOKEN"
+            cat scripts/deploy-docker.sh
+          } | ssh "${ssh_args[@]}" -- "$DEPLOY_USER@$DEPLOY_HOST" bash -s

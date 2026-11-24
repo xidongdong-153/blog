@@ -1,0 +1,27 @@
+services:
+  blog:
+    image: ${BLOG_IMAGE:-xdd-blog:local}
+    init: true
+    restart: unless-stopped
+    env_file:
+      - path: ${BLOG_ENV_FILE:-.env.docker}
+        format: ${BLOG_ENV_FORMAT:-}
+    environment:
+      CI: ''
+      HOST: 0.0.0.0
+      NODE_ENV: production
+      PORT: '4400'
+    ports:
+      - '127.0.0.1:${BLOG_PORT:-4400}:4400'
+    healthcheck:
+      test:
+        - CMD
+        - node
+        - -e
+        - >-
+          fetch('http://127.0.0.1:4400/api/system/health', { signal: AbortSignal.timeout(3000) })
+          .then(response => process.exit(response.ok ? 0 : 1)).catch(() => process.exit(1))
+      interval: 10s
+      timeout: 5s
+      start_period: 15s
+      retries: 3
