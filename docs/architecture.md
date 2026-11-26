@@ -33,7 +33,7 @@ flowchart TD
 - 普通 HTTP 交给 Next.js；`/api/*` 由 catch-all Route Handler 转发到 [Hono 应用](../src/server/app.ts)。`/api/visitors/socket` 的 WebSocket upgrade 由 `server.ts` 直接分流，不经过 Hono HTTP 路由。
 - RSC、Server Actions 和离线脚本在进程内读 Service，不向自己的 `/api` 发 HTTP。浏览器动态交互走 API，搜索由 RSC 下发公开数据后在内存完成。具体调用约定见 [API](api.md)。
 - [src/lib/content.ts](../src/lib/content.ts) 是公开内容读取入口；文章异步读 posts Service 的已发布快照，React cache 仅做单次 RSC 请求去重。笔记同步读 `content/notes/`。
-- Mac 活动采集器在仓库外，Blog 只代理公开状态。访客在线连接是本应用内的另一套能力，不能与 Mac 活动混为一谈。
+- `tools/mac-presence/` 在 Mac 的图形登录会话运行，向 Blog 写入当前活动。Blog 按配置读取数据库快照或旧服务。访客连接由 visitors 模块管理。
 
 ## 顶层路径
 

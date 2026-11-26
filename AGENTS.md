@@ -4,7 +4,7 @@
 
 ## 项目概况
 
-Next.js 16 + React 19 + Tailwind CSS 4 + TypeScript 单应用博客，App Router，文章以 MDX 原文和元数据快照存入数据库，笔记使用本地 Markdown 文件，动态功能（评论、友链、AI 摘要、账号认证）使用 libSQL/Turso 数据库与 Drizzle ORM，Blog 另提供只读活动 API。开发端口 4400（4399 是 site 和 starter web 的端口，避免冲突）。
+Next.js 16 + React 19 + Tailwind CSS 4 + TypeScript 单应用博客，App Router，文章以 MDX 原文和元数据快照存入数据库，笔记使用本地 Markdown 文件，动态功能（评论、友链、AI 摘要、账号认证）使用 libSQL/Turso 数据库与 Drizzle ORM，Blog 提供活动读取与采集器鉴权上报 API，Mac 原生采集器在 `tools/mac-presence/` 维护。开发端口 4400（4399 是 site 和 starter web 的端口，避免冲突）。
 
 主要目录（代码在 `src/`，内容和配置文件在仓库根）：
 

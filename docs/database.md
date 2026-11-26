@@ -25,15 +25,16 @@ paths:
 
 一个业务域一个 Schema 文件；新增定义加入 schema/index.ts 的聚合和导出。连接层和 drizzle.config.ts 都只使用该聚合入口，SQL 与 meta 迁移文件一起进 Git。
 
-| 文件               | 现有存储                                                        |
-| ------------------ | --------------------------------------------------------------- |
-| schema/posts.ts    | site_posts：稳定 ID、slug、工作稿与公开快照、revision、ISO 时间 |
-| schema/auth.ts     | Better Auth 的 user、session、account、verification             |
-| schema/comments.ts | site_comments：评论、平铺回复、置顶、软删除与删除凭证哈希       |
-| schema/links.ts    | site_friend_links：友链、待审状态与一次性审核令牌               |
-| schema/ai.ts       | 默认模型配置、文章摘要缓存、写作 Agent 配置                     |
-| schema/visitors.ts | 访客与文章访问数据；实际表名以该文件为准                        |
-| schema/system.ts   | system_health_checks：健康检查历史预留表                        |
+| 文件               | 现有存储                                                            |
+| ------------------ | ------------------------------------------------------------------- |
+| schema/posts.ts    | site_posts：稳定 ID、slug、工作稿与公开快照、revision、ISO 时间     |
+| schema/auth.ts     | Better Auth 的 user、session、account、verification                 |
+| schema/comments.ts | site_comments：评论、平铺回复、置顶、软删除与删除凭证哈希           |
+| schema/links.ts    | site_friend_links：友链、待审状态与一次性审核令牌                   |
+| schema/ai.ts       | 默认模型配置、文章摘要缓存、写作 Agent 配置                         |
+| schema/visitors.ts | 访客与文章访问数据；实际表名以该文件为准                            |
+| schema/system.ts   | system_health_checks：健康检查历史预留表                            |
+| schema/presence.ts | site_presence_latest：单台 Mac 的最新活动、启动代次、序号与过期时间 |
 
 现有带域前缀的表使用 snake_case，导出名用 camelCase，列名用 snake_case；Better Auth 等既有命名例外保留。新数据时间存 ISO 字符串，已有毫秒时间戳列不随文档迁移改动。表定义存在不证明已有数据或业务正在写入。
 

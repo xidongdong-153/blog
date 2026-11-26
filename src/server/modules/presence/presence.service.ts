@@ -1,5 +1,6 @@
 import type { PublicPresence } from '@/lib/presence'
-import { createOfflinePresence, parsePublicPresence } from '@/lib/presence'
+import { createOfflinePresence, parsePublicPresence, toPublicPresence } from '@/lib/presence'
+import { readPresenceSnapshot } from './presence.snapshot'
 
 const DEFAULT_SOURCE_URL = 'http://127.0.0.1:4401/api/presence'
 const DATA_TIMEOUT_MS = 1_500
@@ -22,6 +23,9 @@ export async function getPublicPresenceData(options?: {
   fetch?: typeof globalThis.fetch
   timeoutMs?: number
 }): Promise<PublicPresence> {
+  const mode = process.env.PRESENCE_READ_MODE?.trim() || 'pull'
+  if (mode === 'push') return toPublicPresence(await readPresenceSnapshot().catch(() => null), Date.now())
+  if (mode !== 'pull') return createOfflinePresence()
   const controller = new AbortController()
   const timeoutMs = options?.timeoutMs ?? DATA_TIMEOUT_MS
   const timer = setTimeout(() => controller.abort(), timeoutMs)
@@ -66,6 +70,14 @@ export async function checkPresenceHealth(options?: {
   fetch?: typeof globalThis.fetch
   timeoutMs?: number
 }): Promise<PresenceHealthResult> {
+  const mode = process.env.PRESENCE_READ_MODE?.trim() || 'pull'
+  if (mode === 'push') {
+    const state = await readPresenceSnapshot().catch(() => null)
+    return state && Date.parse(state.expiresAt) > Date.now()
+      ? { status: 'online', label: '采集器在线' }
+      : { status: 'standby', label: '待机离线' }
+  }
+  if (mode !== 'pull') return { status: 'standby', label: '待机离线' }
   const controller = new AbortController()
   const timeoutMs = options?.timeoutMs ?? HEALTH_TIMEOUT_MS
   const timer = setTimeout(() => controller.abort(), timeoutMs)

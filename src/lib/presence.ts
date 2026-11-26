@@ -81,6 +81,13 @@ export interface PresenceReport {
   terminalDetection: TerminalDetection
 }
 
+export interface PresenceUpload {
+  generation: number
+  seq: number
+  observedAt: string
+  report: PresenceReport
+}
+
 export interface TerminalObservation {
   detection: TerminalDetection
   foregroundTool: TerminalToolId | null
@@ -174,7 +181,7 @@ function isIsoDate(value: unknown): value is string {
 
 /**
  * 创建不公开任何活动的报告。
- * 采集器停止、Hammerspoon 锁定或读取失败时都使用这个形状。
+ * 采集器停止、锁屏或无法读取桌面时使用这个形状。
  */
 export function createHiddenPresenceReport(): PresenceReport {
   return {
@@ -212,6 +219,16 @@ export function parsePresenceReport(value: unknown): PresenceReport | null {
     backgroundTools: backgroundTools.filter((tool) => tool !== value.foregroundTool),
     terminalDetection: value.terminalDetection,
   }
+}
+
+export function parsePresenceUpload(value: unknown): PresenceUpload | null {
+  if (!isRecord(value) || !hasExactKeys(value, ['generation', 'seq', 'observedAt', 'report'])) return null
+  const { generation, seq, observedAt } = value
+  if (typeof generation !== 'number' || !Number.isSafeInteger(generation) || generation < 1) return null
+  if (typeof seq !== 'number' || !Number.isSafeInteger(seq) || seq < 1) return null
+  if (!isIsoDate(observedAt) || new Date(observedAt).toISOString() !== observedAt) return null
+  const report = parsePresenceReport(value.report)
+  return report ? { generation, seq, observedAt, report } : null
 }
 
 /**

@@ -1,0 +1,4 @@
+#!/bin/bash
+source "$(dirname "$0")/common.sh"
+if [[ ! -f $plist ]]; then echo '请先运行 bin/install' >&2; exit 1; fi
+if ! launchctl print "$domain/$label" >/dev/null 2>&1; then load_agent; fi

@@ -162,6 +162,8 @@ jobs:
           FRIEND_APPLY_NOTIFY_EMAIL: ${{ vars.FRIEND_APPLY_NOTIFY_EMAIL || secrets.FRIEND_APPLY_NOTIFY_EMAIL }}
           AI_CREDENTIAL_ENCRYPTION_KEY: ${{ secrets.AI_CREDENTIAL_ENCRYPTION_KEY }}
           PRESENCE_SOURCE_URL: ${{ vars.PRESENCE_SOURCE_URL || secrets.PRESENCE_SOURCE_URL }}
+          PRESENCE_READ_MODE: ${{ vars.PRESENCE_READ_MODE }}
+          PRESENCE_REPORT_TOKEN_SHA256: ${{ secrets.PRESENCE_REPORT_TOKEN_SHA256 }}
         run: |
           set -euo pipefail
           : "${DEPLOY_HOST:?}" "${DEPLOY_PORT:?}" "${DEPLOY_USER:?}"
@@ -179,7 +181,7 @@ jobs:
               OAUTH_GITHUB_CLIENT_ID OAUTH_GITHUB_CLIENT_SECRET \
               OAUTH_GOOGLE_CLIENT_ID OAUTH_GOOGLE_CLIENT_SECRET \
               ADMIN_EMAIL RESEND_API_KEY RESEND_FROM_EMAIL FRIEND_APPLY_NOTIFY_EMAIL \
-              AI_CREDENTIAL_ENCRYPTION_KEY PRESENCE_SOURCE_URL; do
+              AI_CREDENTIAL_ENCRYPTION_KEY PRESENCE_SOURCE_URL PRESENCE_READ_MODE PRESENCE_REPORT_TOKEN_SHA256; do
               value=${!key:-}
               if [[ "$value" == *$'\n'* || "$value" == *$'\r'* ]]; then
                 printf 'GitHub Deployment value for %s must be a single line.\n' "$key" >&2

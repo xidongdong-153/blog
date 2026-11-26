@@ -1,0 +1,4 @@
+#!/bin/bash
+source "$(dirname "$0")/common.sh"
+if [[ $# != 1 ]]; then echo '用法：bin/configure 上报接口地址' >&2; exit 2; fi
+exec "$(node_path)" "$root/settings.mts" "$1"

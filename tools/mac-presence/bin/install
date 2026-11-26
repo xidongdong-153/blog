@@ -1,0 +1,66 @@
+#!/bin/bash
+source "$(dirname "$0")/common.sh"
+if [[ $# -gt 1 ]]; then echo '用法：bin/install [上报地址]' >&2; exit 2; fi
+if [[ -z ${PRESENCE_HOME:-} && -f $plist ]]; then
+  support=$(/usr/bin/plutil -extract EnvironmentVariables.PRESENCE_HOME raw -o - "$plist")
+fi
+if [[ -z ${PRESENCE_NODE_BIN:-} && -f $plist ]]; then
+  PRESENCE_NODE_BIN=$(/usr/bin/plutil -extract EnvironmentVariables.PRESENCE_NODE_BIN raw -o - "$plist" 2>/dev/null || /usr/bin/plutil -extract ProgramArguments.0 raw -o - "$plist")
+  if [[ ! -x $PRESENCE_NODE_BIN ]]; then unset PRESENCE_NODE_BIN; fi
+fi
+node_bin=$(node_path)
+endpoint=${1:-}
+if [[ -z $endpoint && ! -e $support/preferences.json && -f $plist ]]; then
+  endpoint=$(/usr/bin/plutil -extract ProgramArguments.2 raw -o - "$plist" 2>/dev/null || true)
+fi
+if [[ -n $endpoint ]]; then "$node_bin" "$root/settings.mts" "$endpoint"; fi
+applications="$HOME/Applications"
+link="$applications/Mac Presence.app"
+old_link=
+if [[ -L $link ]]; then
+  old_link=$(readlink "$link")
+  if [[ $old_link != "$support"/releases/*/'Mac Presence.app' ]]; then echo "应用程序目录里已有其他 Mac Presence，请检查 $link" >&2; exit 1; fi
+elif [[ -e $link ]]; then echo "应用程序目录里已有其他 Mac Presence，请检查 $link" >&2; exit 1; fi
+mkdir -p "$support/releases" "$(dirname "$plist")" "$applications"
+release=$(mktemp -d "$support/releases/mac.XXXXXXXX")
+"$root/bin/build" "$release"
+app="$release/Mac Presence.app"
+revision=$(git -C "$root" rev-parse --short HEAD 2>/dev/null || echo local)
+herdr_bin=${PRESENCE_HERDR_BIN:-$(command -v herdr || printf '%s/.local/bin/herdr' "$HOME")}
+if [[ $herdr_bin != /* ]]; then echo 'PRESENCE_HERDR_BIN 需要绝对路径' >&2; exit 2; fi
+info="$app/Contents/Resources/Installation.plist"
+/usr/bin/plutil -create xml1 "$info"
+/usr/bin/plutil -insert node -string "$node_bin" "$info"
+/usr/bin/plutil -insert toolDirectory -string "$release/tools/mac-presence" "$info"
+/usr/bin/plutil -insert stateDirectory -string "$support" "$info"
+/usr/bin/plutil -insert herdr -string "$herdr_bin" "$info"
+/usr/bin/plutil -insert version -string "$revision-${release##*/}" "$info"
+/usr/bin/codesign --force --sign - "$app"
+next="$release/agent.plist"
+cp "$root/launchd/$label.plist.in" "$next"
+/usr/bin/plutil -replace ProgramArguments.0 -string "$app/Contents/MacOS/MacPresenceMenu" "$next"
+/usr/bin/plutil -replace EnvironmentVariables.PRESENCE_NODE_BIN -string "$node_bin" "$next"
+/usr/bin/plutil -replace EnvironmentVariables.PRESENCE_HOME -string "$support" "$next"
+/usr/bin/plutil -lint "$next"
+
+staged=$(mktemp "$(dirname "$plist")/.$label.XXXXXXXX")
+link_stage=$(mktemp -d "$applications/.$label.XXXXXXXX")
+trap 'rm -f "$staged" "$link_stage/app"; rmdir "$link_stage"' EXIT
+cp "$next" "$staged"
+ln -s "$app" "$link_stage/app"
+if [[ -f $plist ]]; then cp "$plist" "$release/previous.plist"; fi
+running=false
+if launchctl print "$domain/$label" >/dev/null 2>&1; then running=true; unload_agent; fi
+if [[ -f $support/preferences.json ]]; then cp "$support/preferences.json" "$release/previous-settings.json"; fi
+if ! PRESENCE_HOME="$support" "$node_bin" "$root/settings.mts" --install "$endpoint" || ! mv -f "$staged" "$plist" || ! load_agent || ! mv -fh "$link_stage/app" "$link"; then
+  unload_agent
+  if [[ -f $release/previous-settings.json ]]; then cp "$release/previous-settings.json" "$support/preferences.json"; else rm -f "$support/preferences.json"; fi
+  if [[ -f $release/previous.plist ]]; then
+    cp "$release/previous.plist" "$plist"
+    if $running; then load_agent; fi
+  else
+    rm -f "$plist"
+  fi
+  exit 1
+fi
+printf '已安装 %s，可从菜单栏或 Finder 打开设置。\n' "$link"

@@ -1,0 +1,8 @@
+#!/bin/bash
+source "$(dirname "$0")/common.sh"
+if [[ -f $plist ]]; then support=$(/usr/bin/plutil -extract EnvironmentVariables.PRESENCE_HOME raw -o - "$plist"); fi
+"$root/bin/stop"
+link="$HOME/Applications/Mac Presence.app"
+if [[ -L $link && $(readlink "$link") == "$support"/releases/*/'Mac Presence.app' ]]; then rm "$link"; fi
+rm -f "$plist"
+printf '已移除 %s 的登录启动项和应用入口。重新安装时会沿用保存的设置和钥匙串凭据。\n' "$label"

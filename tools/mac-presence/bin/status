@@ -1,0 +1,17 @@
+#!/bin/bash
+source "$(dirname "$0")/common.sh"
+if job=$(launchctl print "$domain/$label" 2>/dev/null); then
+  awk '/^\t(state|pid) = / {print}' <<< "$job"
+else
+  echo 'LaunchAgent 未加载'
+fi
+if [[ -f $plist ]]; then
+  node_bin=$(/usr/bin/plutil -extract EnvironmentVariables.PRESENCE_NODE_BIN raw -o - "$plist" 2>/dev/null || /usr/bin/plutil -extract ProgramArguments.0 raw -o - "$plist")
+  if [[ -z ${PRESENCE_HOME:-} ]]; then
+    PRESENCE_HOME=$(/usr/bin/plutil -extract EnvironmentVariables.PRESENCE_HOME raw -o - "$plist")
+    export PRESENCE_HOME
+  fi
+else
+  node_bin=$(node_path)
+fi
+exec "$node_bin" "$root/runtime.mts"

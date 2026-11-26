@@ -1,0 +1,16 @@
+#!/bin/bash
+source "$(dirname "$0")/common.sh"
+if [[ $# != 1 || -z $1 ]]; then echo '用法：bin/build 空目录' >&2; exit 2; fi
+dest=$1
+mkdir -p "$dest"
+if [[ -n $(ls -A "$dest") ]]; then echo '请指定空的产物目录' >&2; exit 2; fi
+package="$dest/tools/mac-presence"
+app="$dest/Mac Presence.app/Contents"
+mkdir -p "$package" "$dest/src/lib" "$app/MacOS" "$app/Resources"
+cp "$root/native/MenuInfo.plist" "$app/Info.plist"
+/usr/bin/xcrun swiftc -O "$root"/native/Sources/MacPresenceMenu/*.swift -o "$app/MacOS/MacPresenceMenu"
+/usr/bin/xcrun swiftc -O "$root/native/Sources/MacPresence/main.swift" -o "$package/MacPresence"
+cp "$root"/*.mts "$package/"
+cp "$root/../../src/lib/presence.ts" "$dest/src/lib/"
+printf '{"type":"module"}\n' > "$dest/package.json"
+printf '采集器产物已写入 %s\n' "$dest"

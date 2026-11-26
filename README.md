@@ -1,6 +1,6 @@
 # blog
 
-Next.js 16 + React 19 + TypeScript 个人博客，文章、评论、友链、AI 摘要和账号认证使用 libSQL/Turso 数据库，正文保留 MDX 格式，笔记使用本地 Markdown 文件。本地开发默认使用 SQLite。推送 `main` 后由 GitHub Actions 检查，生产发布需手动运行工作流；首页实时活动读取独立 Mac Presence Service。
+Next.js 16 + React 19 + TypeScript 个人博客，文章、评论、友链、AI 摘要和账号认证使用 libSQL/Turso 数据库，正文保留 MDX 格式，笔记使用本地 Markdown 文件。本地开发默认使用 SQLite。推送 `main` 后由 GitHub Actions 检查，生产发布需手动运行工作流；站点实时活动可读取 Mac 采集器上报的最新快照，兼容旧服务。
 
 ## 本地启动
 

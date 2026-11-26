@@ -66,7 +66,7 @@ RSC、Server Actions 和离线脚本直接 import Service，例如 links 页面�
 
 ## 外部服务
 
-- Presence 地址、超时和离线降级由[活动接口](presence.md)维护。Blog 没有采集写入路由，上游状态不参与正文读取。
+- 博客通过 `PUT /api/presence/report` 接受采集器鉴权上报，通过 `GET /api/presence` 提供公开状态。读取模式、白名单和过期规则见[活动接口](presence.md)。
 - 邮件适配在 [email.ts](../src/server/infra/email.ts)，通过 Resend HTTP API 发送友链审批和评论通知。未配置凭据或目标邮箱时日志 Mock 不代表真实投递成功；不能用本地模拟响应证明收件人收到邮件。
 - 模型协议、Base URL 安全校验、重定向、凭据和错误分类由[AI 文档](ai.md)维护。Service 用安全错误码与消息隔离上游异常。
 

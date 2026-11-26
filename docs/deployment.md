@@ -91,7 +91,7 @@ ssh "deploy@$DEPLOY_HOST" 'sudo ss -ltnp "sport = :4400"'
 curl -I https://blog.xdd.ink/
 ```
 
-公网 502 先查 systemd、本机端口和 HTTP，再查 Caddy。Mac 活动离线另查 [Presence](presence.md) 的上游，不把首页响应 200 当作采集器在线。
+公网 502 先查 systemd、本机端口和 HTTP，再查 Caddy。Mac 活动离线时按[活动接口](presence.md)核对读取模式、采集器确认时间和数据库快照。
 
 旧记录的服务器维护文档位于仓库外 `/Users/wuwanzhu/Projects/code-server-frp-maintenance/docs/services/blog.md`，本轮未核对该位置，其他机器需另行定位。
 
