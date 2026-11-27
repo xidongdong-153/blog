@@ -6,7 +6,7 @@ import type {
   ReviewFriendLinkResult,
 } from './links.types'
 import crypto from 'node:crypto'
-import { desc, eq } from 'drizzle-orm'
+import { asc, eq } from 'drizzle-orm'
 import { db } from '@/server/infra/db/client'
 import { friendLinks } from '@/server/infra/db/schema'
 import { sendFriendApplyEmail } from '@/server/infra/email'
@@ -249,21 +249,23 @@ export async function reviewFriendLink(token: string, action: string): Promise<R
 }
 
 /**
- * 查询已通过审核的公开友链列表，供前台页面展示。
+ * 查询已通过审核的公开友链列表，按加入时间先后正序返回，供前台页面展示。
  */
 export async function getApprovedFriendLinks(): Promise<FriendLinkItem[]> {
   try {
     const records = await db.query.friendLinks.findMany({
       where: eq(friendLinks.status, 'approved'),
-      orderBy: [desc(friendLinks.sortOrder), desc(friendLinks.createdAt)],
+      orderBy: [asc(friendLinks.createdAt), asc(friendLinks.id)],
     })
 
     return records.map((r) => ({
       id: r.id,
       name: r.name,
+      ownerName: r.ownerName || undefined,
       description: r.description,
       url: r.url,
       avatarUrl: r.avatarUrl || undefined,
+      createdAt: r.createdAt.toISOString(),
     }))
   } catch (err) {
     console.error('[LinksService] 查询公开友链失败:', err)

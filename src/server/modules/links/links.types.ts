@@ -1,9 +1,11 @@
 export interface FriendLinkItem {
   id?: number
   name: string
+  ownerName?: string
   description: string
   url: string
   avatarUrl?: string
+  createdAt?: string
 }
 
 export interface ApplyFriendLinkInput {

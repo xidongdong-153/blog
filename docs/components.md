@@ -32,7 +32,7 @@ paths:
 - `src/app/(site)/_components/blog/toc.tsx` / `toc-vein.ts`（TOC 垂直分形青脉与 H3 分叉渗墨、跨章微尘、溢出渐隐、专注模式横向分形青脉与 H2 矿晶直达、点击互斥锁与按需 RAF 渲染）
 - `src/app/(site)/_components/blog/floating-action-group.tsx`（移动端目录抽屉）
 - `src/app/(site)/_components/comment/comment-section.tsx`（社交登录、评论树读取、平铺回复与前台管理）
-- `src/app/(site)/_components/links/friends-constellation.tsx` / `friend-apply-modal.tsx`（友邻拓扑星图与友链申请弹窗）
+- `src/app/(site)/_components/links/links-showcase.tsx` / `friends-vein-stage.tsx` / `friends-vein.ts` / `friend-links-directory.tsx` / `random-friend-button.tsx` / `friend-apply-modal.tsx`（友链分形石脉图、列表视图切换、随机访问与友链申请弹窗）
 
 MDX 渲染走异步 RSC（`mdx-content.tsx` 的 `compileMDX`），不需要 client。高频滚动联动场景（如 TOC 进度条）使用 `requestAnimationFrame` 直接更新 DOM 样式，避免高频触发 React 整树重渲染。`SiteHeader` 通过滚动偏移死区避免方向震荡，借助 `data-scrolled` 与 `data-visible` 驱动 `backdrop-blur-md` 边框与纯 GPU 平移/透明度过渡，不使用会引发重排的动态 margin。
 
@@ -186,7 +186,7 @@ MDX 渲染走异步 RSC（`mdx-content.tsx` 的 `compileMDX`），不需要 clie
 | 图片灯箱、移动文章目录                                      | `blog/image-zoom.tsx`、`blog/floating-action-group.tsx`；图片以原图为起终点            |
 | 页头文章预览、移动导航、账号菜单                            | `site/site-header.tsx`、`site/header-auth.tsx`                                         |
 | 工位、访客与文章在读说明                                    | `home/presence.tsx`、`visitor/visitor-stats.tsx`、`visitor/article-viewer-count.tsx`   |
-| 友邻节点、年度记录节点、首页图标标签                        | `links/friends-constellation.tsx`、`home/yearly-timeline.tsx`、`home/hero.tsx`         |
+| 年度记录节点、首页图标标签                                  | `home/yearly-timeline.tsx`、`home/hero.tsx`                                            |
 | 后台确认框、下拉及子菜单、日历与快捷键浮窗、Tooltip、Select | `admin/ui/` 共享组件；覆盖文章管理、编辑器和 AI 设置入口                               |
 | 后台文章属性抽屉、通知                                      | `admin/posts/post-editor.tsx`、`admin/admin-ui-provider.tsx`                           |
 
