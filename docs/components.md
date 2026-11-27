@@ -170,7 +170,7 @@ MDX 渲染走异步 RSC（`mdx-content.tsx` 的 `compileMDX`），不需要 clie
 - `SiteHeader` 的移动菜单关闭时使用 `inert`，`Escape` 关闭并恢复按钮焦点；展开时保持完全不透明背景并确保页头可见，路由切换后关闭。桌面端「文章」悬停/聚焦预览支持鼠标移出与键盘失焦自动关闭。
 - **首页无卡片造物室 Hero**（`src/app/(site)/_components/home/hero.tsx`）：
   - 桌面端采用 `lg:grid-cols-[minmax(0,1fr)_248px]` 非对称双栏：左栏依次呈现 `HeroLiveBadge`（细线锚点 + 城市 + 实时 `presence` 状态，无循环脉冲圆点）、衬线宣言主标题、中文简介与无框线性图标通道（悬停展开底部短墨线与微标签）；右栏以发丝线分隔，无卡片外壳地呈现作者头像与文章 / 笔记 / 标签计数链接。
-  - 原 `spatial-field.tsx` 当前未在首页挂载，Hero 直接透出底层 `AmbientBackdrop` 与 `PaperCanvas` 的岩石细纹与顶光质感。
+  - Hero 直接透出底层 `AmbientBackdrop` 与 `PaperCanvas` 的岩石细纹与顶光质感。
 - **首页单列台账与年度创作脉络**（`src/app/(site)/page.tsx`）：
   - Hero 下方仅保留单列 `最近更新`（`WritingTimeline`，按 ISO 日期倒序合并文章与笔记后的前 5 条，使用 `${kind}-${slug}` 作 key 与 `divide-y divide-hair` 细线台账，悬停触发 `.ink-row` 左墨线生长与轻右移），移除首页重复的随记栏、技术栈胶囊与底部重复导航条。
   - 主体下方接入无卡片外壳的 `YearlyTimeline` 双轨季度脉络（上轨文章实心节点、下轨笔记空心节点，带 `Q1–Q4` 刻度与当年进度指针）。

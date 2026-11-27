@@ -1,5 +1,4 @@
 @import 'tailwindcss';
-@import 'tw-animate-css';
 @plugin '@tailwindcss/typography';
 @import 'katex/dist/katex.min.css';
 
@@ -50,7 +49,6 @@
   --font-serif:
     var(--font-newsreader), 'Noto Serif SC', 'Source Han Serif SC', 'Songti SC', 'STSong', 'SimSun', Georgia, Cambria,
     'Times New Roman', Times, serif;
-  --animate-skill-fade-in: skill-fade-in 320ms var(--ease-spring) both;
   --animate-ui-expand: ui-expand var(--ui-duration) var(--ui-ease);
   --animate-ui-collapse: ui-collapse var(--ui-duration) var(--ui-ease);
   --animate-rb-shiny: rb-shiny 2.8s linear infinite;
@@ -104,17 +102,6 @@
   }
   to {
     height: 0;
-  }
-}
-
-@keyframes skill-fade-in {
-  from {
-    opacity: 0;
-    transform: translateY(0.5rem);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
   }
 }
 
