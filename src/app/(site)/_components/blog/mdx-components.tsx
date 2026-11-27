@@ -3,6 +3,7 @@ import Link from 'next/link'
 import { Callout } from './callout'
 import { CodeFigure, CodePre, CodeTitle } from './code-block'
 import { Collapse } from './collapse'
+import { Figure } from './figure'
 import { ImageZoom } from './image-zoom'
 import { Video } from './video'
 
@@ -52,4 +53,5 @@ export const mdxComponents = {
   Video,
   Callout,
   Collapse,
+  Figure,
 }

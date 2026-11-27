@@ -99,16 +99,17 @@ MDX 渲染走异步 RSC（`mdx-content.tsx` 的 `compileMDX`），不需要 clie
 正文渲染统一走 `MdxContent`，管理预览复用同一组件。共享编译配置在 `src/server/modules/posts/mdx-options.ts`；发布前进行 AST 与编译校验，不能等公开访问时才发现错误。
 
 - **插件链**：
-  - Remark：`remark-gfm`（表格/任务列表）、`remark-math`（数学公式）、`remark-cjk-friendly`（修复全角标点加粗）。
-  - Rehype：`rehype-slug`（标题语义 id）、`rehype-autolink-headings`（标题悬停直达锚点 `#`）、`rehype-katex`（LaTeX 渲染）、`rehype-external-links`（外链新标签打开与安全防护）、`rehype-pretty-code`（Shiki 双主题语法高亮）。
+  - Remark：`remark-gfm`（表格/任务列表/脚注）、`remark-math`（数学公式）、`remark-cjk-friendly`（修复全角标点加粗）、`remarkSafeMdx`（AST 安全白名单）、`remarkGfmAlerts`（将 `> [!NOTE]` / `> [!TIP]` / `> [!WARNING]` / `> [!IMPORTANT]` / `> [!CAUTION]` 转为 `<Callout>`）、`remarkBlockquoteAttribution`（将引用块末尾以 `— ` 或 `-- ` 开头的出处行转为 `<footer data-blockquote-attribution>`）。
+  - Rehype：`rehype-slug`（标题语义 id）、`rehype-autolink-headings`（标题悬停直达锚点 `#`）、`rehype-katex`（LaTeX 渲染）、`rehype-external-links`（外链新标签打开与安全防护）、`rehype-pretty-code`（Shiki 双主题语法高亮）、`rehypeImageFigure`（将独占行图片提升为 `<figure data-image-figure>`，支持 Markdown `title` 与 JSX `caption` 生成可选底部图注，并同步透传 `data-caption` 给灯箱）。
 - **目录（TOC）一致性**：
   - 目录提取必须使用 `github-slugger` 实例生成 id（见 `src/lib/content.ts` 的 `extractHeadings`），与 `rehype-slug` 生成规则及重名序号处理严格一致。
 - **自定义组件映射**：
-  - `figure` / `figcaption` / `pre`：封装代码块标题、语言标识与复制按钮（`src/app/(site)/_components/blog/code-block.tsx`、`copy-button.tsx`）。代码块外层统一使用 `bg-code-bg` 与 `rounded-lg`；文件名头部保持同一背景，以 `//` 等宽前缀和细分隔线建立层级；复制按钮始终可见。`pre` 必须为右上复制按钮和右下语言标识保留内边距。
+  - `figure` / `figcaption` / `pre`：统一处理代码块容器/文件名/底部注释（`data-rehype-pretty-code-caption`）与独立图片 figure/图注（`src/app/(site)/_components/blog/code-block.tsx`、`copy-button.tsx`、`figure.tsx`）。代码块外层统一使用 `bg-code-bg` 与 `rounded-lg`；文件名头部保持同一背景，以 `//` 等宽前缀和细分隔线建立层级；复制按钮始终可见。`pre` 保持 `relative` 并为右上复制按钮和右下语言标识保留内边距，避免语言标识与底部注释重叠。
   - `a`：站内链接走 Next.js `Link`，外部链接安全打开。
-  - `table`：使用带 `role="region"`、`aria-label` 和 `tabIndex={0}` 的局部横向滚动容器，原生 `<table>` 保持 `w-full` 和 `min-w-[40rem]`。表头不换行，数据单元格允许自然换行；窄屏滚动表格，不撑宽页面根节点。`@tailwindcss/typography` 会给 `table` 添加上下外边距，必须在 `globals.css` 的 `.prose :where(table)` 中设置 `margin-block: 0`，避免边框容器内出现空白。
-  - `img`：点击可唤起全屏平滑放大灯箱预览（`image-zoom.tsx`）。
-  - 内置提示与折叠组件：`<Callout>`（`callout.tsx`）与 `<Collapse>`（`collapse.tsx`）。
+  - `table`：使用带 `role="region"`、`aria-label` 和 `tabIndex={0}` 的局部横向滚动容器，原生 `<table>` 保持 `w-full` 和 `min-w-[40rem]`。表头不换行，数据单元格允许自然换行；窄屏滚动表格，不撑宽页面根节点。`@tailwindcss/typography` 会给 `table` 添加上下外边距，必须在 `globals.css` 的 `.prose :where(table)` 中设置 `margin-block: 0`，避免边框容器内出现空白。需要表格注释时可用 `<Figure caption="...">` 包裹。
+  - `img`：点击可唤起全屏平滑放大灯箱预览（`image-zoom.tsx`），带有图注时在灯箱底部同步展示。
+  - 内置组件：`<Callout>`（`callout.tsx`）、`<Collapse>`（`collapse.tsx`）、`<Figure>`（`figure.tsx`）与 `<Video>`（`video.tsx`，与图注共用同一套正文小字注释样式）。
+  - 脚注：通过 `remarkRehypeOptions` 中文化标题与回跳标签，并在 `globals.css` 统一 `.prose` 与 `.field-note-prose` 的脚注区发丝线与排版。
 - **阅读时间**：
   - 博客详情页统一通过 `calculateReadingTime` 推算正文用时并在 Hero 日期旁呈现。
 

@@ -1,4 +1,5 @@
 import type { ComponentProps } from 'react'
+import { FIGURE_CAPTION_CLASS } from './figure'
 
 interface VideoProps extends ComponentProps<'video'> {
   /** 视频下方的说明文案 */
@@ -13,7 +14,7 @@ export function Video({ src, caption, className = '', ...props }: VideoProps) {
   if (!src) return null
 
   return (
-    <figure className="my-6 flex w-full max-w-full flex-col items-center">
+    <figure className="my-7 flex w-full max-w-full flex-col items-center">
       <video
         src={src}
         controls
@@ -22,9 +23,7 @@ export function Video({ src, caption, className = '', ...props }: VideoProps) {
         className={`w-full max-w-full rounded-xl border border-border bg-black/5 shadow-xs ${className}`}
         {...props}
       />
-      {caption && (
-        <figcaption className="mt-2 text-center font-mono text-xs text-muted-foreground">{caption}</figcaption>
-      )}
+      {caption && <figcaption className={FIGURE_CAPTION_CLASS}>{caption}</figcaption>}
     </figure>
   )
 }

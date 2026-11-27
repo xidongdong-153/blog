@@ -7,10 +7,22 @@ import rehypeSlug from 'rehype-slug'
 import remarkCjkFriendly from 'remark-cjk-friendly'
 import remarkGfm from 'remark-gfm'
 import remarkMath from 'remark-math'
+import { rehypeImageFigure, remarkBlockquoteAttribution, remarkGfmAlerts } from './mdx-plugins'
 import { remarkSafeMdx } from './posts-mdx'
 
 export const postMdxOptions: NonNullable<NonNullable<Parameters<typeof serialize>[1]>['mdxOptions']> = {
-  remarkPlugins: [remarkGfm, remarkMath, remarkCjkFriendly, remarkSafeMdx],
+  remarkPlugins: [
+    remarkGfm,
+    remarkMath,
+    remarkCjkFriendly,
+    remarkSafeMdx,
+    remarkGfmAlerts,
+    remarkBlockquoteAttribution,
+  ],
+  remarkRehypeOptions: {
+    footnoteLabel: '脚注',
+    footnoteBackLabel: '返回正文',
+  },
   rehypePlugins: [
     rehypeSlug,
     [
@@ -24,5 +36,6 @@ export const postMdxOptions: NonNullable<NonNullable<Parameters<typeof serialize
     [rehypeKatex, {}],
     [rehypeExternalLinks, { target: '_blank', rel: ['noopener', 'noreferrer'] }],
     [rehypePrettyCode, { theme: { light: 'catppuccin-latte', dark: 'catppuccin-mocha' }, keepBackground: false }],
+    rehypeImageFigure,
   ],
 }

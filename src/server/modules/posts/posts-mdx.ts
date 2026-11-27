@@ -11,7 +11,10 @@ import { isContentUrl, isMediaUrl } from '@/lib/posts'
 const allowedElements = new Set([
   'Callout',
   'Collapse',
+  'Figure',
   'Video',
+  'figure',
+  'figcaption',
   'video',
   'source',
   'img',

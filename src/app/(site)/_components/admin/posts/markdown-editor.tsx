@@ -137,6 +137,12 @@ const CODE_ITEMS: SnippetSpec[] = [
     after: '\n\u0060\u0060\u0060\n',
     block: true,
   },
+  {
+    label: '带底部注释代码块',
+    before: '\n\u0060\u0060\u0060ts title="example.ts" caption="代码说明"\n',
+    after: '\n\u0060\u0060\u0060\n',
+    block: true,
+  },
 ]
 
 const MATH_ITEMS: SnippetSpec[] = [
@@ -173,6 +179,18 @@ const COMPONENT_ITEMS: SnippetSpec[] = [
     label: '折叠块 (<Collapse>)',
     before: '\n<Collapse title="展开详情">\n\n',
     after: '\n\n</Collapse>\n',
+    block: true,
+  },
+  {
+    label: '图片（带底部注释）',
+    before: '\n![图片描述](',
+    after: 'https://example.com/image.png "图片注释")\n',
+    block: true,
+  },
+  {
+    label: '带注释表格 (<Figure>)',
+    before: '\n<Figure caption="表格说明">\n\n| 列 1 | 列 2 |\n| --- | --- |\n| ',
+    after: '内容 | 内容 |\n\n</Figure>\n',
     block: true,
   },
 ]

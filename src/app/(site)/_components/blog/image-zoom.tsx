@@ -8,11 +8,27 @@ import { createPortal } from 'react-dom'
 import { lockOverlayScroll } from '../site/overlay-scroll-lock'
 import { useOverlayMotion } from '../site/use-overlay-motion'
 
+interface ImageZoomProps extends ComponentProps<'img'> {
+  'data-caption'?: string
+  caption?: string
+}
+
 /**
  * 正文图片灯箱缩放组件。
  * 点击正文图片平滑唤起和纸柔雾全屏预览，通过 Portal 挂载避免破坏段落 DOM 结构，支持 ESC 与点击背景关闭。
+ * 若图片带有图注（`data-caption` / `caption`），在灯箱底部同步展示。
  */
-export function ImageZoom({ src, alt = '', className = '', onClick, onKeyDown, ...props }: ComponentProps<'img'>) {
+export function ImageZoom({
+  src,
+  alt = '',
+  className = '',
+  onClick,
+  onKeyDown,
+  caption: captionProp,
+  'data-caption': dataCaption,
+  ...props
+}: ImageZoomProps) {
+  const caption = (dataCaption ?? captionProp ?? '').trim()
   const [isOpen, setIsOpen] = useState(false)
   const imageRef = useRef<HTMLElement | null>(null)
   const closeRef = useRef<HTMLButtonElement>(null)
@@ -101,12 +117,23 @@ export function ImageZoom({ src, alt = '', className = '', onClick, onKeyDown, .
             </button>
 
             <div ref={anchorRef} className="relative w-fit max-w-[90vw]">
-              <div ref={surfaceRef} className="origin-top-left" onClick={(e) => e.stopPropagation()}>
+              <div
+                ref={surfaceRef}
+                className="flex origin-top-left flex-col items-center"
+                onClick={(e) => e.stopPropagation()}
+              >
                 <img
                   src={src}
                   alt={alt}
-                  className="block max-h-[88dvh] max-w-full cursor-default rounded-md object-contain shadow-[0_18px_48px_rgba(20,23,22,0.22)]"
+                  className={`block max-w-full cursor-default rounded-md object-contain shadow-[0_18px_48px_rgba(20,23,22,0.22)] ${
+                    caption ? 'max-h-[82dvh]' : 'max-h-[88dvh]'
+                  }`}
                 />
+                {caption && (
+                  <p className="mt-3 max-w-[80vw] text-center text-xs leading-relaxed text-muted-foreground">
+                    {caption}
+                  </p>
+                )}
               </div>
             </div>
           </div>,
