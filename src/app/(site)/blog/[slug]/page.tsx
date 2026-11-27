@@ -156,8 +156,8 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
           </div>
         </article>
 
-        {/* 右侧粘性导轨：目录 + 有机分隔线 + 环形阅读进度 + 悬浮图标栏 */}
-        <aside id="sidebar" className="sticky top-24 hidden max-h-[calc(100vh-7rem)] w-52 shrink-0 flex-col lg:flex">
+        {/* 右侧粘性导轨：青脉裂隙与墨沁进度 + 无框文字工具栏 */}
+        <aside id="sidebar" className="sticky top-24 hidden max-h-[calc(100vh-7rem)] w-56 shrink-0 flex-col lg:flex">
           <TableOfContents headings={headings} showRailTools />
         </aside>
 
