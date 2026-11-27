@@ -1,4 +1,4 @@
-import { Newsreader } from 'next/font/google'
+import { Cormorant_Garamond, Newsreader } from 'next/font/google'
 import localFont from 'next/font/local'
 
 export const satoshi = localFont({
@@ -6,6 +6,14 @@ export const satoshi = localFont({
   weight: '300 900',
   display: 'swap',
   variable: '--font-satoshi',
+})
+
+export const cormorantGaramond = Cormorant_Garamond({
+  subsets: ['latin'],
+  weight: ['400', '500', '600', '700'],
+  style: ['normal', 'italic'],
+  display: 'swap',
+  variable: '--font-cormorant-garamond',
 })
 
 export const newsreader = Newsreader({

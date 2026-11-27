@@ -1,6 +1,6 @@
 import type { Metadata } from 'next'
 import { siteConfig } from '@/site.config'
-import { newsreader, satoshi } from './fonts'
+import { cormorantGaramond, newsreader, satoshi } from './fonts'
 import './globals.css'
 
 export const metadata: Metadata = {
@@ -32,10 +32,15 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html
       lang="zh-CN"
-      className={`${satoshi.variable} ${newsreader.variable} [scrollbar-gutter:stable]`}
+      className={`${satoshi.variable} ${cormorantGaramond.variable} ${newsreader.variable} [scrollbar-gutter:stable]`}
       suppressHydrationWarning
     >
       <head>
+        <link rel="preconnect" href="https://fontsapi.zeoseven.com" crossOrigin="anonymous" />
+        <link rel="preconnect" href="https://cdn.jsdelivr.net" crossOrigin="anonymous" />
+        <link rel="stylesheet" href="https://fontsapi.zeoseven.com/256/main/result.css" />
+        <link rel="stylesheet" href="https://fontsapi.zeoseven.com/442/main/result.css" />
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/cn-fontsource-lxgw-wen-kai-screen/font.css" />
         <script
           dangerouslySetInnerHTML={{
             __html: `(function(){var r=document.documentElement;function get(k){try{return localStorage.getItem(k)}catch(e){return null}}var t=get('theme');var theme=t==='light'||t==='dark'?t:'system';r.dataset.theme=theme;var isDark=false;try{isDark=theme==='dark'||(theme==='system'&&window.matchMedia('(prefers-color-scheme: dark)').matches)}catch(e){isDark=theme==='dark'}r.classList.toggle('dark',isDark);r.dataset.backdropFx=get('site-backdrop-fx')==='off'?'off':'on'})()`,

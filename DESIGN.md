@@ -24,34 +24,39 @@ colors:
   page-highlight-secondary-dark: '#2c4a46'
 typography:
   display:
-    fontFamily: 'Newsreader, Georgia, serif'
+    fontFamily: 'Cormorant Garamond, Huiwen-mincho, Georgia, serif'
     fontSize: '2.25rem'
     fontWeight: 500
     lineHeight: 1.2
     letterSpacing: '-0.025em'
   heading:
-    fontFamily: 'Newsreader, Georgia, serif'
+    fontFamily: 'Cormorant Garamond, Huiwen-mincho, Georgia, serif'
     fontSize: '1.5rem'
     fontWeight: 500
     lineHeight: 1.3
-    letterSpacing: '-0.025em'
+    letterSpacing: '0.01em'
   entry:
-    fontFamily: 'Newsreader, Georgia, serif'
+    fontFamily: 'Cormorant Garamond, Huiwen-mincho, Georgia, serif'
     fontSize: '1.25rem'
     fontWeight: 500
     lineHeight: 1.4
   body:
-    fontFamily: 'Satoshi Variable, sans-serif'
+    fontFamily: 'Satoshi Variable, LXGW WenKai Screen, sans-serif'
     fontSize: '1rem'
     fontWeight: 400
-    lineHeight: 1.75
+    lineHeight: 1.85
+  note:
+    fontFamily: 'Newsreader, LXGW WenKai Screen, serif'
+    fontSize: '1rem'
+    fontWeight: 400
+    lineHeight: 1.85
   summary:
-    fontFamily: 'Satoshi Variable, sans-serif'
+    fontFamily: 'Satoshi Variable, LXGW WenKai Screen, sans-serif'
     fontSize: '0.875rem'
     fontWeight: 400
     lineHeight: 1.625
   label:
-    fontFamily: 'monospace'
+    fontFamily: 'Maple Mono NF CN, monospace'
     fontSize: '0.75rem'
     fontWeight: 400
     lineHeight: 1.5
@@ -109,17 +114,22 @@ spacing:
 
 ## 字体与层级
 
-字体加载定义在 [fonts.ts](src/app/fonts.ts)：Satoshi 为本地可变无衬线字体，Newsreader 通过 Next 字体加载器提供 Latin 子集；中文正文与标题由系统回退字形承接（`PingFang SC` / `Noto Serif SC` 等），不虚构中文使用西文字形。
+为保证 macOS、Windows 等不同设备排版气质一致，全站采用「**温润手记 + 旧铅字雕版明朝**」中西文协同体系。西文字体定义在 [fonts.ts](src/app/fonts.ts)，中文字体与等宽字体在 [layout.tsx](src/app/layout.tsx) 通过 Unicode-Range 分片 CSS 按需加载，字族变量统一映射于 [globals.css](src/app/globals.css)：
 
-| 用途               | 手机             | 桌面 | 字体与颜色                                              |
-| ------------------ | ---------------- | ---- | ------------------------------------------------------- |
-| 一级页面 H1        | 30px             | 36px | `font-serif font-medium tracking-tight text-foreground` |
-| 大模块标题         | 24px             | 24px | 衬线、medium                                            |
-| 文章与笔记条目标题 | 18px             | 20px | 衬线、medium                                            |
-| 项目标题           | 20px             | 20px | 衬线、medium                                            |
-| 关于简介、申请说明 | 16px / 28px 行高 | 同左 | 无衬线、正文色                                          |
-| 页面说明、条目摘要 | 14px             | 14px | 无衬线、次要文字色                                      |
-| 眉标、日期、标签   | 12px             | 12px | 等宽（`font-mono`）                                     |
+- **标题衬线（`--font-serif`）**：`Cormorant Garamond`（`next/font/google` 400–700 normal/italic 自托管）+ `Huiwen-mincho`（汇文明朝体，ZeoSeven 分片）。对 `.font-serif` 与正文标题设置 `font-synthesis-weight: none`，避免单字重汇文明朝在 `font-medium`/`font-semibold` 下触发浏览器伪加粗发糊；衬线统计数字使用 `lining-nums tabular-nums` 保持齐平。
+- **全局正文与界面（`--font-sans`）**：`Satoshi`（本地 42KB 可变字体）+ `LXGW WenKai Screen`（霞鹜文楷屏幕阅读版，jsDelivr 分片），系统黑体作为最终兜底。
+- **笔记正文（`--font-note`）**：`Newsreader`（`next/font/google` 自托管）+ `LXGW WenKai Screen`，用于 `.field-note-prose`；文章与笔记正文统一采用 `1.85` 行高、`0.012em` 微字距，并启用 `hanging-punctuation: allow-end` 与 `text-autospace: normal`。
+- **等宽与眉标（`--font-mono`）**：`Maple Mono NF CN`（ZeoSeven 分片，中英文 2:1 等宽）+ `LXGW WenKai Screen` 回退，默认开启 `tabular-nums`，代码块内开启 `font-variant-ligatures: contextual`，行内代码设为 `0.85em` 以与文楷正文视觉齐平。
+
+| 用途               | 手机             | 桌面 | 字体与颜色                                                          |
+| ------------------ | ---------------- | ---- | ------------------------------------------------------------------- |
+| 一级页面 H1        | 30px             | 36px | `font-serif font-medium tracking-tight text-foreground`（汇文明朝） |
+| 大模块标题         | 24px             | 24px | 衬线、medium（`Cormorant Garamond` + 汇文明朝）                     |
+| 文章与笔记条目标题 | 18px             | 20px | 衬线、medium                                                        |
+| 项目标题           | 20px             | 20px | 衬线、medium                                                        |
+| 文章正文、笔记正文 | 16px / 1.85 行高 | 同左 | 霞鹜文楷 Screen（西文 `Satoshi` / 笔记西文 `Newsreader`）           |
+| 页面说明、条目摘要 | 14px             | 14px | 全局正文体（`Satoshi` + 霞鹜文楷 Screen）、次要文字色               |
+| 眉标、日期、标签   | 12px             | 12px | 等宽（`font-mono`，`Maple Mono NF CN`）                             |
 
 - 连续阅读段落不使用等宽字体；摘要保留两至三行，长标题自然换行，不为对齐高度强行截断。
 - 信息主次靠字号、字重与行距建立，不把整段正文整体降为低对比辅助色。

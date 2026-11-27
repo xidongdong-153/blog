@@ -227,4 +227,4 @@ MDX 渲染走异步 RSC（`mdx-content.tsx` 的 `compileMDX`），不需要 clie
   - **操作按钮**：动词 + 宾语或单一明确动作，如"审核"、"管理友链"、"退出登录"、"前往配置"。
   - **空状态**：客观陈述当前为空的实际原因（如"暂无待审核的友链申请。"、"暂无评论。"），不写过度包装的修饰句。
 
-源码入口：[根布局](../src/app/layout.tsx)、[站点布局](../src/app/%28site%29/layout.tsx)、[岩石底纹](../src/app/%28site%29/_components/site/paper-canvas.tsx)、[MDX 渲染](../src/app/%28site%29/_components/blog/mdx-content.tsx)、[全局样式](../src/app/globals.css)。字体与五页视觉值以 [DESIGN.md](../DESIGN.md) 为准；Newsreader 和 Satoshi 的西文字形不代表中文也使用这些字体。
+源码入口：[根布局](../src/app/layout.tsx)、[站点布局](../src/app/%28site%29/layout.tsx)、[岩石底纹](../src/app/%28site%29/_components/site/paper-canvas.tsx)、[MDX 渲染](../src/app/%28site%29/_components/blog/mdx-content.tsx)、[全局样式](../src/app/globals.css)。字体与五页视觉值以 [DESIGN.md](../DESIGN.md) 为准，西文由 Next 字体加载器与本地可变字体提供，中文与等宽通过 Unicode-Range 分片加载以保证跨设备一致。

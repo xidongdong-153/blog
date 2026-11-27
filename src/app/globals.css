@@ -45,10 +45,14 @@
   --color-hair: var(--surface-hairline);
   --radius: var(--radius);
   --font-sans:
-    var(--font-satoshi), 'PingFang SC', 'Hiragino Sans GB', 'Noto Sans SC', 'Microsoft YaHei', system-ui, sans-serif;
+    var(--font-satoshi), 'LXGW WenKai Screen', 'PingFang SC', 'Hiragino Sans GB', 'Noto Sans SC', 'Microsoft YaHei',
+    system-ui, sans-serif;
   --font-serif:
-    var(--font-newsreader), 'Noto Serif SC', 'Source Han Serif SC', 'Songti SC', 'STSong', 'SimSun', Georgia, Cambria,
-    'Times New Roman', Times, serif;
+    var(--font-cormorant-garamond), 'Huiwen-mincho', 'Noto Serif SC', 'Source Han Serif SC', 'Songti SC', 'STSong',
+    Georgia, Cambria, 'Times New Roman', Times, serif;
+  --font-note: var(--font-newsreader), 'LXGW WenKai Screen', 'Huiwen-mincho', 'Kaiti SC', 'STKaiti', serif;
+  --font-mono:
+    'Maple Mono NF CN', 'LXGW WenKai Screen', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
   --animate-ui-expand: ui-expand var(--ui-duration) var(--ui-ease);
   --animate-ui-collapse: ui-collapse var(--ui-duration) var(--ui-ease);
   --animate-rb-shiny: rb-shiny 2.8s linear infinite;
@@ -522,6 +526,19 @@ html {
   scroll-behavior: smooth;
 }
 
+/* 汇文明朝体为单字重雕版明朝，禁用合成伪加粗以保持笔画锐利；Cormorant Garamond 拥有真实 400-700 字重不受影响 */
+.font-serif {
+  font-synthesis-weight: none;
+}
+
+.font-serif.tabular-nums {
+  font-variant-numeric: lining-nums tabular-nums;
+}
+
+.font-mono {
+  font-variant-numeric: tabular-nums;
+}
+
 ::selection {
   background-color: color-mix(in oklch, hsl(var(--primary)) 18%, transparent);
   color: hsl(var(--foreground));
@@ -534,6 +551,10 @@ textarea {
 
 /* Typography prose 适配系统语义 token */
 .prose {
+  line-height: 1.85;
+  letter-spacing: 0.012em;
+  hanging-punctuation: allow-end;
+  text-autospace: normal;
   --tw-prose-body: hsl(var(--foreground) / 0.88);
   --tw-prose-headings: hsl(var(--foreground));
   --tw-prose-lead: hsl(var(--muted-foreground));
@@ -555,6 +576,8 @@ textarea {
 .prose :where(h1, h2, h3, h4, h5, h6) {
   font-family: var(--font-serif);
   font-weight: 500;
+  font-synthesis-weight: none;
+  letter-spacing: 0.01em;
   color: hsl(var(--foreground));
 }
 
@@ -580,12 +603,13 @@ textarea {
 }
 
 .prose :where(code):not(:where(pre *)) {
+  font-family: var(--font-mono);
   background-color: hsl(var(--code-inline-bg));
   color: hsl(var(--code-fg));
   padding: 0.15rem 0.4rem;
   border-radius: 0.25rem;
   font-weight: 400;
-  font-size: 0.875em;
+  font-size: 0.85em;
 }
 
 .prose :where(code):not(:where(pre *))::before,
@@ -600,6 +624,11 @@ textarea {
   border-radius: var(--radius);
 }
 
+.prose :where(pre code) {
+  font-family: var(--font-mono);
+  font-variant-ligatures: contextual;
+}
+
 .prose :where(img, video, iframe) {
   max-width: 100%;
   height: auto;
@@ -607,16 +636,20 @@ textarea {
 
 /* 笔记正文排版 (.field-note-prose) */
 .field-note-prose {
-  font-family: var(--font-serif);
+  font-family: var(--font-note);
   font-size: 1rem;
   line-height: 1.85;
+  letter-spacing: 0.012em;
+  hanging-punctuation: allow-end;
+  text-autospace: normal;
   color: var(--note-ink);
 }
 
 .field-note-prose :where(h2, h3) {
   font-family: var(--font-serif);
   font-weight: 600;
-  letter-spacing: 0.01em;
+  font-synthesis-weight: none;
+  letter-spacing: 0.015em;
   color: hsl(var(--foreground));
 }
 
@@ -760,7 +793,7 @@ html[data-theme='dark'] [data-rehype-pretty-code-figure] code[data-theme*=' '] s
   bottom: 0.6rem;
   font-size: 0.75rem;
   line-height: 1;
-  font-family: monospace;
+  font-family: var(--font-mono);
   font-weight: 500;
   color: hsl(var(--muted-foreground) / 0.5);
   pointer-events: none;
