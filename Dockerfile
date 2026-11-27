@@ -14,16 +14,16 @@ RUN --mount=type=cache,target=/root/.local/share/pnpm/store \
 
 COPY . .
 RUN export CI=true NODE_ENV=production \
-    TURSO_DATABASE_URL=file:/tmp/blog-build.db \
+    DATABASE_URL=file:/tmp/blog-build.db \
     BETTER_AUTH_URL=http://localhost:4400 \
     BETTER_AUTH_SECRET=docker-build-only-better-auth-secret-0123456789 \
     && pnpm db:migrate \
     && pnpm build \
-    && rm -rf .next/cache
+    && rm -rf .next/cache /tmp/blog-build.db*
 
 FROM base AS runtime
 
-ENV NODE_ENV=production HOST=0.0.0.0 PORT=4400
+ENV NODE_ENV=production HOST=0.0.0.0 PORT=4400 DATABASE_URL=file:/app/data/blog.db
 RUN install -d -o node -g node /app/data
 
 COPY --from=build /app/node_modules ./node_modules

@@ -3,8 +3,8 @@ import { createServer } from 'node:http'
 import path from 'node:path'
 import next from 'next'
 
-// 在加载任何业务及数据库模块前，使用 Node 内置能力注入 .env 与 .env.local 环境变量
-for (const envFile of ['.env', '.env.local']) {
+// 在加载任何业务及数据库模块前，使用 Node 内置能力注入 .env.local 与 .env（不覆盖已有环境变量）
+for (const envFile of ['.env.local', '.env']) {
   const fullPath = path.resolve(process.cwd(), envFile)
   if (fs.existsSync(fullPath)) {
     try {
@@ -28,6 +28,10 @@ const app = next({ dev, hostname, port })
 ;(app as unknown as { didWebSocketSetup: boolean }).didWebSocketSetup = true
 
 async function main() {
+  // 在加载 Next.js 与业务模块前初始化数据库连接、PRAGMA 与自动迁移
+  const { initializeDatabase } = await import('./src/server/infra/db/client')
+  await initializeDatabase()
+
   await app.prepare()
 
   // 动态导入 WebSocket Hub，确保 db 实例在环境变量就绪后初始化

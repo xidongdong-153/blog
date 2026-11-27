@@ -12,7 +12,7 @@ import type { BlogPost } from '@/lib/content'
 import type { AppDatabase } from '@/server/infra/db/client'
 import { count, desc, eq, isNotNull, isNull } from 'drizzle-orm'
 import { getAllNotes, resolvePostCommentKey } from '@/lib/content'
-import { db as defaultDb } from '@/server/infra/db/client'
+import { databaseConfig, db as defaultDb } from '@/server/infra/db/client'
 import { comments, friendLinks, user } from '@/server/infra/db/schema'
 import { getAiSummaryConfig, isAiMasterKeyAvailable } from '@/server/modules/ai/summary-config.service'
 import { listManagedPosts } from '@/server/modules/posts/posts.service'
@@ -192,7 +192,7 @@ export async function getAdminDashboardData(
       status: 'error' as const,
       operationalStatus: 'degraded' as const,
       latencyMs: -1,
-      provider: (process.env.TURSO_DATABASE_URL ? 'turso' : 'local-sqlite') as 'turso' | 'local-sqlite',
+      provider: databaseConfig.provider,
       message: '连接失败',
     })),
     getAiSummaryConfig({ database: targetDb }).catch(() => null),

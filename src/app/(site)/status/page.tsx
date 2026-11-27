@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import { formatDate } from '@/lib/content'
+import { formatDatabaseProviderLabel } from '@/server/infra/db/config'
 import { getStatusPageData } from '@/server/modules/system/system.service'
 
 export const dynamic = 'force-dynamic'
@@ -80,12 +81,16 @@ export default async function StatusPage() {
             </div>
           </div>
 
-          {/* 服务 2：Turso 云数据库 */}
+          {/* 服务 2：数据库 */}
           <div className="flex flex-col gap-3 py-5">
             <div className="flex items-center justify-between gap-4">
               <div className="flex flex-col">
-                <span className="text-sm font-medium text-foreground">数据库 (Turso)</span>
-                <span className="font-mono text-xs text-muted-foreground">libSQL · {dbResult.message}</span>
+                <span className="text-sm font-medium text-foreground">
+                  数据库 ({formatDatabaseProviderLabel(dbResult.provider)})
+                </span>
+                <span className="font-mono text-xs text-muted-foreground">
+                  {dbResult.provider === 'sqlite' ? '本地 SQLite' : 'libSQL'} · {dbResult.message}
+                </span>
               </div>
               <div className="flex shrink-0 items-center gap-3 font-mono text-xs">
                 <span className="tabular-nums text-muted-foreground">{dbResult.latency}ms</span>

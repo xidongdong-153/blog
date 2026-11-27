@@ -6,11 +6,14 @@ services:
     env_file:
       - path: ${BLOG_ENV_FILE:-.env.docker}
         format: ${BLOG_ENV_FORMAT:-}
+        required: false
     environment:
       CI: ''
       HOST: 0.0.0.0
       NODE_ENV: production
       PORT: '4400'
+    volumes:
+      - blog-data:/app/data
     ports:
       - '127.0.0.1:${BLOG_PORT:-4400}:4400'
     healthcheck:
@@ -25,3 +28,6 @@ services:
       timeout: 5s
       start_period: 15s
       retries: 3
+
+volumes:
+  blog-data:

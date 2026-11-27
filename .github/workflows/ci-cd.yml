@@ -56,22 +56,19 @@ jobs:
 
       - name: Check database migrations
         env:
-          TURSO_DATABASE_URL: file:ci.db
-          TURSO_AUTH_TOKEN: ci-local-only-token
+          DATABASE_URL: file:ci.db
         run: pnpm db:check
 
       - name: Migrate database
         env:
-          TURSO_DATABASE_URL: file:ci.db
-          TURSO_AUTH_TOKEN: ci-local-only-token
+          DATABASE_URL: file:ci.db
         run: pnpm db:migrate
 
       - name: Build
         env:
           BETTER_AUTH_URL: http://localhost:4400
           BETTER_AUTH_SECRET: ci-build-only-better-auth-secret-0123456789
-          TURSO_DATABASE_URL: file:ci.db
-          TURSO_AUTH_TOKEN: ci-local-only-token
+          DATABASE_URL: file:ci.db
         run: pnpm build
 
   publish:
@@ -148,8 +145,9 @@ jobs:
           DEPLOY_KNOWN_HOSTS: ${{ secrets.DEPLOY_KNOWN_HOSTS }}
           DEPLOY_IMAGE: ${{ needs.publish.outputs.image }}
           GHCR_TOKEN: ${{ github.token }}
-          TURSO_DATABASE_URL: ${{ vars.TURSO_DATABASE_URL || secrets.TURSO_DATABASE_URL }}
-          TURSO_AUTH_TOKEN: ${{ secrets.TURSO_AUTH_TOKEN }}
+          DATABASE_URL: ${{ vars.DATABASE_URL || secrets.DATABASE_URL }}
+          DATABASE_AUTH_TOKEN: ${{ secrets.DATABASE_AUTH_TOKEN }}
+          DATABASE_AUTO_MIGRATE: ${{ vars.DATABASE_AUTO_MIGRATE }}
           BETTER_AUTH_URL: ${{ vars.BETTER_AUTH_URL || secrets.BETTER_AUTH_URL }}
           BETTER_AUTH_SECRET: ${{ secrets.BETTER_AUTH_SECRET }}
           OAUTH_GITHUB_CLIENT_ID: ${{ vars.OAUTH_GITHUB_CLIENT_ID || secrets.OAUTH_GITHUB_CLIENT_ID }}
@@ -168,16 +166,21 @@ jobs:
           set -euo pipefail
           : "${DEPLOY_HOST:?}" "${DEPLOY_PORT:?}" "${DEPLOY_USER:?}"
           : "${DEPLOY_SSH_KEY:?}" "${DEPLOY_KNOWN_HOSTS:?}" "${DEPLOY_IMAGE:?}"
-          required_app_keys=(TURSO_DATABASE_URL TURSO_AUTH_TOKEN BETTER_AUTH_URL BETTER_AUTH_SECRET)
+          required_app_keys=(DATABASE_URL BETTER_AUTH_URL BETTER_AUTH_SECRET)
           for key in "${required_app_keys[@]}"; do
             if ! [[ "${!key:-}" =~ [^[:space:]] ]]; then
               printf 'Missing GitHub Deployment value for %s.\n' "$key" >&2
               exit 1
             fi
           done
+          if [[ "${DATABASE_URL}" == libsql://* || "${DATABASE_URL}" == *".turso.io"* ]] && ! [[ "${DATABASE_AUTH_TOKEN:-}" =~ [^[:space:]] ]]; then
+            printf 'Missing GitHub Deployment value for DATABASE_AUTH_TOKEN.\n' >&2
+            exit 1
+          fi
 
           app_env=$(
             for key in "${required_app_keys[@]}" \
+              DATABASE_AUTH_TOKEN DATABASE_AUTO_MIGRATE \
               OAUTH_GITHUB_CLIENT_ID OAUTH_GITHUB_CLIENT_SECRET \
               OAUTH_GOOGLE_CLIENT_ID OAUTH_GOOGLE_CLIENT_SECRET \
               ADMIN_EMAIL RESEND_API_KEY RESEND_FROM_EMAIL FRIEND_APPLY_NOTIFY_EMAIL \

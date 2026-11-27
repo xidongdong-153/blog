@@ -2,14 +2,9 @@ services:
   blog:
     env_file: !reset []
     environment:
-      CI: 'true'
-      TURSO_DATABASE_URL: file:/app/data/blog.db
+      DATABASE_URL: ${DATABASE_URL:-file:/app/data/blog.db}
+      DATABASE_AUTH_TOKEN: ${DATABASE_AUTH_TOKEN:-}
       PRESENCE_READ_MODE: ${PRESENCE_READ_MODE:-pull}
       PRESENCE_REPORT_TOKEN_SHA256: ${PRESENCE_REPORT_TOKEN_SHA256:-}
       BETTER_AUTH_URL: http://localhost:${BLOG_PORT:-4400}
       BETTER_AUTH_SECRET: local-docker-only-better-auth-secret-0123456789
-    volumes:
-      - blog-data:/app/data
-
-volumes:
-  blog-data:

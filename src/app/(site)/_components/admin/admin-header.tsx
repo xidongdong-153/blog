@@ -1,6 +1,7 @@
 /* eslint-disable next/no-img-element */
 import type { AdminSystemStatus, AdminUserSummary } from '@/server/modules/admin/admin.types'
 import { Activity, Database, Server, ShieldCheck } from 'lucide-react'
+import { formatDatabaseProviderLabel } from '@/server/infra/db/config'
 import { PaperSurface } from '../site/paper-surface'
 
 interface AdminHeaderProps {
@@ -78,7 +79,7 @@ export function AdminHeader({ user, system }: AdminHeaderProps) {
           }`}
         >
           <Database className="size-3.5" aria-hidden="true" />
-          <span>{system.dbProvider === 'turso' ? 'Turso' : 'Local SQLite'}</span>
+          <span>{formatDatabaseProviderLabel(system.dbProvider)}</span>
           <span className="opacity-40">/</span>
           <span>{isDbOk ? `${system.dbLatencyMs}ms` : '连接异常'}</span>
         </div>

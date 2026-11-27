@@ -1,12 +1,13 @@
+import type { DatabaseProvider } from '@/server/infra/db/config'
 import { sql } from 'drizzle-orm'
-import { db } from '@/server/infra/db/client'
+import { databaseConfig, db } from '@/server/infra/db/client'
 import { checkPresenceHealth } from '@/server/modules/presence/presence.service'
 
 export interface DatabaseCheckResult {
   status: 'connected' | 'error'
   operationalStatus: 'operational' | 'degraded'
   latencyMs: number
-  provider: 'turso' | 'local-sqlite'
+  provider: DatabaseProvider
   message: string
   result?: unknown
 }
@@ -31,6 +32,7 @@ export interface SystemProcessHealth {
 export interface StatusPageData {
   db: {
     status: 'operational' | 'degraded'
+    provider: DatabaseProvider
     latency: number
     message: string
   }
@@ -48,7 +50,7 @@ export interface StatusPageData {
 export async function checkDatabase(options?: { customDb?: typeof db }): Promise<DatabaseCheckResult> {
   const targetDb = options?.customDb ?? db
   const start = performance.now()
-  const provider = process.env.TURSO_DATABASE_URL ? 'turso' : 'local-sqlite'
+  const provider = databaseConfig.provider
 
   try {
     const result = await targetDb.run(sql`SELECT 1 as ping`)
@@ -115,6 +117,7 @@ export async function getStatusPageData(): Promise<StatusPageData> {
   return {
     db: {
       status: dbResult.operationalStatus,
+      provider: dbResult.provider,
       latency: dbResult.latencyMs,
       message: dbResult.message,
     },

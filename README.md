@@ -1,6 +1,6 @@
 # blog
 
-Next.js 16 + React 19 + TypeScript 个人博客，文章、评论、友链、AI 摘要和账号认证使用 libSQL/Turso 数据库，正文保留 MDX 格式，笔记使用本地 Markdown 文件。本地开发默认使用 SQLite。推送 `main` 后由 GitHub Actions 检查，生产发布需手动运行工作流；站点实时活动可读取 Mac 采集器上报的最新快照，兼容旧服务。
+Next.js 16 + React 19 + TypeScript 个人博客，文章、评论、友链、AI 摘要和账号认证使用 SQLite / libSQL（兼容本地文件与 Turso 云数据库），正文保留 MDX 格式，笔记使用本地 Markdown 文件。本地开发与 Docker 默认开箱即用本地 SQLite，并在启动时自动执行数据库迁移。推送 `main` 后由 GitHub Actions 检查，生产发布需手动运行工作流；站点实时活动可读取 Mac 采集器上报的最新快照，兼容旧服务。
 
 ## 本地启动
 
@@ -8,11 +8,10 @@ Next.js 16 + React 19 + TypeScript 个人博客，文章、评论、友链、AI 
 
 ```bash
 pnpm install
-pnpm db:migrate
 pnpm dev
 ```
 
-打开 <http://localhost:4400>。未配置评论或未启动活动服务不影响浏览文章，活动服务不可用时显示离线。
+打开 <http://localhost:4400>。服务启动时会自动建库并执行迁移（默认 `file:local.db`），无需预先配置外部数据库；未配置评论或未启动活动服务不影响浏览文章，活动服务不可用时显示离线。如需接入本地自定义路径或 Turso 云数据库，参考 `.env.example` 配置 `DATABASE_URL`（及远程所需的 `DATABASE_AUTH_TOKEN`）。
 
 ## 配置与内容
 

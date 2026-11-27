@@ -31,7 +31,7 @@ paths:
 | 缓存      | setup-node 管 pnpm 缓存，绑定 pnpm-lock.yaml；不新增第二套 store 缓存     |
 | 依赖构建  | pnpm-workspace.yaml 的 allowBuilds 统一本地、CI 与生产                    |
 
-Quality 依次安装依赖、typecheck、lint、format:check、db:check、db:migrate、build。数据库步骤与构建指定 runner 的 file:ci.db 和临时 token；构建用固定非生产认证配置，不读生产数据库和 AI 凭据。
+Quality 依次安装依赖、typecheck、lint、format:check、db:check、db:migrate、build。数据库步骤与构建指定 runner 的 `DATABASE_URL=file:ci.db`（本地 SQLite 无需 token）；构建用固定非生产认证配置，不读生产数据库和 AI 凭据。
 
 Action Runtime 升级与项目 Node 升级分开核对，不能用 node-version 改 Action 的 runs.using，也不设置旧 Runtime 兼容开关。缓存未命中不代替或跳过 frozen install。版本不匹配先修配置与锁文件，不跳过检查。
 
@@ -46,7 +46,7 @@ Deployment branches and tags 明确限定 main，不配置 Required reviewers �
 | Secret   | DEPLOY_KNOWN_HOSTS                    | 人工核对指纹后的 known_hosts 行           |
 | Secret   | AI_CREDENTIAL_ENCRYPTION_KEY          | 32 字节 Base64 主密钥；非空时同步到服务器 |
 
-应用的 Turso、Better Auth、OAuth、管理员邮箱与邮件等键按 workflow 中的 env 定义提供。部署脚本将非空环境配置同步到服务器已有 .env.local 的对应键，其他键保留；不能声称 .env.local 完全不会被写入，也不整份复制服务器文件到 Actions。空配置不会清除已有键。
+应用的数据库（`DATABASE_URL`、远程模式所需的 `DATABASE_AUTH_TOKEN`、可选 `DATABASE_AUTO_MIGRATE`）、Better Auth、OAuth、管理员邮箱与邮件等键按 workflow 中的 env 定义提供。部署脚本将非空环境配置写入发布目录并挂载为容器 `env_file`；当使用 Docker 默认 SQLite 部署时，容器默认落盘持久化卷 `blog-data:/app/data/blog.db` 并在启动时自动执行迁移。
 
 Actions 密钥与服务器拉 GitHub 的密钥分开，公钥放 deploy 的 authorized_keys。SSH 使用 BatchMode、15 秒连接超时、StrictHostKeyChecking、IdentitiesOnly 和已核对 known_hosts，不临时 ssh-keyscan。临时目录 700，私钥和 known_hosts 600，不打印值。
 

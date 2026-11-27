@@ -1,3 +1,5 @@
+import type { DatabaseProvider } from '@/server/infra/db/config'
+
 export interface AdminUserSummary {
   name: string
   email: string
@@ -10,7 +12,7 @@ export interface AdminSystemStatus {
   uptimeSeconds: number
   dbLatencyMs: number
   dbStatus: 'connected' | 'error'
-  dbProvider: 'turso' | 'local-sqlite'
+  dbProvider: DatabaseProvider
 }
 
 export interface AdminContentStats {

@@ -2,6 +2,7 @@ import type { ReactNode } from 'react'
 import type { AdminAiServiceStatus, AdminEngagementStats, AdminSystemStatus } from '@/server/modules/admin/admin.types'
 import { Activity, ArrowRight, BookOpen, Cpu, Globe, MessageSquare, Server } from 'lucide-react'
 import Link from 'next/link'
+import { formatDatabaseProviderLabel } from '@/server/infra/db/config'
 import { PaperSurface } from '../site/paper-surface'
 
 interface AdminPortalMatrixProps {
@@ -186,7 +187,7 @@ export function AdminPortalMatrix({ aiService, engagement, system }: AdminPortal
       title: '系统状态',
       description: '检查数据库连接与运行指标。',
       meta: [
-        { label: '数据库', value: system.dbProvider },
+        { label: '数据库', value: formatDatabaseProviderLabel(system.dbProvider) },
         { label: '延迟', value: isDbOk ? `${system.dbLatencyMs}ms` : '超时' },
       ],
       href: '/status',
